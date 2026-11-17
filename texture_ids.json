@@ -1,0 +1,54 @@
+{
+  "_note": "Group-owned (597081155) image IDs, uploaded via TexUpload_*.fbx import. Do not use IDs from MCP upload_image (user-owned, fail to load in this group game).",
+  "Container40": {
+    "Color": {
+      "RustRed": "rbxassetid://130510789441720",
+      "FadedBlue": "rbxassetid://107206467524502",
+      "Olive": "rbxassetid://91598772669186",
+      "DirtyWhite": "rbxassetid://135545618962984"
+    },
+    "Normal": "rbxassetid://126151414262873",
+    "Roughness": "rbxassetid://136677513751331",
+    "Metalness": "rbxassetid://115530291617642"
+  },
+  "Container20": {
+    "Color": {
+      "RustRed": "rbxassetid://101783122966276",
+      "FadedBlue": "rbxassetid://72643923011469",
+      "Olive": "rbxassetid://125074963537265",
+      "DirtyWhite": "rbxassetid://135252773487669"
+    },
+    "Normal": "rbxassetid://138452119007577",
+    "Roughness": "rbxassetid://79159293771381",
+    "Metalness": "rbxassetid://93220606877060"
+  },
+  "CraneSTS": {
+    "_note": "Crane_STS tileable maps, UV = world box projection 20 studs/tile",
+    "Color": {
+      "CraneYellow": "rbxassetid://112714235470357"
+    },
+    "Normal": "rbxassetid://81085273014661",
+    "Roughness": "rbxassetid://79409976353138",
+    "Metalness": "rbxassetid://127183483645771"
+  },
+  "WhSiding": {
+    "_note": "Warehouse corrugated siding, tiles in U only. UV: U = 24 studs (16 ribs), V = 0..1 over 30 studs of wall height (grime at V=0). Color variant = palette key of the part name.",
+    "Color": {
+      "SidingTeal": "rbxassetid://126209095166827",
+      "RoofZinc": "rbxassetid://103975482907154",
+      "ShutterOrange": "rbxassetid://129767392683582"
+    },
+    "Normal": "rbxassetid://134641190476675",
+    "Roughness": "rbxassetid://114139515165698",
+    "Metalness": "rbxassetid://106273879084217"
+  },
+  "WhSteel": {
+    "_note": "Painted structural steel, tiles in U and V, 8 studs per tile (box projection).",
+    "Color": {
+      "SteelBlue": "rbxassetid://125962397461553"
+    },
+    "Normal": "rbxassetid://99734605337204",
+    "Roughness": "rbxassetid://92645181061547",
+    "Metalness": "rbxassetid://122834005449657"
+  }
+}
