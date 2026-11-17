@@ -1,6 +1,6 @@
 # Zone_CanalWarehouse — 이어서 할 일 (인수인계)
 
-> 마지막 작업: 2026-11-18 · Studio 저장 버전 **69** (게시 안 함)
+> 마지막 작업: 2026-11-18 · Studio 저장 버전 **83** (게시 안 함) · 쓰러진 크레인 완료, 다음은 RTG
 > 자세한 설계·결정·좌표는 같은 폴더의 `Zone_CanalWarehouse_계획서.md` (특히 9장 결정 결과, 9.5~9.7 결과 기록)
 > 파이프라인 규칙은 `.claude/skills/blender-to-roblox/` (`SKILL.md`, `references/pbr_pipeline.md`, `scripts/`)
 
@@ -30,7 +30,7 @@
 |---|---|
 | `Workspace.ZoneContent.Zone_CanalWarehouse` | 존 콘텐츠 루트 (현재 BasePart 508개, 목표 신규 ≤ 3,500) |
 | `.Blockout` | 남은 회색 블록아웃: RTG, 쓰러진 크레인(붐·잔해), 리치스태커, 트럭, 감시탑·연료탱크·정비고, 부두 사무소, 오두막, 골목 엄폐물, 창고 랙·잔해 계단·앞마당, 운하 얕은 바닥·경사로·바지선·폰툰, 상자 발판, STS 등반 마커 |
-| `.A_CraneQuay` | `Crane_STS_01`(다른 세션), `Containers` |
+| `.A_CraneQuay` | `Crane_STS_01`(다른 세션), `Crane_Collapsed_01`(완성), `Containers` |
 | `.B_ContainerYard/Yard_South`, `Yard_North` | 실제 컨테이너 (속성 `Variant`, `BlockoutSource`, 열린 것은 `Open=true` 6개) |
 | `.C_Warehouse_Main/Warehouse_Main` | **완성** 메인 창고 (13 MeshPart + 충돌 69 + 사다리 Truss) |
 | `.E_Canal/Containers` | 운하 속 컨테이너 2개 |
@@ -48,7 +48,8 @@
 - 텍스처: `CraneSTS` 타일 세트 재사용(`TEXTURES.CraneCol = TEXTURES.CraneSTS`), 새 업로드 없음. 모든 메쉬 `__NoCollide`, 큰 메쉬는 CastShadow 다시 켬.
 - 충돌: `Crane_Collapsed_01/Colliders` = 붐 바닥(9×6×219.6) + 거더 2(3.5×8.2) + 블록아웃 4개(Base_Frame, Leg_Fallen, Leg_Bent, MachineHouse_Wreck) 위치 그대로.
 - 위치: `A_CraneQuay/Crane_Collapsed_01`, 원본 `ServerStorage.Assets.CanalWarehouse.Crane_Collapsed`. 블록아웃 `A_CollapsedCrane` 삭제.
-- ⚠ 배치 직후 Studio MCP 연결이 끊김 → **Studio 저장(버전 70) 여부 확인 필요**, 플레이 테스트(붐 위 걷기, 창고 잔해 계단 → 붐 끝) 아직 안 함. `Workspace.Zones` 투명도를 1로 바꿔 둔 상태일 수 있음(속성 `_SavedTransparency`로 복구).
+- 플레이 확인: 서쪽 끝 → 붐 끝(u 200)까지 걸어서 이동 OK. 창고 잔해 계단 맨 위(24)에서 붐까지는 남쪽 거더 윗면(≈31.8)이 너무 높아 못 올라가서 **잔해 계단 5번째 단 추가**(`Blockout/C_Warehouse/RubbleStep`, 7×30×7 @ (-416.5, 15, 909.2), 위면 30) → 바닥 → 계단 → 거더 → 붐 바닥 경로 확인. 소품 단계에서 잔해 더미로 교체할 때 이 높이(6/12/18/24/30) 유지.
+- Studio 저장 버전 **83** (Team Create, 다른 세션 저장 포함). 존 BasePart 521.
 
 다음 추천 에셋: RTG.
 
