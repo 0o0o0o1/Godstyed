@@ -1,6 +1,6 @@
 # Zone_CanalWarehouse — 이어서 할 일 (인수인계)
 
-> 마지막 작업: 2026-11-18 · Studio 저장 버전 **85** (게시 안 함) · 쓰러진 크레인·RTG 완료
+> 마지막 작업: 2026-11-18 · Studio 저장 버전 **89** (게시 안 함) · 쓰러진 크레인·RTG·문 열린 컨테이너 완료
 > 자세한 설계·결정·좌표는 같은 폴더의 `Zone_CanalWarehouse_계획서.md` (특히 9장 결정 결과, 9.5~9.7 결과 기록)
 > 파이프라인 규칙은 `.claude/skills/blender-to-roblox/` (`SKILL.md`, `references/pbr_pipeline.md`, `scripts/`)
 
@@ -61,7 +61,19 @@
 - 플레이 확인: 두 통로 모두 빔 양옆으로 끝까지 걸어서 통과, Pathfinding(반경 2) 북→남 통로 Success.
 - Studio 저장 버전 **85**. 존 BasePart 529.
 
-다음 추천 에셋: 문 열린 컨테이너(`Open=true` 6개 교체 → 루트 지점) 또는 리치스태커·바지선.
+**문 열린 컨테이너 `Container_40ft_Open` / `Container_20ft_Open` — 2026-11-18 제작**
+- Blender 컬렉션 `Container_40ft_Open`, `Container_20ft_Open` (삼각형 3,060 / 2,482), FBX `exports/Container_*_Open.fbx`. 원점 = 바닥 중앙(원본 컨테이너와 같음), 문 = Blender +X → Roblox 로컬 -X.
+- 원본 몸체에서 문짝 면을 잘라(y=0에서 bisect) 경첩 (±hx, ±5.62) 기준으로 왼쪽 -100°, 오른쪽 +72° 회전. 잠금 막대(HW)도 같이. 문짝 가운데 자른 면은 메우지 못함(얇은 틈, 거의 안 보임).
+- 내부 새로 만듦: `_Interior`(안쪽 벽+세로 리브+천장 보+뒷벽, 색 = 변형 색을 어둡게, CorrodedMetal), `_Floor__Wood`(판자 7장, 바닥 위면 Y 1.0).
+- 텍스처: 기존 `Container40`/`Container20` 아틀라스 그대로(이름 접두사 유지) → 변형별 SurfaceAppearance를 교체 시 붙임.
+- 충돌(`Colliders`): 바닥, 양 벽, 지붕, 뒷벽, 문 위 헤더, 문짝 2(회전 상자).
+- `Open=true` 컨테이너 **9개**(40ft 5, 20ft 4) 전부 교체, 속성(Variant, BlockoutSource, Open) 유지. 문 앞이 막힌 2개(Yard_South 40ft Olive (-128.4, 953), RustRed (-242.4, 995))는 180° 돌림 → 속성 `Flipped=true`.
+- 템플릿: `ServerStorage.Assets.CanalWarehouse.Container_40ft_Open`, `Container_20ft_Open` (SurfaceAppearance 없음, 복제 후 변형별로 붙임).
+- 플레이 확인: 9개 모두 문 앞 → 안쪽 뒷벽까지 걸어 들어갔다 나옴(발 높이 1.0). Pathfinding Success. → **7단계 `LootSpawn` 위치 후보**: 각 컨테이너 로컬 (hx - 4, 1, 0) 부근.
+- 플레이 테스트 팁: MCP 재연결 뒤에는 클라이언트 물리가 멈춰 `MoveTo`가 안 먹음 → 서버에서 `HumanoidRootPart:SetNetworkOwner(nil)` 후 테스트. 긴 테스트는 `task.spawn` + 결과를 StringValue에 써 두고 나중에 읽기(호출이 길면 MCP 연결이 끊김).
+- Studio 저장 버전 **89**. 존 BasePart 637.
+
+다음 추천 에셋: 리치스태커·바지선, 그다음 소품(팔레트 랙·잔해 더미 등).
 
 | 에셋 | 블록아웃 위치 / 크기 | 메모 |
 |---|---|---|
