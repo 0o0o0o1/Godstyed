@@ -149,9 +149,22 @@ print(export_asset("Container_40ft"))      # → exports\Container_40ft.fbx
 - 내보낸 파일 위치: `C:\Users\CafeAlle\Desktop\god\exports\<에셋이름>.fbx`
 - 내보낸 뒤 `look`의 angles 모드로 에셋을 여러 방향에서 찍어 사용자에게 보여주세요.
 
-## 7. Studio로 가져오기 (사용자가 직접)
+## 7. Studio로 가져오기
 
-자동 업로드 경로가 없으므로 이 단계는 사용자에게 부탁합니다. 매번 이 안내를 그대로 주세요.
+### 7-A. 자동 (기본, 2026-11-18부터) — Open Cloud 업로드 + insert_asset
+사용자가 `exports` 폴더를 Studio **Assistant Settings → MCP Permissions → 업로드 허용 폴더**에 추가해 둠. 그래서 사용자에게 Import 3D를 부탁하지 않고 직접 가져옵니다.
+1. Studio MCP `open_cloud_invoke`: `POST /assets/v1/assets`, scopes `["asset:read","asset:write"]`,
+   body `{"request":{"assetType":"Model","displayName":"<에셋>","description":"...","creationContext":{"creator":{"groupId":"597081155"}}}}`,
+   files `[{"name":"fileContent","path":"C:\\Users\\CafeAlle\\Desktop\\god\\exports\\<에셋>.fbx"}]` → **그룹 소유** 모델(텍스처 소유권 문제 없음).
+2. `GET /assets/v1/operations/<id>`를 `done: true`가 될 때까지 (보통 15초) → `assetId`.
+3. `insert_asset(assetId, assetType="Model")` → Workspace에 들어옴. **패키지로 들어오고 임의 위치·회전(예: Y -125°)으로 놓임** →
+   `PackageLink` 삭제 후, 기준 MeshPart 하나의 원하는 CFrame(Blender 바운딩 중심을 매핑한 값, 회전 없음)으로
+   `T = 원하는CF * ref.CFrame:Inverse(); model:PivotTo(T * model:GetPivot())`.
+4. 그다음은 8장 후처리와 같음.
+
+### 7-B. 수동 (폴더 허용이 없는 PC) — 사용자가 Import 3D
+
+자동 업로드가 안 될 때만 이 단계를 사용자에게 부탁합니다. 매번 이 안내를 그대로 주세요.
 
 1. Studio에서 **"도시"** 플레이스를 열고 `File → Import 3D` (또는 Avatar 탭 → Import 3D)
 2. `exports\<에셋이름>.fbx` 선택

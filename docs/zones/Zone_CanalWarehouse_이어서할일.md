@@ -1,6 +1,6 @@
 # Zone_CanalWarehouse — 이어서 할 일 (인수인계)
 
-> 마지막 작업: 2026-11-18 · Studio 저장 버전 **91** (게시 안 함) · 쓰러진 크레인·RTG·문 열린 컨테이너·리치스태커·바지선 완료
+> 마지막 작업: 2026-11-18 · Studio 저장 버전 **93** (게시 안 함) · 큰 에셋 전부 + 소품 묶음 1(창고 내부) 완료 · FBX는 이제 자동 업로드(SKILL 7-A)
 > 자세한 설계·결정·좌표는 같은 폴더의 `Zone_CanalWarehouse_계획서.md` (특히 9장 결정 결과, 9.5~9.7 결과 기록)
 > 파이프라인 규칙은 `.claude/skills/blender-to-roblox/` (`SKILL.md`, `references/pbr_pipeline.md`, `scripts/`)
 
@@ -11,7 +11,7 @@
 1. **게임은 그룹 소유**(Group 597081155). 텍스처를 Studio MCP `upload_image`로 올리면 개인 소유라 안 보임.
    → 텍스처마다 2×2 판의 Base Color에 이미지를 연결한 **견본 FBX**(`TexUpload_<에셋>.fbx`, `path_mode='COPY', embed_textures=True`)를 만들고,
    사용자가 Import 3D → 각 `TexSwatch*` MeshPart의 `TextureID`를 읽음 → `GetProductInfo`로 Creator=Group 확인 → `exports/texture_ids.json`과 `studio_postimport.lua`의 `TEXTURES`에 기록.
-2. **Import 3D 설정**(사용자가 직접): File Dimensions = **Studs**, Anchored 켜기, Insert in Workspace + Insert Using Scene Position 켜기, Import Only As Model 켜기.
+2. **가져오기**: 기본은 자동(Open Cloud 업로드 + `insert_asset`, SKILL 7-A). 다른 PC에서 업로드 폴더 허용이 없으면 사용자가 Import 3D — 설정: File Dimensions = **Studs**, Anchored 켜기, Insert in Workspace + Insert Using Scene Position 켜기, Import Only As Model 켜기.
 3. **축**: Blender +X → Roblox **-X**, Blender +Y → Roblox +Z, Blender +Z → Roblox +Y. 1 Blender unit = 1 stud.
    가져온 모델에서 Blender 점 (x,y,z) = 모델 로컬 (-x, z, y). 모델을 `CFrame.Angles(0, π/2, 0)`로 돌리면 Blender x → Roblox +Z.
 4. **MeshPart CollisionFidelity는 스크립트로 못 바꿈** → 메쉬는 `__NoCollide`, 충돌은 투명 Part로 따로. 사다리는 투명 **TrussPart**.
@@ -83,7 +83,20 @@
   - 플레이 확인: 운하 바닥(-4.5) → 서쪽 잠긴 끝 → 갑판 동쪽 끝까지 걸어서 이동.
 - Studio 저장 버전 **91**. 존 BasePart 654.
 
-다음 추천: 4단계 소품(팔레트 랙 4줄, 창고 잔해 계단 5단(높이 6/12/18/24/30 유지), 드럼통·팔레트·모래주머니·철조망·볼라드·감시탑·정비고·연료탱크·부두 사무소·트럭 등). 남은 블록아웃 목록은 1장 표 참고.
+### 4단계 소품
+
+**가져오기 방식 변경 (2026-11-18)**: `exports` 폴더를 Studio MCP 업로드 허용 폴더로 추가함 → FBX를 Open Cloud로 **그룹 소유 Model**로 올리고 `insert_asset`으로 넣음. 사용자에게 Import 3D 부탁 안 함. 절차는 `.claude/skills/blender-to-roblox/SKILL.md` 7-A.
+
+**묶음 1: 창고 내부 `Warehouse_Props` — 완료** (asset 127864381341171)
+- Blender 컬렉션 `Warehouse_Props` (메쉬 13, 삼각형 약 11,800). 매핑 Blender (x,y,z) ↔ Roblox (-410 - x, z, 870 + y). 기준: `WhRack_Uprights` 중심 = (-412, 8.5, 897).
+- 팔레트 랙 4줄: 강철 파랑 기둥(SteelBlue)·주황 빔(ShutterOrange)·철망 선반·팔레트(Wood)·화물(Cardboard 색 125,100,70). (-398, 846) 랙 가운데 칸 무너짐 + 통로에 쏟아진 팔레트·상자(충돌 없음).
+- 잔해 계단 5단: 콘크리트 판·나무 상자·팔레트를 층마다 엇갈려 쌓은 더미(생존자가 붐으로 오르려고 쌓은 것) + 기댄 지붕 철골 2 + 찢어진 지붕 판 + 철근. 5번째(30)는 **쓰러진 크레인에서 부러진 붐 끝이 세워진 것**(위에 철판, 찢긴 철판).
+- 하역 앞마당: 깨진 콘크리트 판 + 경고 줄무늬 + 떨어진 조각.
+- 충돌: 블록아웃 상자 10개를 그대로 투명하게 → `C_Warehouse_Main/Warehouse_Props/Colliders`. 랙은 통짜(등반 불가 유지). 블록아웃 `C_Warehouse` 폴더 삭제.
+- 플레이 확인: 바닥 → 잔해 6/12/18/24/30 → 붐 바닥 경로 OK. 랙 사이 통로 가운데는 잔해 더미가 막지만 Pathfinding은 서쪽(x≈-427)·동쪽(x≈-387)으로 돌아감.
+- Studio 저장 버전 **93**. 존 BasePart 667.
+
+**남은 묶음** (사용자에게 순서 질문): 서쪽 강변(감시탑·연료탱크 3·펜스·정비고) / 크레인 부두(부두 사무소·오두막·볼라드 9·크레인 레일 2·모래주머니·고철) / 야드 엄폐물(등반 상자 3·트럭+샤시·차단기·모래주머니 벽·불탄 차·저지 방벽 2). 운하 폰툰·경사로·얕은 바닥은 5단계 운하 마감 때.
 
 | 에셋 | 블록아웃 위치 / 크기 | 메모 |
 |---|---|---|
