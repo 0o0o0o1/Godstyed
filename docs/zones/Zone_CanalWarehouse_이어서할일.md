@@ -1,6 +1,6 @@
 # Zone_CanalWarehouse — 이어서 할 일 (인수인계)
 
-> 마지막 작업: 2026-11-18 · Studio 저장 버전 **89** (게시 안 함) · 쓰러진 크레인·RTG·문 열린 컨테이너 완료
+> 마지막 작업: 2026-11-18 · Studio 저장 버전 **91** (게시 안 함) · 쓰러진 크레인·RTG·문 열린 컨테이너·리치스태커·바지선 완료
 > 자세한 설계·결정·좌표는 같은 폴더의 `Zone_CanalWarehouse_계획서.md` (특히 9장 결정 결과, 9.5~9.7 결과 기록)
 > 파이프라인 규칙은 `.claude/skills/blender-to-roblox/` (`SKILL.md`, `references/pbr_pipeline.md`, `scripts/`)
 
@@ -73,7 +73,17 @@
 - 플레이 테스트 팁: MCP 재연결 뒤에는 클라이언트 물리가 멈춰 `MoveTo`가 안 먹음 → 서버에서 `HumanoidRootPart:SetNetworkOwner(nil)` 후 테스트. 긴 테스트는 `task.spawn` + 결과를 StringValue에 써 두고 나중에 읽기(호출이 길면 MCP 연결이 끊김).
 - Studio 저장 버전 **89**. 존 BasePart 637.
 
-다음 추천 에셋: 리치스태커·바지선, 그다음 소품(팔레트 랙·잔해 더미 등).
+**리치스태커 `ReachStacker` · 바지선 `Barge` — 2026-11-18 제작**
+- 리치스태커: Blender 컬렉션 `ReachStacker` (삼각형 1,728), 로컬 원점 = (-120, 0.5, 790), 앞 = -X. 매핑 Blender (x,y,z) ↔ 로컬 (-x, z, y). 차체·평형추(경고 줄무늬)·엔진 덮개·배기구·운전실(+z로 치우침, 유리 반쯤 깨짐)·앞 이중 바퀴/뒤 조향 바퀴(1개 펑크)·2단 붐(피벗 (9, 10.8) → 끝 (-45, 34.6))·유압 실린더 2·회전 헤드·스프레더(들린 컨테이너 `RS_HeldContainer` 위면 Y 30.5에 맞춤). 텍스처 CraneSTS(`TEXTURES.RStack`).
+  - **등반 불가**: 충돌 = 몸체 하나 32×14×16.8(위면 Y 14.4) + 붐 + 스프레더. 플레이 테스트 점프 최고 발 높이 ≈ 9.3.
+  - 위치 `B_ContainerYard/ReachStacker_01`, 원본 `ServerStorage.Assets.CanalWarehouse.ReachStacker`. 블록아웃 `ReachStacker_Blockout` 삭제.
+- 바지선: Blender 컬렉션 `Barge` (삼각형 2,212), 로컬 원점 = 블록아웃 `SunkenBarge` 중심(그 CFrame 그대로 `PivotTo`), 80×8×24, 갑판 위면 로컬 y 4. 선체(양 끝 경사, 옆구리 찢김), 갑판 판, 낮은 벽(서쪽 잠긴 끝 x < -27은 없음 → 물에서 걸어서 올라탐), 계류 기둥 6쌍, 밧줄 더미 2(1줄 물로 늘어짐), 기계실, 윈치, 타이어 방현재 6, 경고·흘수 표시. 선체 색은 더 어둡게 덮어씀(72, 42, 32), 갑판 (52, 50, 48) CorrodedMetal.
+  - 충돌: 갑판(블록아웃 상자 그대로), 양옆 벽, 동쪽 벽, 기계실, 윈치. 갑판 위 컨테이너(`BargeContainer`)는 그대로.
+  - 위치 `E_Canal/Barge_01`, 원본 `ServerStorage.Assets.CanalWarehouse.Barge`. 블록아웃 `SunkenBarge` 삭제.
+  - 플레이 확인: 운하 바닥(-4.5) → 서쪽 잠긴 끝 → 갑판 동쪽 끝까지 걸어서 이동.
+- Studio 저장 버전 **91**. 존 BasePart 654.
+
+다음 추천: 4단계 소품(팔레트 랙 4줄, 창고 잔해 계단 5단(높이 6/12/18/24/30 유지), 드럼통·팔레트·모래주머니·철조망·볼라드·감시탑·정비고·연료탱크·부두 사무소·트럭 등). 남은 블록아웃 목록은 1장 표 참고.
 
 | 에셋 | 블록아웃 위치 / 크기 | 메모 |
 |---|---|---|
