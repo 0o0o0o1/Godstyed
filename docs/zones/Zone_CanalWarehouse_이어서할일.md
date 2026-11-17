@@ -1,6 +1,6 @@
 # Zone_CanalWarehouse — 이어서 할 일 (인수인계)
 
-> 마지막 작업: 2026-11-18 · Studio 저장 버전 **83** (게시 안 함) · 쓰러진 크레인 완료, 다음은 RTG
+> 마지막 작업: 2026-11-18 · Studio 저장 버전 **85** (게시 안 함) · 쓰러진 크레인·RTG 완료
 > 자세한 설계·결정·좌표는 같은 폴더의 `Zone_CanalWarehouse_계획서.md` (특히 9장 결정 결과, 9.5~9.7 결과 기록)
 > 파이프라인 규칙은 `.claude/skills/blender-to-roblox/` (`SKILL.md`, `references/pbr_pipeline.md`, `scripts/`)
 
@@ -31,6 +31,7 @@
 | `Workspace.ZoneContent.Zone_CanalWarehouse` | 존 콘텐츠 루트 (현재 BasePart 508개, 목표 신규 ≤ 3,500) |
 | `.Blockout` | 남은 회색 블록아웃: RTG, 쓰러진 크레인(붐·잔해), 리치스태커, 트럭, 감시탑·연료탱크·정비고, 부두 사무소, 오두막, 골목 엄폐물, 창고 랙·잔해 계단·앞마당, 운하 얕은 바닥·경사로·바지선·폰툰, 상자 발판, STS 등반 마커 |
 | `.A_CraneQuay` | `Crane_STS_01`(다른 세션), `Crane_Collapsed_01`(완성), `Containers` |
+| `.B_ContainerYard/Crane_RTG_01` | **완성** RTG 갠트리 |
 | `.B_ContainerYard/Yard_South`, `Yard_North` | 실제 컨테이너 (속성 `Variant`, `BlockoutSource`, 열린 것은 `Open=true` 6개) |
 | `.C_Warehouse_Main/Warehouse_Main` | **완성** 메인 창고 (13 MeshPart + 충돌 69 + 사다리 Truss) |
 | `.E_Canal/Containers` | 운하 속 컨테이너 2개 |
@@ -51,7 +52,16 @@
 - 플레이 확인: 서쪽 끝 → 붐 끝(u 200)까지 걸어서 이동 OK. 창고 잔해 계단 맨 위(24)에서 붐까지는 남쪽 거더 윗면(≈31.8)이 너무 높아 못 올라가서 **잔해 계단 5번째 단 추가**(`Blockout/C_Warehouse/RubbleStep`, 7×30×7 @ (-416.5, 15, 909.2), 위면 30) → 바닥 → 계단 → 거더 → 붐 바닥 경로 확인. 소품 단계에서 잔해 더미로 교체할 때 이 높이(6/12/18/24/30) 유지.
 - Studio 저장 버전 **83** (Team Create, 다른 세션 저장 포함). 존 BasePart 521.
 
-다음 추천 에셋: RTG.
+**RTG 갠트리 `Crane_RTG` — 2026-11-18 제작**
+- Blender 컬렉션 `Crane_RTG` (메쉬 7, 삼각형 4,560), FBX `exports/Crane_RTG.fbx`. 매핑: Blender (x,y,z) ↔ Roblox (-150 - x, z, 953 + y) → `PivotTo(CFrame.new(-150, 0, 953))`.
+- 다리 4개 (X -172/-128 × Z 926/980, 통로 안), 높이 ~55 (트롤리 위 62). 고무 타이어 16개(1개 펑크), 바퀴 받침, 하부 빔은 **X 방향(통로를 따라)**으로 고침(블록아웃은 컨테이너를 관통했음) → 빔 양옆 약 7씩 통로 남음. 발전기실(남쪽), 트롤리+기계실, 운전실(유리), 스프레더, 상부 통로 난간, 부러진 무릎 버팀대, 늘어진 케이블, 떨어진 문짝.
+- **등반 불가 유지**: 스프레더 바닥 Y 44.6 (3단 위면 36.5에서 +8.1 > 점프 7.2). 플레이 테스트에서 3단 위 점프 최고 발 높이 ≈ 40 확인. 상부 버팀대는 충돌 없음.
+- 충돌: `Crane_RTG_01/Colliders` (다리 4, 바퀴 받침 4, 하부 빔 2, 상부 빔 4, 발전기실, 트롤리, 운전실, 스프레더). 컨테이너와 겹침 없음.
+- 위치: `B_ContainerYard/Crane_RTG_01`, 원본 `ServerStorage.Assets.CanalWarehouse.Crane_RTG`. 블록아웃 `RTG_Blockout` 삭제.
+- 플레이 확인: 두 통로 모두 빔 양옆으로 끝까지 걸어서 통과, Pathfinding(반경 2) 북→남 통로 Success.
+- Studio 저장 버전 **85**. 존 BasePart 529.
+
+다음 추천 에셋: 문 열린 컨테이너(`Open=true` 6개 교체 → 루트 지점) 또는 리치스태커·바지선.
 
 | 에셋 | 블록아웃 위치 / 크기 | 메모 |
 |---|---|---|
