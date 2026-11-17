@@ -1,0 +1,13 @@
+{
+  "mcpServers": {
+    "blender": {
+      "command": "C:\\Users\\CafeAlle\\.local\\bin\\uvx.exe",
+      "args": ["--python", "3.12", "mcp-for-blender"],
+      "env": {
+        "DISABLE_TELEMETRY": "true",
+        "BLENDER_MCP_SAFE_MODE": "1",
+        "UV_PYTHON_INSTALL_DIR": "C:\\Users\\CafeAlle\\.local\\uv-python"
+      }
+    }
+  }
+}
