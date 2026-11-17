@@ -1,7 +1,7 @@
 # Zone_CanalWarehouse — 이어서 할 일 (인수인계)
 
 > 마지막 작업: 2026-11-18 · Studio 저장 버전 **69** (게시 안 함)
-> 자세한 설계·결정·좌표는 `Zone_CanalWarehouse_계획서.md` (특히 9장 결정 결과, 9.5~9.7 결과 기록)
+> 자세한 설계·결정·좌표는 같은 폴더의 `Zone_CanalWarehouse_계획서.md` (특히 9장 결정 결과, 9.5~9.7 결과 기록)
 > 파이프라인 규칙은 `.claude/skills/blender-to-roblox/` (`SKILL.md`, `references/pbr_pipeline.md`, `scripts/`)
 
 ---
@@ -22,6 +22,7 @@
 8. 사용자는 **단계마다 질문(결정) → 작업 → 한국어 보고 + Studio 스크린샷**을 원함. 품질 기준: "무조건 높은 퀄리티".
 9. 스크린샷 찍을 때 `Workspace.Zones`의 존 볼륨(투명도 0.85)이 화면을 덮으므로 잠깐 Transparency=1 → 끝나면 원래 값으로 복구.
 10. **STS 안벽 크레인은 다른 세션 담당**. `Crane_STS_01`(-220, 0, 603) 모델은 건드리지 말 것. 다리 주변 X -250..-190, Z 595..660 비워 두기.
+11. **GitHub 동기화**: 작업 폴더 = 저장소 `0o0o0o1/Godstyed`. 단계가 끝날 때마다 이 문서 갱신 → 커밋 → `git push` (다른 PC에서 이어 하기 위함). `exports/`의 FBX·PNG는 올리지 않음(texture_ids.json만).
 
 ## 1. 현재 상태 (Studio "도시", placeId 76001235376585)
 

@@ -1,0 +1,15 @@
+# 큰 바이너리(FBX·PNG)는 이 PC에만 둠 — 텍스처 ID 기록만 올림
+exports/*
+!exports/texture_ids.json
+
+# Blender 자동 백업
+*.blend1
+*.blend2
+
+# Claude Code 개인 설정
+.claude/settings.local.json
+
+# OS
+Thumbs.db
+desktop.ini
+.DS_Store
