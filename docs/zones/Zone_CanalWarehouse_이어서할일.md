@@ -41,7 +41,16 @@
 ## 2. 남은 작업 (순서대로, 각 단계 전에 사용자에게 결정 질문)
 
 ### 4단계 나머지 — 에셋 (blender-to-roblox 파이프라인)
-사용자에게 다음 에셋 순서를 물어보는 중이었음 (추천: 쓰러진 크레인 → RTG).
+
+**쓰러진 크레인 `Crane_Collapsed` — 2026-11-18 제작 (STS형 박스 거더)**
+- Blender 컬렉션 `Crane_Collapsed` (메쉬 10, 삼각형 7,006), FBX `exports/Crane_Collapsed.fbx`. 월드 좌표 그대로 모델링: Blender (x,y,z) ↔ Roblox (-513 - x, z, 902 + y) → Studio에서 모델 `PivotTo(CFrame.new(-513, 0, 902))`(가져온 직후 피벗 = Blender 원점).
+- 붐 = 블록아웃 `Boom_Walkway` CFrame 그대로(서 (-622,4,908) → 동 (-404,28,896), 롤 약 5°). 거더 s ±4.5..8, w -6.2..+2 (w=0 = 걷는 바닥), 운하 서벽 위 u≈44에서 휨, 끝은 찢김. 트롤리+운전실이 u=150 아래 운하 위에 매달림. 서쪽 잔해: 쓰러진 다리·휜 다리(+바퀴)·받침 빔·기계실·윈치 드럼·지지봉·콘크리트.
+- 텍스처: `CraneSTS` 타일 세트 재사용(`TEXTURES.CraneCol = TEXTURES.CraneSTS`), 새 업로드 없음. 모든 메쉬 `__NoCollide`, 큰 메쉬는 CastShadow 다시 켬.
+- 충돌: `Crane_Collapsed_01/Colliders` = 붐 바닥(9×6×219.6) + 거더 2(3.5×8.2) + 블록아웃 4개(Base_Frame, Leg_Fallen, Leg_Bent, MachineHouse_Wreck) 위치 그대로.
+- 위치: `A_CraneQuay/Crane_Collapsed_01`, 원본 `ServerStorage.Assets.CanalWarehouse.Crane_Collapsed`. 블록아웃 `A_CollapsedCrane` 삭제.
+- ⚠ 배치 직후 Studio MCP 연결이 끊김 → **Studio 저장(버전 70) 여부 확인 필요**, 플레이 테스트(붐 위 걷기, 창고 잔해 계단 → 붐 끝) 아직 안 함. `Workspace.Zones` 투명도를 1로 바꿔 둔 상태일 수 있음(속성 `_SavedTransparency`로 복구).
+
+다음 추천 에셋: RTG.
 
 | 에셋 | 블록아웃 위치 / 크기 | 메모 |
 |---|---|---|

@@ -83,6 +83,9 @@ local TEXTURES = {
 	},
 }
 
+-- Crane_Collapsed reuses the STS tile set (same 20-stud box-projection UVs)
+TEXTURES.CraneCol = TEXTURES.CraneSTS
+
 -- Attach / replace a SurfaceAppearance on a __TEX MeshPart. variant picks the color map.
 local function applySurface(p, variant)
 	local prefix = string.split(p.Name, "_")[1]
