@@ -51,4 +51,14 @@
     "Roughness": "rbxassetid://92645181061547",
     "Metalness": "rbxassetid://122834005449657"
   }
+,
+  "Graffiti": {
+    "_note": "Decal images (image asset ids, group-owned). Open Cloud Decal upload returns a DECAL asset id that does not load as Decal.Texture; the image id is in the upload child operation (ModerationPending ids). Source PNGs: exports/decals (rendered in Blender scene DecalStudio).",
+    "NoShipComing": "rbxassetid://103170271684816",
+    "TallyDay37": "rbxassetid://118606640318798",
+    "DeadInside": "rbxassetid://73780404314425",
+    "CampArrow": "rbxassetid://117477982321946",
+    "CheckpointSign": "rbxassetid://94688905917930",
+    "ReliefNotice": "rbxassetid://85103735375765"
+  }
 }

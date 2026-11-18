@@ -159,8 +159,12 @@
   - 벽: 컨테이너 위 도로 쪽 가장자리에 **콘서티나 철조망**(나선 리본, `DoubleSided=true`) 4구간. 컨테이너 사이 4칸 틈(X -190..-186)은 판자·골판·버팀대로 막음. **감시 발판**: -214 컨테이너 위(Y 12.5) 모래주머니 진지 + 함석 지붕 + 상자, 야드 쪽에 기댄 나무 사다리(충돌 = **TrussPart** (-215, 7.5, 752.2) 2×14×2, `ClimbPoint=true`).
   - 충돌(`Barricade/Colliders`): 서쪽 벽 A/B(높이 5 → 철조망까지 포함, 뛰어넘기 불가), 짧은 꺾임, 장애물 5(3×3×3), 동쪽 남은 자루 2, 드럼통, 틈 막이, 감시 진지 3, 사다리 Truss. 장애물은 도로 화단에 걸려 있어 Z +4 옮김.
   - 확인: Pathfinding 도로 → 야드 서쪽 입구(지그재그 통과)·동쪽 입구·캠프 Success. 플레이 테스트로 사다리 Truss 타고 감시 발판(발 Y 12.5)까지 올라감. (Pathfinding의 AgentCanClimb으로는 NoPath — 실제 플레이는 됨.) Studio 저장 버전 **119**.
+- **낙서·안내판 — 완료 (2026-11-18, 영어)** (`Zone_CanalWarehouse/Graffiti`, 원본 `ServerStorage.Assets.CanalWarehouse.Graffiti`)
+  - 이미지 6장: Blender 별도 씬 `DecalStudio`(직교 카메라, 투명 배경, Emission + 노이즈 알파로 벗겨진 페인트)에서 렌더 → `exports/decals/*.png`. 폰트 Impact/Arial Bold. 이미지 ID는 `exports/texture_ids.json` → `Graffiti`.
+  - **업로드 방법**: Open Cloud `assetType: "Decal"` + groupId → 결과 assetId는 *Decal* ID라 `Decal.Texture`로 안 불러와짐(PreloadAsync Failure). 업로드 operation의 `childOperations` 를 GET 하면 `ModerationPending ids` 에 **이미지 ID**가 나옴 → 그걸 Texture로 씀(바로 로드 Success).
+  - 배치(투명 판 Part + Decal Front, 벽에서 0.06): 창고 동쪽 벽 (-381, 10.2, 846) "NO SHIP COMING" 24×9 / 셔터 옆 (-381, 5.8, 829.6) 구호물자 배급 안내판 4×5.5(찢긴 종이 + "LIES" 스프레이) / 캠프 스택 위 컨테이너 동쪽 면 (-194, 19, 786) 날짜 카운트 DAY 37, Decal.Color3 어둡게(흰 컨테이너라) / 캠프 스택 아래 컨테이너 **서쪽** 면 (-206, 6.5, 806) "CAMP ↑"(동쪽 면은 트럭에 가려짐) / 벽 줄 컨테이너 야드 쪽 (-152, 6.2, 751) "DEAD INSIDE / DO NOT OPEN" 15×7.5 / 검문소 표지판 앞면 (-259, 4.8, 733.18) "CHECKPOINT / STOP / SHOW YOUR HANDS".
+  - Studio 저장 버전 **125**. 남은 아쉬움: DEAD INSIDE 흘러내림이 글자에서 살짝 떨어져 있음, 날짜 카운트가 작은 편.
 - 잔해, 운하 부유물·기름막
-- 낙서(Decal): "NO SHIP COMING", 날짜 카운트(////), 창고 벽 구호물자 배급 안내판, 서쪽 검문소 표지판 "CHECKPOINT"
 - 운하 얕은 바닥 Part(`Blockout/E_Canal/ShallowFloor`)를 진흙/잔해 느낌으로 마감 후 Blockout 밖으로 이동
 
 ### 6단계 — 조명·분위기
