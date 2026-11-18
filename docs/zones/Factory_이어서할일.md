@@ -1,6 +1,6 @@
 # 공장맵 — 이어서 할 일 (인수인계)
 
-> 마지막 작업: 2026-11-18 · **냉각탑(E) 2기 완료** (Studio "공장" 저장 버전 13) · 용광로(A) 완료
+> 마지막 작업: 2026-11-18 · **냉각탑(E) 2기 완료** (Studio "공장" 저장 버전 14) · 용광로(A) 완료
 > 설계·구역·결정: `Factory_계획서.md`. 에셋 규칙: `.claude/skills/blender-to-roblox/`.
 
 ## 0. 꼭 알아야 할 것
@@ -53,9 +53,9 @@
 - 텍스처: 새 **CtConcrete** 타일 (16스터드/타일, 빗물 자국·거푸집 줄 4스터드 간격·이끼·박리). 셸 UV = 원주 14타일 × 높이/16. MetalnessMap 없음(전부 0이라 기존 검은 이미지와 합쳐져 ID가 안 나옴 → 생략). 충전재 FillPack(52,54,52) Plastic.
 - 메쉬 15개, 삼각형 약 20,600. 충돌 600개 (`CoolingTowers_01/Colliders`): 셸 띠(32분할×4단, 붕괴 높이 반영), 다리, 고리보, 기초, 바닥, 기둥, 충전재, 잔해(계단식 원통), 조각, 배관.
 - 확인(플레이 테스트 안 함): 레이캐스트로 다리 사이 입구 서쪽 23/24, 동쪽 22/24 통과(막힌 곳 = 배관 앞·잔해 더미). Spawn2 (-300,1200)과 실제 거리 약 28.
-- 부지 정리: `LotDressing.Lot_057`의 초록 나무·덤불·탑 근처 풀 74개 삭제(백업 `ServerStorage.LotDressing_Lot057_Backup`), 마른 나무·가장자리 풀 64개 남김. `Lot_057` 재질 LeafyGrass → Concrete(Lot_026과 같은 색).
+- 부지 정리: `LotDressing.Lot_057`의 초록 나무·덤불·탑 근처 풀 74개 삭제(백업 `ServerStorage.LotDressing_Lot057_Backup`), 마른 나무·가장자리 풀 64개 남김. `Lot_057` 재질 LeafyGrass → Concrete, 색 (128,126,118) (Lot_026 색은 이 부지에서 너무 하얗게 보여서 어둡게).
 - Blender: 씬 FurnaceWork, 컬렉션 `CoolingTowers`, 굽기 머티리얼 `BAKE_CtConcrete`. 붕괴 높이 배열은 씬 속성 `CT_HBRK`.
-- 남은 것: Studio 뷰포트가 다시 열린 직후 하얗게만 캡처돼 Studio 스크린샷 미확보(Blender 미리보기만).
+- 남은 것: 안쪽 잔해 더미가 밝게 떠 보임(텍스처 대비 부족) → 소품·마감 단계에서 색 낮추기 검토.
 
 ## 2. 다음 할 일
 
