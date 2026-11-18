@@ -82,3 +82,9 @@
 
 - `Zones/Zone_Apartments` (-1010, 60, 915, 크기 380×160×550)가 A·B 구역과 겹침. 게임 스크립트가 `Config.ZONE_TAG`로 존을 읽으므로 이름·크기를 바꾸기 전에 스크립트 확인 필요 → 블록아웃 단계에서 사용자에게 물어볼 것.
 - 도시 place의 운하 창고 존 7·8단계(태그·테스트)는 보류. 공장 place 7단계에서 같이 처리할지 결정 필요.
+
+## 8. 미리보기 이미지
+
+Blender 씬 `FactoryPreview`(단순 형태)로 렌더한 배치 미리보기:
+- `images/Factory_preview_overview.png` — 전체 조감도(남동쪽 위)
+- `images/Factory_preview_furnace.png` — 용광로 구역 근접
