@@ -5,8 +5,8 @@ Roblox Studio(MCP) + Blender(MCP)로 포스트 아포칼립스 맵 존을 만드
 
 ## 시작할 때
 1. `git pull` 로 최신 상태를 받는다.
-2. 진행 중인 존의 인수인계 문서를 먼저 읽는다: `docs/zones/Zone_CanalWarehouse_이어서할일.md`
-   (설계·좌표·결정은 같은 폴더의 `..._계획서.md`)
+2. 진행 중인 작업의 인수인계 문서를 먼저 읽는다: **`docs/zones/Factory_이어서할일.md`** (공장 place, 2026-11-18부터)
+   (설계·결정은 `Factory_계획서.md`. 이전 운하 창고 존은 `Zone_CanalWarehouse_이어서할일.md` — 보류 중, 규칙 참고용)
 3. Blender→Roblox 에셋 작업은 `.claude/skills/blender-to-roblox/` 규칙을 따른다.
 
 ## 작업이 끝날 때마다 (필수)

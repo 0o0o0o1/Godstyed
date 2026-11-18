@@ -1,5 +1,7 @@
 # Zone_CanalWarehouse — 이어서 할 일 (인수인계)
 
+> **2026-11-18 방향 전환**: 도시 맵이 너무 커서 사용자가 새 place **"공장"**(placeId 129022811153240)을 도시 복사본으로 만들고, 맵 전체를 중공업 단지로 바꾸기로 함 → `Factory_계획서.md`, `Factory_이어서할일.md`. 이 존은 5단계까지 완성된 채 **보류**(7단계 태그부터 미진행). 공장 place 안에도 같은 존이 그대로 들어 있음.
+
 > 마지막 작업: 2026-11-18 · Studio 저장 버전 **98** (게시 안 함) · 큰 에셋 전부 + 소품 묶음 1(창고 내부)·2(서쪽 강변)·3(크레인 부두) 완료 · FBX는 이제 자동 업로드(SKILL 7-A)
 > 자세한 설계·결정·좌표는 같은 폴더의 `Zone_CanalWarehouse_계획서.md` (특히 9장 결정 결과, 9.5~9.7 결과 기록)
 > 파이프라인 규칙은 `.claude/skills/blender-to-roblox/` (`SKILL.md`, `references/pbr_pipeline.md`, `scripts/`)
