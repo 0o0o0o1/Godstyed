@@ -79,5 +79,13 @@
                     "Normal":  "rbxassetid://126595521156261",
                     "Roughness":  "rbxassetid://139401555689152",
                     "Metalness":  "rbxassetid://124757904571295"
-                }
+                },
+    "CtConcrete":  {
+                       "_note":  "Cooling tower weathered concrete tile (16 studs/tile; shell UV = 14 tiles around x height/16). No metalness map (all-black image dedupes to an existing id; omit).",
+                       "Color":  {
+                                     "CoolConcrete":  "rbxassetid://94441348372533"
+                                 },
+                       "Normal":  "rbxassetid://92748025489804",
+                       "Roughness":  "rbxassetid://75919075351069"
+                   }
 }

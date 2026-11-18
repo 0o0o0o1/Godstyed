@@ -96,6 +96,11 @@ local TEXTURES = {
 		Roughness = "rbxassetid://132541626304065",
 		Metalness = "rbxassetid://83484080935029",
 	},
+	CtConcrete = { -- cooling tower concrete (no metalness map)
+		Color = { CoolConcrete = "rbxassetid://94441348372533" },
+		Normal = "rbxassetid://92748025489804",
+		Roughness = "rbxassetid://75919075351069",
+	},
 	BfSteel = {
 		Color = { SteelOxide = "rbxassetid://119629515631396", RailYellow = "rbxassetid://96292080718093" },
 		Normal = "rbxassetid://126595521156261",
@@ -124,7 +129,7 @@ local function applySurface(p, variant)
 	sa.ColorMap = (pal and set.Color[pal]) or set.Color[variant] or fallback
 	sa.NormalMap = set.Normal
 	sa.RoughnessMap = set.Roughness
-	sa.MetalnessMap = set.Metalness
+	if set.Metalness then sa.MetalnessMap = set.Metalness end
 	sa.Parent = p
 	p.Material = Enum.Material.Metal -- footsteps/impact sound; visuals come from the SurfaceAppearance
 	return true
