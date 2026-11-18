@@ -20,7 +20,7 @@ Roblox Studio(MCP) + Blender(MCP)로 포스트 아포칼립스 맵 존을 만드
 | 경로 | 내용 |
 |---|---|
 | `docs/zones/` | 존별 계획서 · 인수인계(이어서 할 일) |
-| `.claude/skills/` | 프로젝트 스킬 (blender-to-roblox, roblox-*, level-design, find-skills, session-metrics, token-optimizer) |
+| `.claude/skills/` | 프로젝트 스킬 (blender-to-roblox, roblox-*, level-design, find-skills, session-metrics, token-optimizer) + 외부 스킬 (2026-11-18 추가, MIT): roblox-performance (TabooHarmony/roblox-brain), roblox-world-building (EL4CTEO/roblox-skills), blender-game-optimization·blender-texture-baking·blender-hardsurface-modeling·blender-environment-kits (EL4CTEO/blender-skills). 외부 Blender 스킬의 `scripts/*.py`는 명령줄 Blender용이라 안전 모드 MCP에서는 내용을 참고만 하고, 규칙은 blender-to-roblox가 우선 |
 | `exports/` | Blender 내보내기 결과 (texture_ids.json만 저장소에 포함) |
 | `.mcp.json` | Blender MCP 서버 설정 (uvx 필요) |
 
