@@ -63,18 +63,18 @@
     "BfPlate":  {
                     "_note":  "Blast furnace riveted steel plate tile (16 studs/tile, box projection). v2 ids: first upload ids were applied before moderation finished and stayed failed in Studio cache -\u003e re-uploaded with 1 pixel changed (identical files dedupe to the old id).",
                     "Color":  {
-                                  "FurnaceRust":  "rbxassetid://103597251679741",
-                                  "StoveGrey":  "rbxassetid://100992617093227"
+                                  "FurnaceRust":  "rbxassetid://122131344315446",
+                                  "StoveGrey":  "rbxassetid://79607605643431"
                               },
                     "Normal":  "rbxassetid://123309083804330",
                     "Roughness":  "rbxassetid://132541626304065",
                     "Metalness":  "rbxassetid://83484080935029"
                 },
     "BfSteel":  {
-                    "_note":  "Painted structural steel tile (8 studs/tile, box projection), chips + rust + streaks.",
+                    "_note":  "Painted structural steel tile (8 studs/tile, box projection). RailYellow v3 = small chips, faint rust (thin rails).",
                     "Color":  {
                                   "SteelOxide":  "rbxassetid://119629515631396",
-                                  "RailYellow":  "rbxassetid://106084791053277"
+                                  "RailYellow":  "rbxassetid://96292080718093"
                               },
                     "Normal":  "rbxassetid://126595521156261",
                     "Roughness":  "rbxassetid://139401555689152",

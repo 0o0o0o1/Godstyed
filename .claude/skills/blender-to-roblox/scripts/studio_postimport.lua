@@ -91,13 +91,13 @@ local TEXTURES = {
 	},
 	-- Factory tile sets (box projection: BfPlate 16 studs/tile, BfSteel 8 studs/tile)
 	BfPlate = {
-		Color = { FurnaceRust = "rbxassetid://103597251679741", StoveGrey = "rbxassetid://100992617093227" },
+		Color = { FurnaceRust = "rbxassetid://122131344315446", StoveGrey = "rbxassetid://79607605643431" },
 		Normal = "rbxassetid://123309083804330",
 		Roughness = "rbxassetid://132541626304065",
 		Metalness = "rbxassetid://83484080935029",
 	},
 	BfSteel = {
-		Color = { SteelOxide = "rbxassetid://119629515631396", RailYellow = "rbxassetid://106084791053277" },
+		Color = { SteelOxide = "rbxassetid://119629515631396", RailYellow = "rbxassetid://96292080718093" },
 		Normal = "rbxassetid://126595521156261",
 		Roughness = "rbxassetid://139401555689152",
 		Metalness = "rbxassetid://124757904571295",
