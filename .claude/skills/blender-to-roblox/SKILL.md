@@ -112,6 +112,10 @@ Studio의 후처리 스크립트가 **이름을 보고** 색·재질·충돌을 
 | 안으로 들어가는 것 (`__Precise`) | 가능하면 **벽·바닥을 별도 오브젝트로 분리**해서 각각 상자 프록시. 정말 필요할 때만 사용자에게 PreciseConvexDecomposition 설정 부탁 | |
 | 작은 장식 (`__NoCollide`) | 충돌 없음 | CanCollide/CanTouch/CanQuery false, CastShadow false |
 
+**겹침 금지 (사용자 지시 2026-11-18)**: 부재가 다른 부재를 뚫고 나오게 만들지 마세요(예: 서까래가 지붕판을 뚫음, 기둥이 벽을 관통, 파이프가 데크·난간을 관통). Roblox에서는 고칠 수 없습니다. 내보내기 전에 `mathutils.bvhtree.BVHTree.FromObject` + `overlap()`로 오브젝트 쌍별 겹침을 검사하고, 원래 붙는 접합부(파이프→밸브·탱크, 바닥 위 기둥)만 남기세요. 지붕·벽은 부재 꼭짓점이 지붕 밑면·벽 안쪽면을 넘는지 수치로도 확인하세요.
+
+**텍스처 심의 함정**: Open Cloud로 올린 이미지를 심의(Approved) 전에 SurfaceAppearance에 붙이면 Studio가 그 ID를 실패로 캐시합니다. 붙이기 전에 `GET /assets/v1/assets/<이미지ID>`로 Approved 확인. 이미 꼬였으면 픽셀 1개를 바꿔 재업로드(같은 파일은 기존 ID로 합쳐짐).
+
 상자 프록시는 메쉬의 바운딩박스 그대로라서, 상자가 아닌 모양(L자, 경사)은 **부품을 나눠서** 각 부품이 상자에 가깝게 만드세요.
 
 - 삼각형 예산 (Roblox MeshPart 상한은 20,000):

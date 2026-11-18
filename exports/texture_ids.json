@@ -1,64 +1,83 @@
 {
-  "_note": "Group-owned (597081155) image IDs, uploaded via TexUpload_*.fbx import. Do not use IDs from MCP upload_image (user-owned, fail to load in this group game).",
-  "Container40": {
-    "Color": {
-      "RustRed": "rbxassetid://130510789441720",
-      "FadedBlue": "rbxassetid://107206467524502",
-      "Olive": "rbxassetid://91598772669186",
-      "DirtyWhite": "rbxassetid://135545618962984"
-    },
-    "Normal": "rbxassetid://126151414262873",
-    "Roughness": "rbxassetid://136677513751331",
-    "Metalness": "rbxassetid://115530291617642"
-  },
-  "Container20": {
-    "Color": {
-      "RustRed": "rbxassetid://101783122966276",
-      "FadedBlue": "rbxassetid://72643923011469",
-      "Olive": "rbxassetid://125074963537265",
-      "DirtyWhite": "rbxassetid://135252773487669"
-    },
-    "Normal": "rbxassetid://138452119007577",
-    "Roughness": "rbxassetid://79159293771381",
-    "Metalness": "rbxassetid://93220606877060"
-  },
-  "CraneSTS": {
-    "_note": "Crane_STS tileable maps, UV = world box projection 20 studs/tile",
-    "Color": {
-      "CraneYellow": "rbxassetid://112714235470357"
-    },
-    "Normal": "rbxassetid://81085273014661",
-    "Roughness": "rbxassetid://79409976353138",
-    "Metalness": "rbxassetid://127183483645771"
-  },
-  "WhSiding": {
-    "_note": "Warehouse corrugated siding, tiles in U only. UV: U = 24 studs (16 ribs), V = 0..1 over 30 studs of wall height (grime at V=0). Color variant = palette key of the part name.",
-    "Color": {
-      "SidingTeal": "rbxassetid://126209095166827",
-      "RoofZinc": "rbxassetid://103975482907154",
-      "ShutterOrange": "rbxassetid://129767392683582"
-    },
-    "Normal": "rbxassetid://134641190476675",
-    "Roughness": "rbxassetid://114139515165698",
-    "Metalness": "rbxassetid://106273879084217"
-  },
-  "WhSteel": {
-    "_note": "Painted structural steel, tiles in U and V, 8 studs per tile (box projection).",
-    "Color": {
-      "SteelBlue": "rbxassetid://125962397461553"
-    },
-    "Normal": "rbxassetid://99734605337204",
-    "Roughness": "rbxassetid://92645181061547",
-    "Metalness": "rbxassetid://122834005449657"
-  }
-,
-  "Graffiti": {
-    "_note": "Decal images (image asset ids, group-owned). Open Cloud Decal upload returns a DECAL asset id that does not load as Decal.Texture; the image id is in the upload child operation (ModerationPending ids). Source PNGs: exports/decals (rendered in Blender scene DecalStudio).",
-    "NoShipComing": "rbxassetid://103170271684816",
-    "TallyDay37": "rbxassetid://118606640318798",
-    "DeadInside": "rbxassetid://73780404314425",
-    "CampArrow": "rbxassetid://117477982321946",
-    "CheckpointSign": "rbxassetid://94688905917930",
-    "ReliefNotice": "rbxassetid://85103735375765"
-  }
+    "_note":  "Group-owned (597081155) image IDs, uploaded via TexUpload_*.fbx import. Do not use IDs from MCP upload_image (user-owned, fail to load in this group game).",
+    "Container40":  {
+                        "Color":  {
+                                      "RustRed":  "rbxassetid://130510789441720",
+                                      "FadedBlue":  "rbxassetid://107206467524502",
+                                      "Olive":  "rbxassetid://91598772669186",
+                                      "DirtyWhite":  "rbxassetid://135545618962984"
+                                  },
+                        "Normal":  "rbxassetid://126151414262873",
+                        "Roughness":  "rbxassetid://136677513751331",
+                        "Metalness":  "rbxassetid://115530291617642"
+                    },
+    "Container20":  {
+                        "Color":  {
+                                      "RustRed":  "rbxassetid://101783122966276",
+                                      "FadedBlue":  "rbxassetid://72643923011469",
+                                      "Olive":  "rbxassetid://125074963537265",
+                                      "DirtyWhite":  "rbxassetid://135252773487669"
+                                  },
+                        "Normal":  "rbxassetid://138452119007577",
+                        "Roughness":  "rbxassetid://79159293771381",
+                        "Metalness":  "rbxassetid://93220606877060"
+                    },
+    "CraneSTS":  {
+                     "_note":  "Crane_STS tileable maps, UV = world box projection 20 studs/tile",
+                     "Color":  {
+                                   "CraneYellow":  "rbxassetid://112714235470357"
+                               },
+                     "Normal":  "rbxassetid://81085273014661",
+                     "Roughness":  "rbxassetid://79409976353138",
+                     "Metalness":  "rbxassetid://127183483645771"
+                 },
+    "WhSiding":  {
+                     "_note":  "Warehouse corrugated siding, tiles in U only. UV: U = 24 studs (16 ribs), V = 0..1 over 30 studs of wall height (grime at V=0). Color variant = palette key of the part name.",
+                     "Color":  {
+                                   "SidingTeal":  "rbxassetid://126209095166827",
+                                   "RoofZinc":  "rbxassetid://103975482907154",
+                                   "ShutterOrange":  "rbxassetid://129767392683582"
+                               },
+                     "Normal":  "rbxassetid://134641190476675",
+                     "Roughness":  "rbxassetid://114139515165698",
+                     "Metalness":  "rbxassetid://106273879084217"
+                 },
+    "WhSteel":  {
+                    "_note":  "Painted structural steel, tiles in U and V, 8 studs per tile (box projection).",
+                    "Color":  {
+                                  "SteelBlue":  "rbxassetid://125962397461553"
+                              },
+                    "Normal":  "rbxassetid://99734605337204",
+                    "Roughness":  "rbxassetid://92645181061547",
+                    "Metalness":  "rbxassetid://122834005449657"
+                },
+    "Graffiti":  {
+                     "_note":  "Decal images (image asset ids, group-owned). Open Cloud Decal upload returns a DECAL asset id that does not load as Decal.Texture; the image id is in the upload child operation (ModerationPending ids). Source PNGs: exports/decals (rendered in Blender scene DecalStudio).",
+                     "NoShipComing":  "rbxassetid://103170271684816",
+                     "TallyDay37":  "rbxassetid://118606640318798",
+                     "DeadInside":  "rbxassetid://73780404314425",
+                     "CampArrow":  "rbxassetid://117477982321946",
+                     "CheckpointSign":  "rbxassetid://94688905917930",
+                     "ReliefNotice":  "rbxassetid://85103735375765"
+                 },
+    "BfPlate":  {
+                    "_note":  "Blast furnace riveted steel plate tile (16 studs/tile, box projection). v2 ids: first upload ids were applied before moderation finished and stayed failed in Studio cache -\u003e re-uploaded with 1 pixel changed (identical files dedupe to the old id).",
+                    "Color":  {
+                                  "FurnaceRust":  "rbxassetid://103597251679741",
+                                  "StoveGrey":  "rbxassetid://100992617093227"
+                              },
+                    "Normal":  "rbxassetid://123309083804330",
+                    "Roughness":  "rbxassetid://132541626304065",
+                    "Metalness":  "rbxassetid://83484080935029"
+                },
+    "BfSteel":  {
+                    "_note":  "Painted structural steel tile (8 studs/tile, box projection), chips + rust + streaks.",
+                    "Color":  {
+                                  "SteelOxide":  "rbxassetid://119629515631396",
+                                  "RailYellow":  "rbxassetid://106084791053277"
+                              },
+                    "Normal":  "rbxassetid://126595521156261",
+                    "Roughness":  "rbxassetid://139401555689152",
+                    "Metalness":  "rbxassetid://124757904571295"
+                }
 }

@@ -22,6 +22,14 @@ local PALETTE = {
 	RoofZinc = {Color3.fromRGB(122, 124, 120), Enum.Material.CorrodedMetal},
 	ShutterOrange = {Color3.fromRGB(158, 98, 50), Enum.Material.CorrodedMetal},
 	SteelBlue = {Color3.fromRGB(60, 68, 78), Enum.Material.Metal},
+	-- factory (BlastFurnace) keys; CorrodedMetal shows pink in this game, so Metal/Basalt/Brick
+	FurnaceRust = {Color3.fromRGB(88, 58, 45), Enum.Material.Metal},
+	StoveGrey = {Color3.fromRGB(112, 108, 100), Enum.Material.Metal},
+	SteelOxide = {Color3.fromRGB(104, 52, 38), Enum.Material.Metal},
+	RailYellow = {Color3.fromRGB(170, 125, 45), Enum.Material.Metal},
+	Slag = {Color3.fromRGB(45, 42, 40), Enum.Material.Basalt},
+	FrozenIron = {Color3.fromRGB(58, 56, 55), Enum.Material.Metal},
+	FireBrick = {Color3.fromRGB(120, 62, 45), Enum.Material.Brick},
 }
 
 local function parseName(name)
@@ -80,6 +88,19 @@ local TEXTURES = {
 		Normal = "rbxassetid://99734605337204",
 		Roughness = "rbxassetid://92645181061547",
 		Metalness = "rbxassetid://122834005449657",
+	},
+	-- Factory tile sets (box projection: BfPlate 16 studs/tile, BfSteel 8 studs/tile)
+	BfPlate = {
+		Color = { FurnaceRust = "rbxassetid://103597251679741", StoveGrey = "rbxassetid://100992617093227" },
+		Normal = "rbxassetid://123309083804330",
+		Roughness = "rbxassetid://132541626304065",
+		Metalness = "rbxassetid://83484080935029",
+	},
+	BfSteel = {
+		Color = { SteelOxide = "rbxassetid://119629515631396", RailYellow = "rbxassetid://106084791053277" },
+		Normal = "rbxassetid://126595521156261",
+		Roughness = "rbxassetid://139401555689152",
+		Metalness = "rbxassetid://124757904571295",
 	},
 }
 
