@@ -26,6 +26,8 @@
 
 ## 1. 현재 상태 (Studio "도시", placeId 76001235376585)
 
+> 2026-11-18: 현재 Studio에 열리는 place 이름은 **'신이 머물렀다'**(placeId 133122559439695, universeId 10768843846). 사용자 확인 결과 "도시"와 **같은 게임** → 이 place에서 작업.
+
 | 경로 | 내용 |
 |---|---|
 | `Workspace.ZoneContent.Zone_CanalWarehouse` | 존 콘텐츠 루트 (현재 BasePart 508개, 목표 신규 ≤ 3,500) |
