@@ -164,8 +164,15 @@
   - **업로드 방법**: Open Cloud `assetType: "Decal"` + groupId → 결과 assetId는 *Decal* ID라 `Decal.Texture`로 안 불러와짐(PreloadAsync Failure). 업로드 operation의 `childOperations` 를 GET 하면 `ModerationPending ids` 에 **이미지 ID**가 나옴 → 그걸 Texture로 씀(바로 로드 Success).
   - 배치(투명 판 Part + Decal Front, 벽에서 0.06): 창고 동쪽 벽 (-381, 10.2, 846) "NO SHIP COMING" 24×9 / 셔터 옆 (-381, 5.8, 829.6) 구호물자 배급 안내판 4×5.5(찢긴 종이 + "LIES" 스프레이) / 캠프 스택 위 컨테이너 동쪽 면 (-194, 19, 786) 날짜 카운트 DAY 37, Decal.Color3 어둡게(흰 컨테이너라) / 캠프 스택 아래 컨테이너 **서쪽** 면 (-206, 6.5, 806) "CAMP ↑"(동쪽 면은 트럭에 가려짐) / 벽 줄 컨테이너 야드 쪽 (-152, 6.2, 751) "DEAD INSIDE / DO NOT OPEN" 15×7.5 / 검문소 표지판 앞면 (-259, 4.8, 733.18) "CHECKPOINT / STOP / SHOW YOUR HANDS".
   - Studio 저장 버전 **125**. 남은 아쉬움: DEAD INSIDE 흘러내림이 글자에서 살짝 떨어져 있음, 날짜 카운트가 작은 편.
-- 잔해, 운하 부유물·기름막
-- 운하 얕은 바닥 Part(`Blockout/E_Canal/ShallowFloor`)를 진흙/잔해 느낌으로 마감 후 Blockout 밖으로 이동
+- **운하 마감 — 완료 (2026-11-18, "적당하게 너무 정신없지 않게")**
+  - 얕은 바닥 4개 → Material Mud (64,57,44), `E_Canal/CanalFloor`로 이동. 블록아웃 `E_Canal` 비워짐.
+  - `E_Canal/CanalDebris` (asset 132710927934464, 메쉬 12, 삼각형 약 3,300; 매핑 Blender (x,y,z) ↔ Roblox (-500 - x, z, 750 + y)): 바닥 잔해 묶음 7곳(타이어·드럼통·콘크리트 덩이+철근·파이프·판자·가라앉은 철판) + 따로 놓인 타이어 4. 떠 있는 것(판자·병·스티로폼·비닐) 6곳은 동쪽 둑(X≈-462)과 남북 운하 북쪽 벽(Z≈578)에 몰아 둠. 모두 충돌 없음.
+  - 기름막 3곳 = `CanalDebris/OilSlicks` 얇은 원통 Part 5개씩 (28,26,30), Y ≈ -1.65. **평면 메쉬·반투명 Part는 물 위에서 파랗게 보임** → 불투명 + 두께 있는 Part로 바꿈.
+  - **실제로 보이는 물 표면은 약 Y -1.75** (레이캐스트는 -2.98을 줌). 떠 있는 물건은 -1.7 근처에 둘 것.
+  - 경사로 4곳: `E_Canal/Ramps/Ramp_1..4` (asset 94885248972212) — 콘크리트 경사판 + 미끄럼 방지 홈 + 아래쪽 이끼 띠 + 한쪽 난간. 기존 WedgePart를 투명 충돌(`Ramp_Col`)로 유지(높은 쪽 = 로컬 +Z).
+  - 폰툰: `E_Canal/Pontoon_01` (asset 134278906305610) — 판자 데크(한 장 빠짐, 한 장 짧음) + 각재 틀 + 파란 드럼 부표 9 + 타이어 방현재 4 + 클리트 + 밧줄. 충돌 = 기존 블록아웃 상자(`Colliders/Deck_Col`).
+  - 확인: Pathfinding 도로 → 경사로 → 운하 바닥 2곳, 폰툰 → 바닥 Success. Studio 저장 버전 **128**.
+  - 참고(이번에 고치지 않음): 부두 고철 더미 일부가 분홍색으로 보임(CorrodedMetal 문제) → 8단계에서 Slate로 바꿀 것.
 
 ### 6단계 — 조명·분위기
 - 흐림, 옅은 안개, 녹 톤. **Lighting은 도시 전체 공용** → 반드시 사용자에게 먼저 물어볼 것 (플레이 중 게임 자체 조명 스크립트가 따뜻한 톤으로 바꾸는 것 확인됨 → 그 스크립트부터 확인)
