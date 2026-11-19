@@ -1,4 +1,4 @@
-{
+﻿{
     "_note":  "Group-owned (597081155) image IDs, uploaded via TexUpload_*.fbx import. Do not use IDs from MCP upload_image (user-owned, fail to load in this group game).",
     "Container40":  {
                         "Color":  {
@@ -87,5 +87,27 @@
                                  },
                        "Normal":  "rbxassetid://92748025489804",
                        "Roughness":  "rbxassetid://75919075351069"
-                   }
+                   },
+    "FactorySigns":  {
+                         "_note":  "Decal image IDs (assetType Decal, group 597081155). PNGs from scripts/make_decals.ps1",
+                         "SIGN_BlastFurnace":  "103048280284826",
+                         "SIGN_RollingMill":  "135818752799098",
+                         "SIGN_PowerStation":  "77867226360396",
+                         "SIGN_CokeOvens":  "76751832770863",
+                         "SIGN_GasHolder":  "135433918613670",
+                         "SIGN_Weighbridge":  "109379733951496",
+                         "SIGN_Direction":  "134520426822321",
+                         "HAZ_HighVoltage":  "129712860948666",
+                         "HAZ_Gas":  "109235697271779",
+                         "HAZ_HotMetal":  "74163699077086",
+                         "HAZ_NoEntry":  "130222841825255",
+                         "HAZ_HardHat":  "82063070866271",
+                         "FLOOR_KeepClear":  "128527646551739",
+                         "GR_StillInside":  "70692187683387",
+                         "GR_DontGoNorth":  "123531715244810",
+                         "GR_Day112":  "88711405238781",
+                         "GR_Mina":  "83598049657695",
+                         "GR_SOS":  "137325031834169",
+                         "GR_Water":  "79088635782315"
+                     }
 }
