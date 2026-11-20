@@ -1,6 +1,6 @@
 # 공장맵 — 이어서 할 일 (인수인계)
 
-> 마지막 작업: 2026-11-20 · **몬스터 1번 Slag Walker 컨셉 확정(변형 2종), 다음은 외형** · **보스 Gear Head + 일반 몬스터 31지점(67마리) 배치** (Studio 버전 58) · **8단계 자동 검사·최적화 완료 — 계획서 전 단계 끝** (Studio 버전 56) · **7단계 상자·등반 태그 완료** (공장 25 + 운하 11 상자) · **6단계 조명·연기 완료** (Studio "공장" 저장 버전 54, 공용 패키지 Shared·Services 게시 필요) · **5단계 소품·표지·낙서 완료** (버전 51) · 2026-11-19 · **4단계 바닥 마감 완료 + 슬래그장 Exit4 수정** (Studio "공장" 저장 버전 49) · G 남쪽 띠(슬래그장·고철장·측선·침전조) 완성 → 블록아웃 전부 에셋화 · F2 계량소 + 광석 덤프트럭 완성 · E 발전소(터빈홀·개폐소) 완성 · 굴뚝 3기 완성(중간 에셋 단계 끝) · 컨베이어 갤러리(원료 야적장 → 용광로) 완성 · 배관 다리 키트 4노선 + H 배관 회랑 완성 · 원료 야적장(C) 완성 (Studio "공장" 저장 버전 33) · 가스 홀더(F) · 철도 야드(Lot_058) + 작업자 배랭(Lot_060) · 보스 마당 `BossYard` 완성 · 북쪽 확장 땅 · 낙하 문제 수정(스폰·경계벽) · 코크스로(B) 완료 · 압연 공장동(D)+야적장·냉각탑(E)·용광로(A) 완료
+> 마지막 작업: 2026-11-20 · **몬스터 1번 Slag Walker 외형 완료(SlagWalker·MoltenWalker, Studio 버전 60), 다음은 소리·효과·애니메이션** · **보스 Gear Head + 일반 몬스터 31지점(67마리) 배치** (Studio 버전 58) · **8단계 자동 검사·최적화 완료 — 계획서 전 단계 끝** (Studio 버전 56) · **7단계 상자·등반 태그 완료** (공장 25 + 운하 11 상자) · **6단계 조명·연기 완료** (Studio "공장" 저장 버전 54, 공용 패키지 Shared·Services 게시 필요) · **5단계 소품·표지·낙서 완료** (버전 51) · 2026-11-19 · **4단계 바닥 마감 완료 + 슬래그장 Exit4 수정** (Studio "공장" 저장 버전 49) · G 남쪽 띠(슬래그장·고철장·측선·침전조) 완성 → 블록아웃 전부 에셋화 · F2 계량소 + 광석 덤프트럭 완성 · E 발전소(터빈홀·개폐소) 완성 · 굴뚝 3기 완성(중간 에셋 단계 끝) · 컨베이어 갤러리(원료 야적장 → 용광로) 완성 · 배관 다리 키트 4노선 + H 배관 회랑 완성 · 원료 야적장(C) 완성 (Studio "공장" 저장 버전 33) · 가스 홀더(F) · 철도 야드(Lot_058) + 작업자 배랭(Lot_060) · 보스 마당 `BossYard` 완성 · 북쪽 확장 땅 · 낙하 문제 수정(스폰·경계벽) · 코크스로(B) 완료 · 압연 공장동(D)+야적장·냉각탑(E)·용광로(A) 완료
 > 설계·구역·결정: `Factory_계획서.md`. 에셋 규칙: `.claude/skills/blender-to-roblox/`.
 
 ### 몬스터 디자인 (진행 중, 2026-11-20 시작)
@@ -13,7 +13,15 @@
   - 소리·효과: 걸을 때 껍질 갈리는 소리, 식는 '쉭' 소리, 낮은 신음. 몸에서 잔불과 옅은 연기. 맞으면 껍질 조각과 불티, 죽으면 빛이 꺼지며 부서짐.
   - 애니메이션: 걷기·추격은 공통 좀비 동작(EnemyConfig.ZOMBIE_ANIMATIONS), 공격은 곤봉 팔 내려치기를 새로 만듦.
   - **변형 2종**(메쉬·리그는 같고 껍질 양·색·빛만 다름): `slag_walker` 식은 형(껍질 두꺼운 검회색, 틈 빛 약함) → Ashen Husk 자리 26마리 / `molten_walker` Molten Walker 갓 굳은 형(껍질 얇고 틈 넓음, 밝은 주황 빛, 연기 많음) → Toothed Revenant 자리 26마리. (어느 쪽이 어느 자리인지는 바꿔도 됨)
-  - 다음: **외형** — Blender에서 메쉬 만들기(R15 부위별 MeshPart로 나눠 용접, SurfaceAppearance + 틈 빛).
+  - **외형 완료 (2026-11-20, Studio 저장 버전 60)**: `ServerStorage.Assets.Enemies.SlagWalker`(식은 형, 메쉬 33) / `MoltenWalker`(갓 굳은 형, 30 — LeftUpperArm·LeftLowerLeg·LowerTorso 슬래그 뺌). 속성 `Variant` = Cooled / Molten.
+    - 구조: AshenHusk R15 리그 복제(얼굴 데칼·FaceControls 삭제, 몸 파트 Transparency 1) + `<부위>__<재질>` MeshPart 를 Weld "Attach"로 부위에 용접(Massless, 충돌·쿼리·터치 끔). 기존 적(ToothedRevenant 등)과 같은 방식.
+    - 재질: Slag/Cloth/Skin = SurfaceAppearance(타일 텍스처), Slag 는 **EmissiveMaskContent**(균열 발광) — 식은 형 Strength 2.5 / Tint (255,120,40), 갓 굳은 형 ColorB·EmitB, Strength 4 / Tint (255,135,45). 작업복·피부는 사진보다 밝게 나와 SA.Color 틴트(Cloth 135,135,140 / Skin 150,118,110). Helmet = Plastic (128,96,34), Boot = Leather, Dark = Plastic, Glow(눈) = Neon.
+    - 텍스처 ID: `exports/texture_ids.json` → `SlagWalker`. 메쉬 모델 assetId 87082938518749(그룹 소유).
+    - Blender: 씬 `SlagWalker`, 컬렉션 `SlagWalker`(메쉬, Decimate 수정자: 슬래그 0.55·큰 옷 0.7), `SW_RigRef`(R15 상자 와이어), `SW_TexBake`(굽기 판). 재현 스크립트 `scripts/slag_walker_build.py`(메쉬) → `slag_walker_tex.py`(굽기 셰이더) → `slag_walker_uv_export.py`(UV·FBX). 좌표 = Roblox HRP 기준 (-X, Z, Y), 앞 = -y. 삼각형 13,478.
+    - **Blender `look`은 이 PC에서 하얗게 나옴 → Cycles CPU 렌더를 PNG로 저장해 Read 로 확인**(`exports/_preview/`).
+    - 겹침(BVH): 껍질↔옷 접합부와 관절(목·어깨·팔꿈치·무릎)만 남음. 곤봉 손↔오른 허벅지 겹침은 곤봉을 바깥으로 0.12 옮겨 해결.
+    - **주의: `ServerStorage.Assets.Enemies` 폴더도 패키지(PackageLink)라 새 모델 2개를 넣었으니 사용자가 게시해야 함.**
+    - 다음: **소리·효과·애니메이션** (걷는 소리·식는 소리·신음, 잔불·연기 파티클, 피격 불티, 죽을 때 빛 꺼짐·부서짐, 곤봉 내려치기 공격 애니메이션) → 적 정의 추가 → EnemySpawns 교체.
 - 기존 적 구조(참고): 모델 = `ServerStorage.Assets.Enemies.<Model>` R15 Humanoid 리그 + 몸에 용접한 MeshPart(SurfaceAppearance), 정의 = `ReplicatedStorage.Shared.Data.Enemies` 모듈(id, name, model, scale, level, maxHealth, walkSpeed, chaseSpeed, aggroRange, attack{damage,range,windup,cooldown}, xp, drops, animations, gearSpin 등). 공통 좀비 애니메이션 = EnemyConfig.ZOMBIE_ANIMATIONS. 새 적 정의 추가 = 공용 패키지(Shared) 수정 → 사용자 게시 필요. 보스 Gear Head(gear_head) 모델 = Motor6D 리그 + 파티클 7·PointLight 2.
 - 새 적이 생기면 `Workspace.FactoryEnemies.EnemySpawns`의 해당 지점 `EnemyId`를 바꾼다.
 
