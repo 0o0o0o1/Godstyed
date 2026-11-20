@@ -131,5 +131,24 @@
             "Roughness": "rbxassetid://72683672029385"
         },
         "MeshModelAssetId": "87082938518749"
+    },
+    "HookHauler": {
+        "_note": "Hook Hauler 타일 텍스처 1024. 천·피부는 SlagWalker 것 재사용(Cloth/Skin), 조끼 노멀·거칠기 = SlagWalker Cloth. 원본 PNG exports/textures/hookhauler/",
+        "Vest": {
+            "Color": "rbxassetid://71808294235358"
+        },
+        "Rust": {
+            "Color": "rbxassetid://115535459028861",
+            "Normal": "rbxassetid://82998247968541",
+            "Roughness": "rbxassetid://119016181869139",
+            "Metalness": "rbxassetid://132168352114924"
+        },
+        "Paint": {
+            "Color": "rbxassetid://74576970065827",
+            "Normal": "rbxassetid://128650803947525",
+            "Roughness": "rbxassetid://111518412004710",
+            "Metalness": "rbxassetid://115662586390561"
+        },
+        "MeshModelAssetId": "137332056598079"
     }
 }

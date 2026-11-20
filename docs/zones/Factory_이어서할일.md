@@ -1,6 +1,6 @@
 # 공장맵 — 이어서 할 일 (인수인계)
 
-> 마지막 작업: 2026-11-20 · **몬스터 1번 Slag Walker 완료(외형·소리·효과·공격 애니·정의·배치, Studio 버전 68), 2번 Hook Hauler 컨셉 확정, 다음은 외형** · **보스 Gear Head + 일반 몬스터 31지점(67마리) 배치** (Studio 버전 58) · **8단계 자동 검사·최적화 완료 — 계획서 전 단계 끝** (Studio 버전 56) · **7단계 상자·등반 태그 완료** (공장 25 + 운하 11 상자) · **6단계 조명·연기 완료** (Studio "공장" 저장 버전 54, 공용 패키지 Shared·Services 게시 필요) · **5단계 소품·표지·낙서 완료** (버전 51) · 2026-11-19 · **4단계 바닥 마감 완료 + 슬래그장 Exit4 수정** (Studio "공장" 저장 버전 49) · G 남쪽 띠(슬래그장·고철장·측선·침전조) 완성 → 블록아웃 전부 에셋화 · F2 계량소 + 광석 덤프트럭 완성 · E 발전소(터빈홀·개폐소) 완성 · 굴뚝 3기 완성(중간 에셋 단계 끝) · 컨베이어 갤러리(원료 야적장 → 용광로) 완성 · 배관 다리 키트 4노선 + H 배관 회랑 완성 · 원료 야적장(C) 완성 (Studio "공장" 저장 버전 33) · 가스 홀더(F) · 철도 야드(Lot_058) + 작업자 배랭(Lot_060) · 보스 마당 `BossYard` 완성 · 북쪽 확장 땅 · 낙하 문제 수정(스폰·경계벽) · 코크스로(B) 완료 · 압연 공장동(D)+야적장·냉각탑(E)·용광로(A) 완료
+> 마지막 작업: 2026-11-20 · **몬스터 1번 Slag Walker 완료(외형·소리·효과·공격 애니·정의·배치, Studio 버전 68), 2번 Hook Hauler 외형 완료(Studio 버전 71), 다음은 소리·효과·애니** · **보스 Gear Head + 일반 몬스터 31지점(67마리) 배치** (Studio 버전 58) · **8단계 자동 검사·최적화 완료 — 계획서 전 단계 끝** (Studio 버전 56) · **7단계 상자·등반 태그 완료** (공장 25 + 운하 11 상자) · **6단계 조명·연기 완료** (Studio "공장" 저장 버전 54, 공용 패키지 Shared·Services 게시 필요) · **5단계 소품·표지·낙서 완료** (버전 51) · 2026-11-19 · **4단계 바닥 마감 완료 + 슬래그장 Exit4 수정** (Studio "공장" 저장 버전 49) · G 남쪽 띠(슬래그장·고철장·측선·침전조) 완성 → 블록아웃 전부 에셋화 · F2 계량소 + 광석 덤프트럭 완성 · E 발전소(터빈홀·개폐소) 완성 · 굴뚝 3기 완성(중간 에셋 단계 끝) · 컨베이어 갤러리(원료 야적장 → 용광로) 완성 · 배관 다리 키트 4노선 + H 배관 회랑 완성 · 원료 야적장(C) 완성 (Studio "공장" 저장 버전 33) · 가스 홀더(F) · 철도 야드(Lot_058) + 작업자 배랭(Lot_060) · 보스 마당 `BossYard` 완성 · 북쪽 확장 땅 · 낙하 문제 수정(스폰·경계벽) · 코크스로(B) 완료 · 압연 공장동(D)+야적장·냉각탑(E)·용광로(A) 완료
 > 설계·구역·결정: `Factory_계획서.md`. 에셋 규칙: `.claude/skills/blender-to-roblox/`.
 
 ### 몬스터 디자인 (진행 중, 2026-11-20 시작)
@@ -39,7 +39,13 @@
   - 소리·효과: 쇠사슬 끌리는 소리, 무거운 발소리, 급한 숨소리. 피격 시 쇠 부딪힘·불티, 사망 시 쇠사슬이 풀려 바닥에 떨어짐.
   - 공격: 갈고리를 옆으로 크게 휘두르기(1번 내려치기와 다르게).
   - 능력치: 사용자가 정할 때까지 Stockroom Brute 임시값(scale 1.5, 체력 320, 걷기 5/추격 15, 어그로 45, 피해 17·사거리 9·windup 0.8·cooldown 2.2, xp 55, knockbackResist 0.6, leash 220, 금화 2~6).
-  - 다음: **외형**(Blender, 1번과 같은 방식: R15 리그 + `<부위>__<재질>` MeshPart 용접).
+  - **외형 완료 (2026-11-20, Studio 버전 71)**: `ServerStorage.Assets.Enemies.HookHauler` (메쉬 33, 삼각형 약 18,000). 1번과 같은 구조(AshenHusk R15 복제 + `<부위>__<재질>` MeshPart Weld "Attach"). 메쉬 모델 assetId 137332056598079.
+    - 구성: 두꺼운 몸·팔다리, 찢긴 형광 조끼(앞 틈·팔 구멍·찢긴 아랫단·구멍) + 반사 띠 2줄, 용접 마스크 + 보안경(한쪽 깨져 눈빛), 머리끈, 벨트·공구 주머니, 강철 앞코 장화, 가죽 장갑(왼손 벌림·오른손 주먹). 쇠사슬: 몸 대각선으로 한 바퀴(등 쪽은 갈고리 위로), 왼 팔뚝 나선, 오른 손목, 주먹 → 무기 갈고리, 등 갈고리 눈의 끊어진 사슬, 허리 뒤에서 바닥에 끌리는 사슬. 갈고리 2개(오른손 무기 = RightHand__Paint, 등에 박힌 것 = UpperTorso__Paint).
+    - 재질: Cloth·Skin = Slag Walker 텍스처 재사용(같은 틴트), Vest = 새 컬러(형광 주황, 기름·그을음) + Cloth 노멀·거칠기, Rust(사슬·앞코)·Paint(갈고리, 노랑 도장 벗겨짐) = 새 PBR(금속성 포함). Boot = Leather, Strip = SmoothPlastic 밝은 회색, Mask = Plastic, Dark(보안경) = Glass 0.15, Glow = Neon. ID → `exports/texture_ids.json` `HookHauler`.
+    - **공용 키트 분리**: `scripts/monster_kit.py`(loft·blob·box·tube·finger·torus·chain·hook·shell(cut 함수)·finalize·uv_box·export_fbx·bbox_table·overlaps·shot), `scripts/tex_kit.py`(4D 타일 셰이더 도우미, cloth_mat·rust_mat(paint)·bake_jobs). **loft 면 뒤집힘 수정 + finalize 에서 덩어리별 부호 부피로 면 방향 자동 교정** (이번 메쉬 뒤집힌 덩어리 0).
+    - 실행: Blender에서 `exec(open(r"D:\god\scripts\monster_kit.py", encoding="utf-8").read()); exec(open(r"D:\god\scripts\hook_hauler_build.py", encoding="utf-8").read())`. Blender 시작 장면의 기본 Cube·Light·Camera 는 빌드 스크립트가 지움.
+    - 겹침(BVH): 조끼↔몸, 마스크↔머리, 관절, 등에 박힌 갈고리(의도), 사슬이 몸에 닿는 접촉만 남음. 사슬이 팔·갈고리를 관통하던 5곳은 경로를 옮겨 해결.
+  - 다음: **소리·효과·공격 애니메이션(옆으로 휘두르기)** → 적 정의(Factory 모듈에 `hook_hauler`) → 스폰 4지점 교체.
 - 기존 적 구조(참고): 모델 = `ServerStorage.Assets.Enemies.<Model>` R15 Humanoid 리그 + 몸에 용접한 MeshPart(SurfaceAppearance), 정의 = `ReplicatedStorage.Shared.Data.Enemies` 모듈(id, name, model, scale, level, maxHealth, walkSpeed, chaseSpeed, aggroRange, attack{damage,range,windup,cooldown}, xp, drops, animations, gearSpin 등). 공통 좀비 애니메이션 = EnemyConfig.ZOMBIE_ANIMATIONS. 새 적 정의 추가 = 공용 패키지(Shared) 수정 → 사용자 게시 필요. 보스 Gear Head(gear_head) 모델 = Motor6D 리그 + 파티클 7·PointLight 2.
 - 새 적이 생기면 `Workspace.FactoryEnemies.EnemySpawns`의 해당 지점 `EnemyId`를 바꾼다.
 
