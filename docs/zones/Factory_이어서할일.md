@@ -107,7 +107,15 @@
     - 편집 모드 가짜 ctx 확인: choose(10) 피격 전 KnuckleSmash / 피격 후 ForemanShove / choose(40) ForemanHookThrow, Shove·HookThrow run 오류 없음, 갈고리 복원·투사체·예고 정리 확인. 플레이어가 없어 연계 피해·밀기·붙잡기는 **플레이 확인 필요**. 스폰 위 20 이내 낮은 천장 없음(동쪽 50 원통 콜라이더만).
     - 게시 필요: Services(BossBrain + 패턴 4개), Shared(Factory 모듈).
   - **사이렌 소환 고침 (2026-11-21, Studio 버전 84, 사용자: "사이렌 때 몬스터가 안 나옴, 사방에서 종류별 2마리씩 6마리")**: 정의 `summons = { slag_walker 2, molten_walker 2, hook_hauler 2 }`, summonRadius 20, maxSummons 6. 종류를 섞어 보스 둘레 6방향에 고르게(벽이 있으면 벽 앞 3, 최소 4). 이전 코드는 실패해도 조용히 넘어가서(pcall require 결과를 안 봄) 원인을 못 찾음 — 플레이 Output 에 오류 기록 없음. 이제 실패하면 `[ForemanSiren] ...` 경고가 뜸 → **다음 플레이에서 안 나오면 Output 확인**. 보스 자리 기준 6지점 모두 빈 평지 확인.
-  - **보스 외형 문제 (사용자: "그냥 네모난 자동차 같음")**: Studio 캡처로 확인(이번엔 캡처 됨) — 메쉬는 제대로 로드됨(RenderFidelity Precise 로 바꿔도 같음). 몸이 R15 상자 비율(네모난 어깨·몸통·다리) + 등의 노란 상자 운전실 때문에 상자 덩어리처럼 보임. 다시 디자인 방향을 사용자에게 묻는 중.
+  - **보스 외형 문제 (사용자: "그냥 네모난 자동차 같음")**: Studio 캡처로 확인(이번엔 캡처 됨) — 메쉬는 제대로 로드됨(RenderFidelity Precise 로 바꿔도 같음). 몸이 R15 상자 비율(네모난 어깨·몸통·다리) + 등의 노란 상자 운전실 때문에 상자 덩어리처럼 보였음.
+  - **보스 외형 재제작 v2 (2026-11-21, Studio 버전 86, 사용자 선택 "괴물 실루엣으로 재제작")**: `scripts/foreman_build.py` 다시 씀(git 이전 버전 = v1). 메쉬 모델 assetId **97537500825700**, 40조각, 삼각형 약 21,000, scale 1 기준 3.95×5.97×3.19.
+    - 실루엣: 앞으로 숙인 가슴 + 머리 뒤로 솟은 둥근 혹 등(단면 expo 1로 둥글게), 오른쪽이 더 큰 승모근(비대칭), 머리는 리그 Head 보다 낮고 앞(HZ -0.22, HY -0.30)에 파묻힘 + 튀어나온 아래턱·송곳니(`Head__Helmet` 안), 우그러진 안전모. 팔·허벅지 훨씬 굵게.
+    - 운전실: 작게(0.66×0.46×0.52 반치수) 만들어 노이즈로 우그러뜨리고 -38°/22°/-14° 기울여 혹 왼쪽 뒤에 반쯤 파묻음, 가장자리를 살(`UpperTorso__Skin`)이 덮음. 혹에서 파이프·철근 6개(끝 뭉툭), 혹을 가로지르는 사슬, 어깨 슬래그 껍질. 붐 팔엔 유압 호스 `RightLowerArm__Rust` (새 조각, Rust SA 복사).
+    - 갈고리·붐·확성기 위치는 v1과 같음 → 동작 3종 그대로 씀. 갈고리 용접 C0 +0.45(HookLifted) 다시 적용.
+    - Studio 교체: v1 모델을 복제해 리그·Humanoid·소리 15·ForemanFX 유지, `__` 메쉬만 새것으로(재질·SA·색 이름별 복사, MegaMouth·HookTip·CabLight·HitSparks 옮김, MegaMouth/HookTip 위치 새 크기로 다시 계산). **운전실만 어둡게**: `UpperTorso__Paint` SA.Color (115,92,72), `UpperTorso__Glass` (70,60,50) 투명 0.25 (밝은 노란 상자 → 녹슨 잔해).
+    - 이전 모델 백업: `ServerStorage.Foreman_v1_backup` (패키지 밖, 확인 후 지워도 됨).
+    - 편집 모드 가짜 ctx 로 ForemanShove·ForemanHookThrow 다시 실행 → 오류 없음.
+    - 게시 필요: `ServerStorage.Assets.Enemies`(Foreman v2).
 - **몬스터 디자인 1~4번 모두 끝 (2026-11-20).** 남은 것: 사용자 능력치 결정, 패키지 게시, 실제 플레이 확인(소리 크기·효과 양·보스 패턴 난이도·플레이어 밀기 동작).
 - 기존 적 구조(참고): 모델 = `ServerStorage.Assets.Enemies.<Model>` R15 Humanoid 리그 + 몸에 용접한 MeshPart(SurfaceAppearance), 정의 = `ReplicatedStorage.Shared.Data.Enemies` 모듈(id, name, model, scale, level, maxHealth, walkSpeed, chaseSpeed, aggroRange, attack{damage,range,windup,cooldown}, xp, drops, animations, gearSpin 등). 공통 좀비 애니메이션 = EnemyConfig.ZOMBIE_ANIMATIONS. 새 적 정의 추가 = 공용 패키지(Shared) 수정 → 사용자 게시 필요. 보스 Gear Head(gear_head) 모델 = Motor6D 리그 + 파티클 7·PointLight 2.
 - 새 적이 생기면 `Workspace.FactoryEnemies.EnemySpawns`의 해당 지점 `EnemyId`를 바꾼다.
