@@ -1,4 +1,11 @@
-# 공장맵 — 이어서 할 일 (인수인계)
+
+
+### 몬스터 디자인 (진행 중, 2026-11-20 시작)
+- 사용자 지시: "몬스터 디자인을 하나하나 차근차근 순서대로, 단계마다 보고, 궁금한 건 무조건 물어보기."
+- 결정(사용자): **공장 전용 새 몬스터**(기존 적은 다른 맵과 공유라 안 건드림) / 몬스터마다 **컨셉·설정 + 외형(3D, Blender) + 소리·효과·애니메이션** (능력치·공격 패턴은 범위 밖 — 기존 적 수치 쓸지 물어볼 것) / 순서 **약한 적부터 → 보스 마지막**: 야외 기본 적 → 실내 작업자형 → 보스 마당 경비 → 보스.
+- 현재: **1번(야외 기본 적, 지금 Ashen Husk·Toothed Revenant 자리) 컨셉 질문 중 — 사용자 답 아직 없음.** 제안했던 안: Slag Walker(재·슬래그 뒤집어쓴 작업자, 갈라진 틈에 주황 빛) / Gear-Bitten(보스 Gear Head 톱니가 몸에 박혀 자라난 작업자) / Gasmask Drone(가스 누출로 변한 작업자, 녹색 연기). 사용자 자기 안도 가능.
+- 기존 적 구조(참고): 모델 = `ServerStorage.Assets.Enemies.<Model>` R15 Humanoid 리그 + 몸에 용접한 MeshPart(SurfaceAppearance), 정의 = `ReplicatedStorage.Shared.Data.Enemies` 모듈(id, name, model, scale, level, maxHealth, walkSpeed, chaseSpeed, aggroRange, attack{damage,range,windup,cooldown}, xp, drops, animations, gearSpin 등). 공통 좀비 애니메이션 = EnemyConfig.ZOMBIE_ANIMATIONS. 새 적 정의 추가 = 공용 패키지(Shared) 수정 → 사용자 게시 필요. 보스 Gear Head(gear_head) 모델 = Motor6D 리그 + 파티클 7·PointLight 2.
+- 새 적이 생기면 `Workspace.FactoryEnemies.EnemySpawns`의 해당 지점 `EnemyId`를 바꾼다.# 공장맵 — 이어서 할 일 (인수인계)
 
 > 마지막 작업: 2026-11-20 · **보스 Gear Head + 일반 몬스터 31지점(67마리) 배치** (Studio 버전 58) · **8단계 자동 검사·최적화 완료 — 계획서 전 단계 끝** (Studio 버전 56) · **7단계 상자·등반 태그 완료** (공장 25 + 운하 11 상자) · **6단계 조명·연기 완료** (Studio "공장" 저장 버전 54, 공용 패키지 Shared·Services 게시 필요) · **5단계 소품·표지·낙서 완료** (버전 51) · 2026-11-19 · **4단계 바닥 마감 완료 + 슬래그장 Exit4 수정** (Studio "공장" 저장 버전 49) · G 남쪽 띠(슬래그장·고철장·측선·침전조) 완성 → 블록아웃 전부 에셋화 · F2 계량소 + 광석 덤프트럭 완성 · E 발전소(터빈홀·개폐소) 완성 · 굴뚝 3기 완성(중간 에셋 단계 끝) · 컨베이어 갤러리(원료 야적장 → 용광로) 완성 · 배관 다리 키트 4노선 + H 배관 회랑 완성 · 원료 야적장(C) 완성 (Studio "공장" 저장 버전 33) · 가스 홀더(F) · 철도 야드(Lot_058) + 작업자 배랭(Lot_060) · 보스 마당 `BossYard` 완성 · 북쪽 확장 땅 · 낙하 문제 수정(스폰·경계벽) · 코크스로(B) 완료 · 압연 공장동(D)+야적장·냉각탑(E)·용광로(A) 완료
 > 설계·구역·결정: `Factory_계획서.md`. 에셋 규칙: `.claude/skills/blender-to-roblox/`.
