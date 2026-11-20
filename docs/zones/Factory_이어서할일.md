@@ -505,13 +505,17 @@
 - 정리: 겹치던 잡초 4·드럼 2(Cluster_29) → `ServerStorage.LotDressing_Lot025_Backup`. **몬스터 스폰 이동**: 세정탑 S1 밑에 있던 `Yard_toothed_revenant`(molten_walker) (−974, 908) → (−988, 874).
 - 확인(플레이 테스트 안 함): 레이캐스트 — 작업대 14.0, 계단 단 11.9, 층계참 7.0, 펌프동 바닥 0.8 / 지붕 8.95, 침전조 긁개 다리 4.5, 동·북 문 통과, 정제 가스관·집진기 관 밑 (높이 3·4·6.5·7.5) 통과, 계단 꼭대기 → 작업대 통과. 새 충돌이 기존 맵 충돌 파트와 겹침 0, 레이드 스폰 주변 막힘 없음. 스크린샷으로 텍스처 확인.
 
-### 레이드 맵 등록 "Steelworks" (3번째 맵) — 2026-11-21 (Studio 저장 버전 91, 진행 중)
+### 레이드 맵 등록 "Steelworks" (3번째 맵) — 2026-11-21 (Studio 저장 버전 96, 완료 — 게시·플레이 확인은 사용자)
 - 결정(사용자): 이름 **Steelworks** ("A dead steel mill. The furnaces are cold, but the workers never left.") / 레벨 8 · 35분 · 12명 (15분 뒤 입장 마감 = entryClosesAt 20*60) / 지도 위치 = 상가 왼쪽 해안 / 탈출구 3개 · 도착 연출 · M키 미니맵 · 로딩 화면 배경.
 - PlaceConfig 에는 FACTORY 가 이미 있었음. **RaidConfig.MAPS[PlaceConfig.FACTORY]** 추가 (order 3, boss "The Foreman", entryMap "SteelworksOpenServer", arrivalCinematic 14, exits, zone). **LoadingConfig.PLACES[FACTORY]** 추가 (kicker, accent (214,132,62)). → **공용 패키지 Shared 게시 필요.** 다른 곳에 맵별 하드코딩 없음(grep 확인).
 - **탈출구**: `RaidExits` 에 Exit1 (−1230, 3.5, 1561) = A (10분 뒤 닫힘), Exit2 (−42, 3.5, 1230) = B (20분), 기존 Exit4 (−1220, 400) = C (끝까지). 새 두 곳 반경 11 안 충돌 파트 없음, 레이드 스폰과 60 이상.
 - **도착 연출**: `Workspace.RaidArrival` VehicleStart (−100, 0, 700) → VehicleEnd (−600, 0, 700) — 동서 큰길을 동→서, 우측 차선 z 692 (주차 차량은 z 680·720), 운하 다리 건너 멈춤. 차선 높이 2.5~13 막힘 없음, 길가 카메라(컷 2, 약 x −487, z 722) 자리 비어 있음. 트럭 모델 `ReplicatedStorage.Assets.Vehicles.RaidVehicle` 이 place 에 있음.
 - **월드 지도 구역 그림**: `scripts/steelworks_zone.py`(마스크·합성) + `scripts/steelworks_icons.py`(Blender Workbench 평면 툰 아이콘 11종: 용광로·굴뚝·냉각탑·가스 홀더·창고·톱니 지붕 공장·크레인·석탄 더미·탱크·집·컨테이너) + `scripts/steelworks_zone_rle.txt`(바탕 지도 땅/상가 마스크 RLE, Studio EditableImage 로 읽음). 구역 = 땅 ∧ ¬상가 ∧ 다각형(이미지 x 84..336, y 313..500, 섬 제외). 종이색 (217,193,152) + 결, 길 3개·철길·컨베이어·나무 점, 아이콘 20개. 테두리 흰 5px, 빛 = 바깥 14px 0.78 / 안 26px 0.36 (상가 그림을 픽셀로 읽어 맞춤). 데칼(그룹) → 이미지 ID: zone **98628206512498**, outline **74321785211688**, glow **109612040063235** (1024×746, 위치 확인). points 48개 = 구역 경계 방사선.
-- **남은 것**: M키 미니맵 이미지·로딩 화면 배경 — Studio 뷰포트가 계속 검게 찍혀서(카메라·조명은 정상, 창이 최소화/가려진 것으로 보임) 못 찍음. 뷰포트 복구 후: 위에서 내려다본 3줄 캡처(FOV 작게, 높이는 렌더 거리 안) → Blender 로 이어 붙여 1024 이하 → 데칼 업로드 → `minimap = { image, size, min = {X,Z}, max = {X,Z} }` (위 = −Z, 오른쪽 = +X), 로딩 배경 `image = { size, tiles }`. ⚠ 5000 높이·FOV 5 는 검게 나옴(렌더 거리 밖).
+- **M키 미니맵** `minimap = { image 123326957119863, size {1024, 993}, min {-1252, 323}, max {52, 1588} }`: Studio 위 캡처 7장(높이 1500, **FOV 16**, look_at 을 −Z 로 1 비켜서 위 = −Z, 오른쪽 = +X, 1장 = 1913×670 px = 1204×421.6 스터드)을 `scripts/steelworks_minimap.py` 로 이어 붙임(각 출력 픽셀은 가운데에 가장 가까운 캡처에서 → 기울어짐 최소, 2배 슈퍼샘플). 원본 캡처 `exports/minimap_tiles/`. 캡처 동안 스폰·탈출구·도착 표시·적 스폰 표시와 구름을 숨겼다가 되돌림.
+  - ⚠ **높이 5000+·FOV 5 로 찍었다가 Studio 뷰포트가 검게 멈춤** (카메라·조명 되돌려도 안 풀림) → Studio 를 다시 열어서 해결. 위 캡처는 높이 1500·FOV 16 까지만, 캡처는 **한 번에 하나씩**(동시에 부르면 시간 초과 + 카메라 섞임).
+- **로딩 화면 배경** (LoadingConfig image): 동서 큰길에서 올려다본 용광로 (카메라 (−690, 16, 650) → (−835, 62, 840), FOV 45) 1913×670 → 1024 + 889 두 장: **140333903077208**, **81638109401459**.
+- 확인: RaidConfig·LoadingConfig require OK, 새 이미지 6장 PreloadAsync Success, 미니맵 1024×993.
+- **사용자 할 일**: 공용 패키지 **Shared 게시**(RaidConfig·LoadingConfig) — 게시해야 마을 지도 창에 Steelworks 가 뜸. 마을→공장 입장, 도착 연출, 탈출구 A/B/C, M키 지도는 실제 플레이로 확인 필요(플레이 테스트 안 함).
 
 ## 2. 다음 할 일
 
