@@ -68,6 +68,7 @@
     - **소리·효과** `scripts/furnace_tender_fx.lua` (두 모델): Sound 12(ProSoundEffects — 내열복 스침(마른 잎 소리 대체)·발소리, 숨 2(낮은 음), 개공봉 지글 반복, 찌르는 바람, 타격 지글+쇠, 피격 은박 찢김+지글, 사망 찢김+긴 식는 소리), 개공봉 끝 PointLight TipGlow(경비 7·덩치 9) + Embers + Heat 연기 + `LanceTip` ThrustSparks, 유리창 뒤 VisorGlow, 코트 HitSparks. 효과음 12개 PreloadAsync Success.
     - **TenderFX 스크립트**: 걸음 소리, 숨소리(추격 중 더 자주), 피격 불티·찢김, 공격 시 바람 → "Impact"에 지글·쇠·불티·끝 빛 번쩍. 시체 복제본: 유리창 빛·끝 열기가 3~4초에 식어 꺼지고(Neon → 플라스틱/금속) 개공봉·손잡이(덩치는 방패도)가 떨어짐.
     - **적 정의**: Factory 모듈에 `furnace_tender`(scale 1.5, attackHitTime 0.55, Lab Subject 임시값), `furnace_warden`(scale 1.8, Bloated Husk 임시값) 추가 → 모듈 항목 5개.
+    - **Warden 수정 (2026-11-21, Studio 버전 80, 사용자 지시 "경비답게 낮추고 활동범위를 그 건물 전체 수준으로")**: Bloated Husk 값(체력 3000 — 원래 스킬 훈련용)이라 보스(2500)보다 단단했음 → 체력 900, 피해 18·사거리 7·windup 0.65·cooldown 1.8, 걷기 6/추격 16, lvl 5, xp 80, knockbackResist 0.5. **aggroRange 75, leashDistance 250**(스폰이 건물 북·남 끝이라 건물 286×287 거의 전체를 쫓음, 먼 반대편 모서리 일부(~277)만 밖). 대상 없을 때 어슬렁거리는 범위(WANDER_RADIUS 12)는 공용 EnemyConfig 전체값이라 안 바꿈.
     - **배치**: 보스 마당 lab_subject 2지점(4마리) → furnace_tender, bloated_husk 2지점(2마리) → furnace_warden. 원래 값 `OldEnemyId`.
     - 게시 필요(사용자): Shared(Factory 모듈) + `ServerStorage.Assets.Enemies`(FurnaceTender·FurnaceWarden). 플레이 테스트 안 함.
 - **4번 보스 = The Foreman (새 보스, 컨셉 확정 2026-11-20)** — Gear Head 자리(Boss_GearHead (-879,1450)) 1마리. 기존 Gear Head(다른 맵 공유)는 안 건드림.
