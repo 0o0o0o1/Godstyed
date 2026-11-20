@@ -1,6 +1,7 @@
 --!nonstrict
 -- 패턴 (Foreman 전용, 2페이즈): 확성기 사이렌. 확성기를 앞으로 겨누고(windup) 앞 넓은 범위에 음파를 쏜다
--- 범위 안의 플레이어는 피해를 입고 뒤로 밀려난다. 옆이나 보스 뒤로 피한다
+-- 범위 안의 플레이어는 피해를 입는다(push 가 있으면 뒤로 밀려남 — 2026-11-21부터 정의에서 뺌, 밀치기는 ForemanShove). 옆이나 보스 뒤로 피한다
+-- 높이 판정은 바닥 기준(보스 크기와 무관)
 -- 사이렌 소리에 끌려 Slag Walker(summonId)가 summonCount 마리 나온다. 이 보스가 부른 졸개가 maxSummons 이상 살아 있으면 안 부른다
 -- 울리는 동안 모델 속성 Siren = true (ForemanFX 가 음파 효과·소리), 끝나면 recover 빈틈 (Opening)
 -- 확성기가 떨어져 나가면(분노, breakParts) 이 패턴은 쓰지 않는다 (정의의 maxPhase = 2)
@@ -115,9 +116,9 @@ return {
 			local along = o:Dot(dir)
 			local side = o - dir * along
 			return along > -1 and along <= p.length and Vector3.new(side.X, 0, side.Z).Magnitude <= p.width / 2
-				and math.abs(o.Y) <= HEIGHT_TOLERANCE
+				and r.Position.Y - g.Y <= HEIGHT_TOLERANCE and r.Position.Y - g.Y >= -3
 		end, p.damage)
-		for _, pl in got do
+		for _, pl in (if p.push and p.push > 0 then got else {}) do
 			local hrp = pl.Character and pl.Character:FindFirstChild("HumanoidRootPart")
 			if hrp then
 				local away = flat(hrp.Position - origin)

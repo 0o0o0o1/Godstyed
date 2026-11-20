@@ -1,8 +1,10 @@
 --!nonstrict
 -- 패턴 (Foreman 전용): 갈고리 던지기. 몸을 돌려 대상을 조준하다가(windup, lockTime에 방향 고정) 붐 팔 끝의 갈고리를 직선으로 던진다
 -- 갈고리에 맞은 플레이어는 피해를 입고 보스 앞(stopDistance)까지 끌려온다. 방향이 고정된 뒤 옆으로 피하면 된다
--- 갈고리가 돌아오는 동안(recover) 빈틈: 모델 속성 Opening
--- 수치: anim, windup, lockTime, length, width, speed, damage, stopDistance, pullTime, recover
+-- 끌려온 플레이어에게는 바로 갈고리 내려찍기가 이어진다(예고 없는 확정 연계, 패링으로만 막음). 내려찍기를 기다리는 동안 수평으로 붙잡혀 있다
+-- 끝나면(recover) 빈틈: 모델 속성 Opening
+-- 수치: anim, windup, lockTime, length, width, speed, damage, stopDistance, pullTime, comboWindup, comboDamage, recover
+-- 높이 판정은 바닥 기준(보스 크기와 무관): 갈고리는 바닥 + FLY_HEIGHT 로 날아간다
 -- 소리: 모델 UpperTorso 의 Sound "ThrowWhoosh", "ChainRattle", "HookHit" 가 있으면 낸다 (ForemanFX 설치 스크립트)
 
 local Debris = game:GetService("Debris")
@@ -10,6 +12,7 @@ local Debris = game:GetService("Debris")
 local Telegraph = require(script.Parent.Parent.Telegraph)
 
 local HEIGHT_TOLERANCE = 7
+local FLY_HEIGHT = 3.5 -- 바닥에서 갈고리가 나는 높이 (플레이어 몸통 높이)
 local THROW_MARKER_TIME = 0.9 -- 애니메이션의 "Throw" 마커 시각
 
 local tracks = setmetatable({}, { __mode = "k" })
@@ -74,6 +77,30 @@ local function shove(player: Player, velocity: Vector3, duration: number)
 	Debris:AddItem(att, duration)
 end
 
+-- 수평으로만 붙잡는다 (중력은 그대로). 연계 내려찍기 직전까지
+local function pin(player: Player, duration: number)
+	local character = player.Character
+	local hrp = character and character:FindFirstChild("HumanoidRootPart")
+	if not hrp then
+		return
+	end
+	local att = Instance.new("Attachment")
+	att.Name = "ForemanPin"
+	att.Parent = hrp
+	local lv = Instance.new("LinearVelocity")
+	lv.Name = "ForemanPin"
+	lv.Attachment0 = att
+	lv.RelativeTo = Enum.ActuatorRelativeTo.World
+	lv.VelocityConstraintMode = Enum.VelocityConstraintMode.Plane
+	lv.PrimaryTangentAxis = Vector3.xAxis
+	lv.SecondaryTangentAxis = Vector3.zAxis
+	lv.PlaneVelocity = Vector2.zero
+	lv.MaxForce = 4e5
+	lv.Parent = hrp
+	Debris:AddItem(lv, duration)
+	Debris:AddItem(att, duration)
+end
+
 return {
 	run = function(ctx, targetRoot: BasePart, p)
 		local root, model = ctx.root, ctx.model
@@ -112,7 +139,7 @@ return {
 		local dir = flat(root.CFrame.LookVector)
 		local scale = model:GetScale()
 		local from = if hook then hook.Position else root.Position + dir * 3
-		local height = from.Y
+		local height = Telegraph.ground(model, root.Position).Y + FLY_HEIGHT
 		local proj
 		local beam
 		if hook then
@@ -157,19 +184,20 @@ return {
 		local already = {}
 		local travelled = 0
 		local last = os.clock()
-		local pos = Vector3.new(from.X, height, from.Z)
+		local pos = from -- 손 높이에서 출발해 금방 바닥 + FLY_HEIGHT 로 내려온다
 		while travelled < p.length and ctx.alive() do
 			local now = os.clock()
 			local step = math.min(p.speed * (now - last), p.length - travelled)
 			last = now
 			travelled += step
 			pos += dir * step
+			pos = Vector3.new(pos.X, pos.Y + (height - pos.Y) * math.min(1, step / 6), pos.Z)
 			if proj then
 				proj.CFrame = CFrame.lookAt(pos, pos + dir)
 			end
 			local got = Telegraph.hit(model, function(r)
 				local o = r.Position - pos
-				return Vector3.new(o.X, 0, o.Z).Magnitude <= p.width / 2 + 1 and math.abs(o.Y) <= HEIGHT_TOLERANCE
+				return Vector3.new(o.X, 0, o.Z).Magnitude <= p.width / 2 + 1 and math.abs(r.Position.Y - height) <= HEIGHT_TOLERANCE
 			end, p.damage, already)
 			for _, pl in got do
 				table.insert(hitPlayers, pl)
@@ -224,6 +252,34 @@ return {
 		if not ctx.alive() then
 			return
 		end
+
+		-- 확정 연계: 끌려온 사람 위로 바로 내려찍기 (예고 없음, 피할 수 없음 — 패링만 됨)
+		if #hitPlayers > 0 and p.comboDamage then
+			local victims = {}
+			local nearest
+			for _, pl in hitPlayers do
+				local hrp = pl.Character and pl.Character:FindFirstChild("HumanoidRootPart")
+				if hrp then
+					victims[pl.Character] = true
+					pin(pl, p.comboWindup)
+					nearest = nearest or hrp
+				end
+			end
+			if nearest then
+				ctx.face(nearest.Position)
+				ctx.setGearState("Attacking", true)
+				ctx.tracks.attack:Play(0.05, 1, ctx.hitTime / p.comboWindup)
+				task.wait(p.comboWindup)
+				ctx.setGearState("Attacking", false)
+				if not ctx.alive() then
+					return
+				end
+				Telegraph.hit(model, function(r)
+					return victims[r.Parent] == true
+				end, p.comboDamage)
+			end
+		end
+
 		model:SetAttribute("Opening", true)
 		task.wait(p.recover)
 	end,

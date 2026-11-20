@@ -97,6 +97,15 @@
     - **정의** Factory 모듈 `foreman` (boss, scale 2, Gear Head 임시 능력치·드랍, phases 0.6/0.25, groggy, breakParts [2] 유리 / [3] 확성기, patterns 5개: KnuckleSmash·ForemanHookThrow·GrinderCharge·ForemanSiren·ForemanCoilDrop). 그로기 전용 동작은 없음.
     - **배치**: `Boss_GearHead` → 이름 `Boss_Foreman`, EnemyId foreman (OldEnemyId gear_head).
     - **게시 필요(사용자)**: Services(패턴 3개), Shared(Factory 모듈), Assets.Enemies(Foreman 외 1~3번 모델).
+  - **보스 수정 (2026-11-21, Studio 버전 82, 사용자 지시)**: "밀기는 근접해서 공격하면, 당기기는 당긴 다음 확정 공격 연계, 당기기는 빨간 표시 이후 더 빠르게, 보스 사이즈 훨씬 크게"
+    - **크기**: scale 2 → **3.5** (키 약 19.1, 폭 13.8, HRP 바닥 위 11.2). 거리·범위 수치 ×1.75 — attack.range 24, KnuckleSmash maxRange 28·reach 16·radius 13, GrinderCharge 24~60·length 60·width 13·speed 48, Siren length 42·width 26, CoilDrop area 40·minDistance 14(코일 반경 5 그대로).
+    - **근접 밀치기 새 패턴 `ForemanShove`** (`scripts/foreman_patterns/ForemanShove.lua`): 대상이 20 안 + 보스가 최근 1.5초 안에 피해를 입었으면 **먼저** 씀(priority). 보스 주변 주황 원(반경 16) 0.5초 예고 → 피해 15 + 바깥으로 75 밀어냄(위로 22). 쿨다운 5, 빈틈 0.6. 한 번 쓰면 피격 기록을 지워 다시 맞아야 또 씀. 동작은 내려찍기 재사용.
+    - **사이렌 밀쳐내기 뺌**: 정의에서 push 삭제 → 피해 + 소환만. 패턴은 push 가 있을 때만 밀어냄.
+    - **갈고리 던지기**: 빨간 예고 0.9 → **0.55초**(lockTime 0.6 → 0.3), 갈고리 속도 80 → 140, 끌기 피해 12. **확정 연계**: 끌려온 플레이어를 수평으로 붙잡고(LinearVelocity Plane `ForemanPin`) 0.45초 뒤 예고 없는 내려찍기 피해 35 (그 플레이어만, 패링으로만 막힘). stopDistance 10 = 내려찍기 갈고리가 닿는 거리.
+    - 보스 크기와 상관없게 **높이 판정을 바닥 기준**으로 바꿈(갈고리는 바닥 + 3.5 높이로 날아감, 사이렌·밀치기도 바닥 기준). 공용 GrinderCharge 는 HRP 기준(허용 10)인데 scale 3.5 에서 차이 약 8.2라 평지에선 맞음.
+    - **공용 BossBrain 최소 수정**: 패턴 모듈에 `canUse(ctx, p, distance)` 가 있으면 그것도 통과해야 고르고, 정의에 `priority = true` 면 조건이 맞을 때 weight 보다 먼저 고름. 둘 다 없으면 기존과 같음(다른 보스 영향 없음).
+    - 편집 모드 가짜 ctx 확인: choose(10) 피격 전 KnuckleSmash / 피격 후 ForemanShove / choose(40) ForemanHookThrow, Shove·HookThrow run 오류 없음, 갈고리 복원·투사체·예고 정리 확인. 플레이어가 없어 연계 피해·밀기·붙잡기는 **플레이 확인 필요**. 스폰 위 20 이내 낮은 천장 없음(동쪽 50 원통 콜라이더만).
+    - 게시 필요: Services(BossBrain + 패턴 4개), Shared(Factory 모듈).
 - **몬스터 디자인 1~4번 모두 끝 (2026-11-20).** 남은 것: 사용자 능력치 결정, 패키지 게시, 실제 플레이 확인(소리 크기·효과 양·보스 패턴 난이도·플레이어 밀기 동작).
 - 기존 적 구조(참고): 모델 = `ServerStorage.Assets.Enemies.<Model>` R15 Humanoid 리그 + 몸에 용접한 MeshPart(SurfaceAppearance), 정의 = `ReplicatedStorage.Shared.Data.Enemies` 모듈(id, name, model, scale, level, maxHealth, walkSpeed, chaseSpeed, aggroRange, attack{damage,range,windup,cooldown}, xp, drops, animations, gearSpin 등). 공통 좀비 애니메이션 = EnemyConfig.ZOMBIE_ANIMATIONS. 새 적 정의 추가 = 공용 패키지(Shared) 수정 → 사용자 게시 필요. 보스 Gear Head(gear_head) 모델 = Motor6D 리그 + 파티클 7·PointLight 2.
 - 새 적이 생기면 `Workspace.FactoryEnemies.EnemySpawns`의 해당 지점 `EnemyId`를 바꾼다.
