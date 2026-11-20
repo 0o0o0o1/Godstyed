@@ -1,6 +1,6 @@
 # 공장맵 — 이어서 할 일 (인수인계)
 
-> 마지막 작업: 2026-11-20 · **몬스터 1번 Slag Walker 완료(외형·소리·효과·공격 애니·정의·배치, Studio 버전 68), 몬스터 2번 Hook Hauler 완료(Studio 버전 72), 몬스터 3번 Furnace Tender 완료(Studio 버전 75), 4번 보스 The Foreman 외형 완료(Studio 버전 76), 다음은 패턴·애니·소리** · **보스 Gear Head + 일반 몬스터 31지점(67마리) 배치** (Studio 버전 58) · **8단계 자동 검사·최적화 완료 — 계획서 전 단계 끝** (Studio 버전 56) · **7단계 상자·등반 태그 완료** (공장 25 + 운하 11 상자) · **6단계 조명·연기 완료** (Studio "공장" 저장 버전 54, 공용 패키지 Shared·Services 게시 필요) · **5단계 소품·표지·낙서 완료** (버전 51) · 2026-11-19 · **4단계 바닥 마감 완료 + 슬래그장 Exit4 수정** (Studio "공장" 저장 버전 49) · G 남쪽 띠(슬래그장·고철장·측선·침전조) 완성 → 블록아웃 전부 에셋화 · F2 계량소 + 광석 덤프트럭 완성 · E 발전소(터빈홀·개폐소) 완성 · 굴뚝 3기 완성(중간 에셋 단계 끝) · 컨베이어 갤러리(원료 야적장 → 용광로) 완성 · 배관 다리 키트 4노선 + H 배관 회랑 완성 · 원료 야적장(C) 완성 (Studio "공장" 저장 버전 33) · 가스 홀더(F) · 철도 야드(Lot_058) + 작업자 배랭(Lot_060) · 보스 마당 `BossYard` 완성 · 북쪽 확장 땅 · 낙하 문제 수정(스폰·경계벽) · 코크스로(B) 완료 · 압연 공장동(D)+야적장·냉각탑(E)·용광로(A) 완료
+> 마지막 작업: 2026-11-20 · **몬스터 1번 Slag Walker 완료(외형·소리·효과·공격 애니·정의·배치, Studio 버전 68), 몬스터 2번 Hook Hauler 완료(Studio 버전 72), 몬스터 3번 Furnace Tender 완료(Studio 버전 75), 몬스터 디자인 1~4번 모두 완료(보스 The Foreman, Studio 버전 79) — 남은 것: 능력치·게시·플레이 확인** · **보스 Gear Head + 일반 몬스터 31지점(67마리) 배치** (Studio 버전 58) · **8단계 자동 검사·최적화 완료 — 계획서 전 단계 끝** (Studio 버전 56) · **7단계 상자·등반 태그 완료** (공장 25 + 운하 11 상자) · **6단계 조명·연기 완료** (Studio "공장" 저장 버전 54, 공용 패키지 Shared·Services 게시 필요) · **5단계 소품·표지·낙서 완료** (버전 51) · 2026-11-19 · **4단계 바닥 마감 완료 + 슬래그장 Exit4 수정** (Studio "공장" 저장 버전 49) · G 남쪽 띠(슬래그장·고철장·측선·침전조) 완성 → 블록아웃 전부 에셋화 · F2 계량소 + 광석 덤프트럭 완성 · E 발전소(터빈홀·개폐소) 완성 · 굴뚝 3기 완성(중간 에셋 단계 끝) · 컨베이어 갤러리(원료 야적장 → 용광로) 완성 · 배관 다리 키트 4노선 + H 배관 회랑 완성 · 원료 야적장(C) 완성 (Studio "공장" 저장 버전 33) · 가스 홀더(F) · 철도 야드(Lot_058) + 작업자 배랭(Lot_060) · 보스 마당 `BossYard` 완성 · 북쪽 확장 땅 · 낙하 문제 수정(스폰·경계벽) · 코크스로(B) 완료 · 압연 공장동(D)+야적장·냉각탑(E)·용광로(A) 완료
 > 설계·구역·결정: `Factory_계획서.md`. 에셋 규칙: `.claude/skills/blender-to-roblox/`.
 
 ### 몬스터 디자인 (진행 중, 2026-11-20 시작)
@@ -83,7 +83,19 @@
     - 재질은 전부 기존 텍스처 재사용(Cloth·Skin = Slag Walker, Vest·Rust·Paint = Hook Hauler) → 새 업로드 없음.
     - 겹침: 운전실 앞판↔등(박힌 것, 의도), 붐↔용접 고리(팔꿈치), 확성기↔손, 사슬↔도르래·갈고리 접합만.
     - **확인용 캡처 실패**: Studio 뷰포트가 검은 화면만 찍힘(창이 안 그려지는 상태) → 외형은 Blender 렌더(`exports/_preview/fm_*.png`)로만 확인, Studio 화면 확인은 다음에.
-  - 다음: 공격 애니(갈고리 내려찍기·던지기·사이렌·짐 낙하·돌진 동작) + 새 패턴 모듈 3개(HookThrow, MegaSiren(+Slag Walker 소환), CoilDrop) + 소리·효과 → 정의 → Boss_GearHead 지점 교체.
+  - **패턴·애니·소리·정의·배치 완료 (2026-11-20, Studio 버전 79) → 4번 보스 끝 (능력치·패턴 수치는 임시, 플레이 확인 전)**
+    - **동작 3종** (`scripts/foreman_anim.py`, FK 확인): `ForemanSmash` **121917648178069** (갈고리 머리 위 → 0.80 "Impact" 내려찍기, 갈고리 땅 위 0.15·앞 2.9; 기본 attack + KnuckleSmash + CoilDrop 시작), `ForemanThrow` **120213273357659** (0.90 "Throw", 1.75 "Pull"), `ForemanSiren` **118908082714018** (확성기 앞으로 겨눔, 0.90 "Siren", 2.4까지 유지). 쉬는 자세에서 갈고리가 땅을 0.36 뚫어서 `RightHand__Hook` 용접 C0 를 +0.45 올림(모델 속성 HookLifted).
+    - **새 패턴 모듈 3개** — 공용 `ServerScriptService.Services.Enemy.EnemyAI.Patterns` 에 **파일만 추가**(기존 패턴·BossBrain 수정 없음). 원본 `scripts/foreman_patterns/*.lua`:
+      - `ForemanHookThrow`: GrinderCharge 처럼 lane 예고로 조준(lockTime 고정) → 손 갈고리 숨기고 복제 투사체 + Beam 사슬로 직선 비행 → 맞은 플레이어 피해 + 보스 앞(stopDistance)까지 끌어당김 → 회수 → Opening.
+      - `ForemanSiren` (2페이즈만, forced 20초): 앞 넓은 lane 예고 → 피해 + 밀쳐냄 + 모델 속성 Siren → `Enemy.spawnTemporary("slag_walker")` 2마리(보스가 부른 졸개 살아 있는 수 최대 4, `SummonedBy` 속성). Enemy 는 순환 require 를 피하려고 run 안에서 불러옴. 확성기가 떨어져 나가면 스스로 안 씀.
+      - `ForemanCoilDrop` (분노, forced 13초): 내려찍기 → 범위 32 안 플레이어 발밑 + 보스 주변에 6곳, 주황 원 예고 1.3초(0.15초 간격) → 강철 코일(원통+구멍+띠) 낙하·피해·먼지·소리 → 6초 장애물 후 사라짐.
+      - **플레이어 밀기/당기기**는 기존 시스템에 없어서 패턴 안에서 플레이어 HumanoidRootPart 에 서버가 `LinearVelocity`(이름 ForemanShove)를 짧게 붙이는 방식. **실제 게임에서 클라이언트에 잘 먹히는지는 플레이 확인 필요.**
+      - 편집 모드에서 가짜 ctx 로 3개 패턴 run 을 끝까지 실행 → 오류 없음, 갈고리 복원·투사체/코일 정리 확인(사이렌 소환은 편집 모드라 빼고 실행). 플레이 테스트 안 함.
+    - **소리·효과** `scripts/foreman_fx.lua`: Sound 15(ProSoundEffects 위주 + 사이렌 106098533112635 "T1300 Siren Slow", 유리 6737581507 "Glass Break 2" — 이 둘은 일반 사용자 업로드), 확성기 입 `MegaMouth` SoundWave·WaveDust, 운전실 `CabLight`(2페이즈 주황, 분노 빨강 깜빡임), 갈고리 `HookTip` SmashSparks·SmashDust, 사슬 HitSparks. `ForemanFX` 스크립트: 쿵 발소리+사슬, 확성기 지직+으르렁, 피격 쇠 소리, Impact 쾅·먼지·불티, Siren 속성 → 사이렌·음파, Phase 2 유리 깨짐 / Phase 3 확성기 뜯김. 시체: 큰 쇳소리, 갈고리·사슬 떨어짐. 15개 PreloadAsync Success.
+    - **정의** Factory 모듈 `foreman` (boss, scale 2, Gear Head 임시 능력치·드랍, phases 0.6/0.25, groggy, breakParts [2] 유리 / [3] 확성기, patterns 5개: KnuckleSmash·ForemanHookThrow·GrinderCharge·ForemanSiren·ForemanCoilDrop). 그로기 전용 동작은 없음.
+    - **배치**: `Boss_GearHead` → 이름 `Boss_Foreman`, EnemyId foreman (OldEnemyId gear_head).
+    - **게시 필요(사용자)**: Services(패턴 3개), Shared(Factory 모듈), Assets.Enemies(Foreman 외 1~3번 모델).
+- **몬스터 디자인 1~4번 모두 끝 (2026-11-20).** 남은 것: 사용자 능력치 결정, 패키지 게시, 실제 플레이 확인(소리 크기·효과 양·보스 패턴 난이도·플레이어 밀기 동작).
 - 기존 적 구조(참고): 모델 = `ServerStorage.Assets.Enemies.<Model>` R15 Humanoid 리그 + 몸에 용접한 MeshPart(SurfaceAppearance), 정의 = `ReplicatedStorage.Shared.Data.Enemies` 모듈(id, name, model, scale, level, maxHealth, walkSpeed, chaseSpeed, aggroRange, attack{damage,range,windup,cooldown}, xp, drops, animations, gearSpin 등). 공통 좀비 애니메이션 = EnemyConfig.ZOMBIE_ANIMATIONS. 새 적 정의 추가 = 공용 패키지(Shared) 수정 → 사용자 게시 필요. 보스 Gear Head(gear_head) 모델 = Motor6D 리그 + 파티클 7·PointLight 2.
 - 새 적이 생기면 `Workspace.FactoryEnemies.EnemySpawns`의 해당 지점 `EnemyId`를 바꾼다.
 
