@@ -1,6 +1,6 @@
 # 공장맵 — 이어서 할 일 (인수인계)
 
-> 마지막 작업: 2026-11-20 · **몬스터 1번 Slag Walker 완료(외형·소리·효과·공격 애니·정의·배치, Studio 버전 68), 몬스터 2번 Hook Hauler 완료(Studio 버전 72), 3번 Furnace Tender 외형 완료(Studio 버전 74), 다음은 소리·효과·애니** · **보스 Gear Head + 일반 몬스터 31지점(67마리) 배치** (Studio 버전 58) · **8단계 자동 검사·최적화 완료 — 계획서 전 단계 끝** (Studio 버전 56) · **7단계 상자·등반 태그 완료** (공장 25 + 운하 11 상자) · **6단계 조명·연기 완료** (Studio "공장" 저장 버전 54, 공용 패키지 Shared·Services 게시 필요) · **5단계 소품·표지·낙서 완료** (버전 51) · 2026-11-19 · **4단계 바닥 마감 완료 + 슬래그장 Exit4 수정** (Studio "공장" 저장 버전 49) · G 남쪽 띠(슬래그장·고철장·측선·침전조) 완성 → 블록아웃 전부 에셋화 · F2 계량소 + 광석 덤프트럭 완성 · E 발전소(터빈홀·개폐소) 완성 · 굴뚝 3기 완성(중간 에셋 단계 끝) · 컨베이어 갤러리(원료 야적장 → 용광로) 완성 · 배관 다리 키트 4노선 + H 배관 회랑 완성 · 원료 야적장(C) 완성 (Studio "공장" 저장 버전 33) · 가스 홀더(F) · 철도 야드(Lot_058) + 작업자 배랭(Lot_060) · 보스 마당 `BossYard` 완성 · 북쪽 확장 땅 · 낙하 문제 수정(스폰·경계벽) · 코크스로(B) 완료 · 압연 공장동(D)+야적장·냉각탑(E)·용광로(A) 완료
+> 마지막 작업: 2026-11-20 · **몬스터 1번 Slag Walker 완료(외형·소리·효과·공격 애니·정의·배치, Studio 버전 68), 몬스터 2번 Hook Hauler 완료(Studio 버전 72), 몬스터 3번 Furnace Tender 완료(Studio 버전 75), 다음은 4번 보스** · **보스 Gear Head + 일반 몬스터 31지점(67마리) 배치** (Studio 버전 58) · **8단계 자동 검사·최적화 완료 — 계획서 전 단계 끝** (Studio 버전 56) · **7단계 상자·등반 태그 완료** (공장 25 + 운하 11 상자) · **6단계 조명·연기 완료** (Studio "공장" 저장 버전 54, 공용 패키지 Shared·Services 게시 필요) · **5단계 소품·표지·낙서 완료** (버전 51) · 2026-11-19 · **4단계 바닥 마감 완료 + 슬래그장 Exit4 수정** (Studio "공장" 저장 버전 49) · G 남쪽 띠(슬래그장·고철장·측선·침전조) 완성 → 블록아웃 전부 에셋화 · F2 계량소 + 광석 덤프트럭 완성 · E 발전소(터빈홀·개폐소) 완성 · 굴뚝 3기 완성(중간 에셋 단계 끝) · 컨베이어 갤러리(원료 야적장 → 용광로) 완성 · 배관 다리 키트 4노선 + H 배관 회랑 완성 · 원료 야적장(C) 완성 (Studio "공장" 저장 버전 33) · 가스 홀더(F) · 철도 야드(Lot_058) + 작업자 배랭(Lot_060) · 보스 마당 `BossYard` 완성 · 북쪽 확장 땅 · 낙하 문제 수정(스폰·경계벽) · 코크스로(B) 완료 · 압연 공장동(D)+야적장·냉각탑(E)·용광로(A) 완료
 > 설계·구역·결정: `Factory_계획서.md`. 에셋 규칙: `.claude/skills/blender-to-roblox/`.
 
 ### 몬스터 디자인 (진행 중, 2026-11-20 시작)
@@ -63,7 +63,14 @@
     - 재질: Suit = 새 은박 PBR(구김·세로 누빔·그을음·열 변색·찢긴 속감, 금속성 0.85). **첫 업로드는 얼룩이 잘고 진해 위장복처럼 보여서** 그을음·변색 노이즈를 크고 옅게 바꿔 Color·Rough·Metal 다시 올림(Normal 은 그대로). Rod·Plate(틴트 150) = Hook Hauler Rust, Tank = Hook Hauler Paint. ID → `exports/texture_ids.json` `FurnaceTender`.
     - 스크립트: `scripts/furnace_tender_build.py`, `tex_kit.foil_mat`. 키트 보강: `monster_kit.reset` 이 다른 몬스터의 `__` 메쉬도 지움(이름 충돌로 `.001` 붙던 문제), `drip`·`rod` 추가.
     - 겹침: 개공봉↔소매(각도 조정)·공기통↔등(뒤로 뺌)·어깨 보호대↔팔/후드(가슴판으로 교체) 해결. 남은 것은 손잡이·끈·가슴판 가장자리 접촉, 코트 안쪽 마개↔다리(속, 안 보임).
-  - 다음: 소리·효과·찌르기 공격 애니 → 적 정의(`furnace_tender`, `furnace_warden`) → 보스 마당 4지점 교체.
+  - **소리·효과·공격 애니·정의·배치 완료 (2026-11-20, Studio 버전 75) → 3번 몬스터 끝 (능력치만 임시)**
+    - **공격 애니메이션** `FurnaceTenderAttack` assetId **140592601845071** (두 변형 공용): 0 → 0.35 당김 → 0.45 멈춤 → **0.55 찌름(마커 "Impact")** → 0.78 → 1.25 복귀. `scripts/furnace_tender_anim.py`. FK: 찌를 때 끝이 몸 앞 4.6·땅 위 2.7, 거의 수평(팔을 뻗으면 막대가 들려서 손목 -62°로 보정). 첫 시도는 너무 높고(3.4) 왼쪽으로 비껴서 몸 비틀기를 줄임.
+    - **소리·효과** `scripts/furnace_tender_fx.lua` (두 모델): Sound 12(ProSoundEffects — 내열복 스침(마른 잎 소리 대체)·발소리, 숨 2(낮은 음), 개공봉 지글 반복, 찌르는 바람, 타격 지글+쇠, 피격 은박 찢김+지글, 사망 찢김+긴 식는 소리), 개공봉 끝 PointLight TipGlow(경비 7·덩치 9) + Embers + Heat 연기 + `LanceTip` ThrustSparks, 유리창 뒤 VisorGlow, 코트 HitSparks. 효과음 12개 PreloadAsync Success.
+    - **TenderFX 스크립트**: 걸음 소리, 숨소리(추격 중 더 자주), 피격 불티·찢김, 공격 시 바람 → "Impact"에 지글·쇠·불티·끝 빛 번쩍. 시체 복제본: 유리창 빛·끝 열기가 3~4초에 식어 꺼지고(Neon → 플라스틱/금속) 개공봉·손잡이(덩치는 방패도)가 떨어짐.
+    - **적 정의**: Factory 모듈에 `furnace_tender`(scale 1.5, attackHitTime 0.55, Lab Subject 임시값), `furnace_warden`(scale 1.8, Bloated Husk 임시값) 추가 → 모듈 항목 5개.
+    - **배치**: 보스 마당 lab_subject 2지점(4마리) → furnace_tender, bloated_husk 2지점(2마리) → furnace_warden. 원래 값 `OldEnemyId`.
+    - 게시 필요(사용자): Shared(Factory 모듈) + `ServerStorage.Assets.Enemies`(FurnaceTender·FurnaceWarden). 플레이 테스트 안 함.
+- **다음: 4번 보스 — Gear Head 리디자인할지, 새 보스를 만들지 사용자에게 물어볼 것.**
 - 기존 적 구조(참고): 모델 = `ServerStorage.Assets.Enemies.<Model>` R15 Humanoid 리그 + 몸에 용접한 MeshPart(SurfaceAppearance), 정의 = `ReplicatedStorage.Shared.Data.Enemies` 모듈(id, name, model, scale, level, maxHealth, walkSpeed, chaseSpeed, aggroRange, attack{damage,range,windup,cooldown}, xp, drops, animations, gearSpin 등). 공통 좀비 애니메이션 = EnemyConfig.ZOMBIE_ANIMATIONS. 새 적 정의 추가 = 공용 패키지(Shared) 수정 → 사용자 게시 필요. 보스 Gear Head(gear_head) 모델 = Motor6D 리그 + 파티클 7·PointLight 2.
 - 새 적이 생기면 `Workspace.FactoryEnemies.EnemySpawns`의 해당 지점 `EnemyId`를 바꾼다.
 
