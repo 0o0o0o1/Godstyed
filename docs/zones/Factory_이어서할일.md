@@ -1,6 +1,6 @@
 # 공장맵 — 이어서 할 일 (인수인계)
 
-> 마지막 작업: 2026-11-20 · **몬스터 1번 Slag Walker 완료(외형·소리·효과·공격 애니·정의·배치, Studio 버전 68), 몬스터 2번 Hook Hauler 완료(Studio 버전 72), 몬스터 3번 Furnace Tender 완료(Studio 버전 75), 다음은 4번 보스** · **보스 Gear Head + 일반 몬스터 31지점(67마리) 배치** (Studio 버전 58) · **8단계 자동 검사·최적화 완료 — 계획서 전 단계 끝** (Studio 버전 56) · **7단계 상자·등반 태그 완료** (공장 25 + 운하 11 상자) · **6단계 조명·연기 완료** (Studio "공장" 저장 버전 54, 공용 패키지 Shared·Services 게시 필요) · **5단계 소품·표지·낙서 완료** (버전 51) · 2026-11-19 · **4단계 바닥 마감 완료 + 슬래그장 Exit4 수정** (Studio "공장" 저장 버전 49) · G 남쪽 띠(슬래그장·고철장·측선·침전조) 완성 → 블록아웃 전부 에셋화 · F2 계량소 + 광석 덤프트럭 완성 · E 발전소(터빈홀·개폐소) 완성 · 굴뚝 3기 완성(중간 에셋 단계 끝) · 컨베이어 갤러리(원료 야적장 → 용광로) 완성 · 배관 다리 키트 4노선 + H 배관 회랑 완성 · 원료 야적장(C) 완성 (Studio "공장" 저장 버전 33) · 가스 홀더(F) · 철도 야드(Lot_058) + 작업자 배랭(Lot_060) · 보스 마당 `BossYard` 완성 · 북쪽 확장 땅 · 낙하 문제 수정(스폰·경계벽) · 코크스로(B) 완료 · 압연 공장동(D)+야적장·냉각탑(E)·용광로(A) 완료
+> 마지막 작업: 2026-11-20 · **몬스터 1번 Slag Walker 완료(외형·소리·효과·공격 애니·정의·배치, Studio 버전 68), 몬스터 2번 Hook Hauler 완료(Studio 버전 72), 몬스터 3번 Furnace Tender 완료(Studio 버전 75), 4번 보스 The Foreman 컨셉 확정, 다음은 외형** · **보스 Gear Head + 일반 몬스터 31지점(67마리) 배치** (Studio 버전 58) · **8단계 자동 검사·최적화 완료 — 계획서 전 단계 끝** (Studio 버전 56) · **7단계 상자·등반 태그 완료** (공장 25 + 운하 11 상자) · **6단계 조명·연기 완료** (Studio "공장" 저장 버전 54, 공용 패키지 Shared·Services 게시 필요) · **5단계 소품·표지·낙서 완료** (버전 51) · 2026-11-19 · **4단계 바닥 마감 완료 + 슬래그장 Exit4 수정** (Studio "공장" 저장 버전 49) · G 남쪽 띠(슬래그장·고철장·측선·침전조) 완성 → 블록아웃 전부 에셋화 · F2 계량소 + 광석 덤프트럭 완성 · E 발전소(터빈홀·개폐소) 완성 · 굴뚝 3기 완성(중간 에셋 단계 끝) · 컨베이어 갤러리(원료 야적장 → 용광로) 완성 · 배관 다리 키트 4노선 + H 배관 회랑 완성 · 원료 야적장(C) 완성 (Studio "공장" 저장 버전 33) · 가스 홀더(F) · 철도 야드(Lot_058) + 작업자 배랭(Lot_060) · 보스 마당 `BossYard` 완성 · 북쪽 확장 땅 · 낙하 문제 수정(스폰·경계벽) · 코크스로(B) 완료 · 압연 공장동(D)+야적장·냉각탑(E)·용광로(A) 완료
 > 설계·구역·결정: `Factory_계획서.md`. 에셋 규칙: `.claude/skills/blender-to-roblox/`.
 
 ### 몬스터 디자인 (진행 중, 2026-11-20 시작)
@@ -70,7 +70,14 @@
     - **적 정의**: Factory 모듈에 `furnace_tender`(scale 1.5, attackHitTime 0.55, Lab Subject 임시값), `furnace_warden`(scale 1.8, Bloated Husk 임시값) 추가 → 모듈 항목 5개.
     - **배치**: 보스 마당 lab_subject 2지점(4마리) → furnace_tender, bloated_husk 2지점(2마리) → furnace_warden. 원래 값 `OldEnemyId`.
     - 게시 필요(사용자): Shared(Factory 모듈) + `ServerStorage.Assets.Enemies`(FurnaceTender·FurnaceWarden). 플레이 테스트 안 함.
-- **다음: 4번 보스 — Gear Head 리디자인할지, 새 보스를 만들지 사용자에게 물어볼 것.**
+- **4번 보스 = The Foreman (새 보스, 컨셉 확정 2026-11-20)** — Gear Head 자리(Boss_GearHead (-879,1450)) 1마리. 기존 Gear Head(다른 맵 공유)는 안 건드림.
+  - 설정: 사고 날 공장 문을 잠그고 작업자들을 안에 가둔 현장 반장. 무너진 천장 크레인 운전실과 하나로 용접된 채 확성기로 '작업 재개'를 외침('STILL INSIDE'·'DAY 112' 낙서의 원인). 1~3번 몬스터는 모두 그가 가둔 작업자.
+  - 외형: 일반 적의 약 2배(scale 2). 하얀 반장 안전모, 찢긴 반장 조끼, 등에 박힌 깨진 크레인 운전실(벽에 날짜 센 빗금), 오른팔 = 크레인 붐 팔 + 쇠사슬 끝 거대 갈고리, 왼손에 녹아 붙은 확성기.
+  - 패턴(사용자 결정: 새 패턴도 만들기 + 졸개 소환 추가): 재사용 KnuckleSmash(갈고리 내려찍기)·GrinderCharge(돌진). **새 모듈(공용 Services EnemyAI.Patterns 에 파일 추가만, 기존 패턴 수정 없음)**: ① 갈고리 던지기(직선, 맞으면 끌어당김, 옆으로 피함) ② 확성기 사이렌(2페이즈, 앞 부채꼴 음파로 밀쳐냄 + **Slag Walker 2마리 소환**, 동시 졸개 수 제한) ③ 짐 낙하(분노, 강철 코일이 표시 자리에 떨어짐, 빈칸으로 피함).
+  - 페이즈: 2페이즈 60% 운전실 유리 깨짐, 분노 25% 확성기 떨어져 나감(사이렌 대신 짐 낙하).
+  - 능력치(임시): Gear Head 값(체력 2500, 걷기 8/추격 16, 어그로 60, 공격 30·사거리 14·windup 0.8·cooldown 2, slam, xp 800, 보스 드랍) 단 scale 2.
+  - 게시 필요: Services(새 패턴 모듈), Shared(정의), Assets.Enemies(모델).
+  - 다음: 외형(Blender).
 - 기존 적 구조(참고): 모델 = `ServerStorage.Assets.Enemies.<Model>` R15 Humanoid 리그 + 몸에 용접한 MeshPart(SurfaceAppearance), 정의 = `ReplicatedStorage.Shared.Data.Enemies` 모듈(id, name, model, scale, level, maxHealth, walkSpeed, chaseSpeed, aggroRange, attack{damage,range,windup,cooldown}, xp, drops, animations, gearSpin 등). 공통 좀비 애니메이션 = EnemyConfig.ZOMBIE_ANIMATIONS. 새 적 정의 추가 = 공용 패키지(Shared) 수정 → 사용자 게시 필요. 보스 Gear Head(gear_head) 모델 = Motor6D 리그 + 파티클 7·PointLight 2.
 - 새 적이 생기면 `Workspace.FactoryEnemies.EnemySpawns`의 해당 지점 `EnemyId`를 바꾼다.
 
