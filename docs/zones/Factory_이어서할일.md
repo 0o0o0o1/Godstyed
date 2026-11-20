@@ -52,7 +52,13 @@
     - **적 정의**: Factory 모듈에 `hook_hauler` 추가(scale 1.5, attackHitTime 0.70, 능력치 = Stockroom Brute 임시값).
     - **배치**: stockroom_brute 4지점(8마리) → hook_hauler, 원래 값은 `OldEnemyId`.
     - 게시 필요(사용자): Shared(Factory 모듈) + `ServerStorage.Assets.Enemies`(HookHauler 추가). 플레이 테스트 안 함.
-- **다음: 3번 보스 마당 경비(지금 lab_subject 4 · bloated_husk 2 자리) 컨셉 질문.**
+- **3번 보스 마당 경비 = Furnace Tender (컨셉 확정 2026-11-20)** — 보스 마당: lab_subject 2지점×2 (-960,1400)·(-800,1400) → `furnace_tender`, bloated_husk 2지점×1 (-882,1528)·(-887,1310) → `furnace_warden`(덩치 변형). 보스 Gear Head (-879,1450).
+  - 설정: 사고 날 마지막 쇳물을 뽑으려고 출선장에 남았던 작업자들. 은빛 내열복이 몸에 녹아 붙었고, 지금은 보스 마당을 지키며 아무도 북쪽으로 못 가게 막는다('DON'T GO NORTH' 낙서).
+  - 외형: 그을리고 찢긴 은빛 내열복(알루미늄 코팅) + 후드, 녹아 흘러내린 금빛 방열 유리창 안에서 주황 빛. 무기 = 끝이 달아오른 긴 개공봉(쇠막대). 덩치 변형 = 같은 메쉬, 더 크고 팔에 방열판 방패·어깨 보호대 추가.
+  - 소리·효과: 내열복 스치는 소리, 후드 안 거친 숨, 개공봉 끝 불티·열기. 피격 시 은박 찢기는 소리·불티, 사망 시 후드 안 빛 꺼짐.
+  - 공격: 개공봉으로 앞 찌르기.
+  - 능력치(임시): 경비 = Lab Subject(scale 1.5, 체력 280, 걷기 5/추격 18, 피해 16·사거리 8·windup 0.6·cooldown 1.6, xp 40, lvl 4), 덩치 = Bloated Husk(체력 3000, 6/16, 피해 10·사거리 6·windup 0.6·cooldown 1.8, xp 60, lvl 3) 단 scale 1.8.
+  - 다음: 외형.
 - 기존 적 구조(참고): 모델 = `ServerStorage.Assets.Enemies.<Model>` R15 Humanoid 리그 + 몸에 용접한 MeshPart(SurfaceAppearance), 정의 = `ReplicatedStorage.Shared.Data.Enemies` 모듈(id, name, model, scale, level, maxHealth, walkSpeed, chaseSpeed, aggroRange, attack{damage,range,windup,cooldown}, xp, drops, animations, gearSpin 등). 공통 좀비 애니메이션 = EnemyConfig.ZOMBIE_ANIMATIONS. 새 적 정의 추가 = 공용 패키지(Shared) 수정 → 사용자 게시 필요. 보스 Gear Head(gear_head) 모델 = Motor6D 리그 + 파티클 7·PointLight 2.
 - 새 적이 생기면 `Workspace.FactoryEnemies.EnemySpawns`의 해당 지점 `EnemyId`를 바꾼다.
 
