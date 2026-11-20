@@ -1,6 +1,6 @@
 # 공장맵 — 이어서 할 일 (인수인계)
 
-> 마지막 작업: 2026-11-20 · **몬스터 1번 Slag Walker 완료(외형·소리·효과·공격 애니·정의·배치, Studio 버전 68), 2번 Hook Hauler 외형 완료(Studio 버전 71), 다음은 소리·효과·애니** · **보스 Gear Head + 일반 몬스터 31지점(67마리) 배치** (Studio 버전 58) · **8단계 자동 검사·최적화 완료 — 계획서 전 단계 끝** (Studio 버전 56) · **7단계 상자·등반 태그 완료** (공장 25 + 운하 11 상자) · **6단계 조명·연기 완료** (Studio "공장" 저장 버전 54, 공용 패키지 Shared·Services 게시 필요) · **5단계 소품·표지·낙서 완료** (버전 51) · 2026-11-19 · **4단계 바닥 마감 완료 + 슬래그장 Exit4 수정** (Studio "공장" 저장 버전 49) · G 남쪽 띠(슬래그장·고철장·측선·침전조) 완성 → 블록아웃 전부 에셋화 · F2 계량소 + 광석 덤프트럭 완성 · E 발전소(터빈홀·개폐소) 완성 · 굴뚝 3기 완성(중간 에셋 단계 끝) · 컨베이어 갤러리(원료 야적장 → 용광로) 완성 · 배관 다리 키트 4노선 + H 배관 회랑 완성 · 원료 야적장(C) 완성 (Studio "공장" 저장 버전 33) · 가스 홀더(F) · 철도 야드(Lot_058) + 작업자 배랭(Lot_060) · 보스 마당 `BossYard` 완성 · 북쪽 확장 땅 · 낙하 문제 수정(스폰·경계벽) · 코크스로(B) 완료 · 압연 공장동(D)+야적장·냉각탑(E)·용광로(A) 완료
+> 마지막 작업: 2026-11-20 · **몬스터 1번 Slag Walker 완료(외형·소리·효과·공격 애니·정의·배치, Studio 버전 68), 몬스터 2번 Hook Hauler 완료(Studio 버전 72), 다음은 3번 보스 마당 경비** · **보스 Gear Head + 일반 몬스터 31지점(67마리) 배치** (Studio 버전 58) · **8단계 자동 검사·최적화 완료 — 계획서 전 단계 끝** (Studio 버전 56) · **7단계 상자·등반 태그 완료** (공장 25 + 운하 11 상자) · **6단계 조명·연기 완료** (Studio "공장" 저장 버전 54, 공용 패키지 Shared·Services 게시 필요) · **5단계 소품·표지·낙서 완료** (버전 51) · 2026-11-19 · **4단계 바닥 마감 완료 + 슬래그장 Exit4 수정** (Studio "공장" 저장 버전 49) · G 남쪽 띠(슬래그장·고철장·측선·침전조) 완성 → 블록아웃 전부 에셋화 · F2 계량소 + 광석 덤프트럭 완성 · E 발전소(터빈홀·개폐소) 완성 · 굴뚝 3기 완성(중간 에셋 단계 끝) · 컨베이어 갤러리(원료 야적장 → 용광로) 완성 · 배관 다리 키트 4노선 + H 배관 회랑 완성 · 원료 야적장(C) 완성 (Studio "공장" 저장 버전 33) · 가스 홀더(F) · 철도 야드(Lot_058) + 작업자 배랭(Lot_060) · 보스 마당 `BossYard` 완성 · 북쪽 확장 땅 · 낙하 문제 수정(스폰·경계벽) · 코크스로(B) 완료 · 압연 공장동(D)+야적장·냉각탑(E)·용광로(A) 완료
 > 설계·구역·결정: `Factory_계획서.md`. 에셋 규칙: `.claude/skills/blender-to-roblox/`.
 
 ### 몬스터 디자인 (진행 중, 2026-11-20 시작)
@@ -45,7 +45,14 @@
     - **공용 키트 분리**: `scripts/monster_kit.py`(loft·blob·box·tube·finger·torus·chain·hook·shell(cut 함수)·finalize·uv_box·export_fbx·bbox_table·overlaps·shot), `scripts/tex_kit.py`(4D 타일 셰이더 도우미, cloth_mat·rust_mat(paint)·bake_jobs). **loft 면 뒤집힘 수정 + finalize 에서 덩어리별 부호 부피로 면 방향 자동 교정** (이번 메쉬 뒤집힌 덩어리 0).
     - 실행: Blender에서 `exec(open(r"D:\god\scripts\monster_kit.py", encoding="utf-8").read()); exec(open(r"D:\god\scripts\hook_hauler_build.py", encoding="utf-8").read())`. Blender 시작 장면의 기본 Cube·Light·Camera 는 빌드 스크립트가 지움.
     - 겹침(BVH): 조끼↔몸, 마스크↔머리, 관절, 등에 박힌 갈고리(의도), 사슬이 몸에 닿는 접촉만 남음. 사슬이 팔·갈고리를 관통하던 5곳은 경로를 옮겨 해결.
-  - 다음: **소리·효과·공격 애니메이션(옆으로 휘두르기)** → 적 정의(Factory 모듈에 `hook_hauler`) → 스폰 4지점 교체.
+  - **소리·효과·공격 애니·정의·배치 완료 (2026-11-20, Studio 버전 72) → 2번 몬스터 끝 (능력치만 임시)**
+    - **공격 애니메이션** `HookHaulerAttack` assetId **129093537179092**: 0 → 0.50 오른쪽 뒤로 들어 올림 → 0.58 멈춤 → **0.70 앞으로 휘둘러 타격(마커 "Impact")** → 0.92 왼쪽으로 따라 휘두름 → 1.50 복귀. 생성 `scripts/hook_hauler_anim.py` + 공용 `scripts/anim_kit.py`(1번 애니 스크립트에서 분리). FK 확인: 타격 때 갈고리가 몸 앞 3.2·왼쪽 0.9, 땅 위 3.6(가슴 높이), 발 땅에 붙음.
+    - **소리·효과** `scripts/hook_hauler_fx.lua`: UpperTorso 에 Sound 10개(ProSoundEffects — 사슬 끌림 반복(움직일 때), 무거운 발소리, 사슬 짤랑, 마스크 너머 으르렁 2, 휘두르는 바람(0.9초에서 끊음), 타격 쇠 부딪힘, 피격 쇠 소리, 사망 사슬·떨어지는 쇠), UpperTorso__Rust 에 HitSparks, 무기 갈고리 `HookTip` 첨부점에 SwingSparks·SwingDust. 효과음 10개 PreloadAsync Success.
+    - **HookFX 스크립트**(모델 안): 이동 속도 맞춘 발소리·사슬 끌림, 추격 중 더 잦은 으르렁, 피격 불티·쇠 소리, 공격 시 휘두르는 소리 → "Impact"에 쾅·불티·먼지. 시체 복제본에서 사슬(앞코 제외)과 손 갈고리가 풀려 바닥에 떨어짐(4초 뒤 고정). 등 갈고리는 그대로 박혀 있음.
+    - **적 정의**: Factory 모듈에 `hook_hauler` 추가(scale 1.5, attackHitTime 0.70, 능력치 = Stockroom Brute 임시값).
+    - **배치**: stockroom_brute 4지점(8마리) → hook_hauler, 원래 값은 `OldEnemyId`.
+    - 게시 필요(사용자): Shared(Factory 모듈) + `ServerStorage.Assets.Enemies`(HookHauler 추가). 플레이 테스트 안 함.
+- **다음: 3번 보스 마당 경비(지금 lab_subject 4 · bloated_husk 2 자리) 컨셉 질문.**
 - 기존 적 구조(참고): 모델 = `ServerStorage.Assets.Enemies.<Model>` R15 Humanoid 리그 + 몸에 용접한 MeshPart(SurfaceAppearance), 정의 = `ReplicatedStorage.Shared.Data.Enemies` 모듈(id, name, model, scale, level, maxHealth, walkSpeed, chaseSpeed, aggroRange, attack{damage,range,windup,cooldown}, xp, drops, animations, gearSpin 등). 공통 좀비 애니메이션 = EnemyConfig.ZOMBIE_ANIMATIONS. 새 적 정의 추가 = 공용 패키지(Shared) 수정 → 사용자 게시 필요. 보스 Gear Head(gear_head) 모델 = Motor6D 리그 + 파티클 7·PointLight 2.
 - 새 적이 생기면 `Workspace.FactoryEnemies.EnemySpawns`의 해당 지점 `EnemyId`를 바꾼다.
 
