@@ -106,6 +106,8 @@
     - **공용 BossBrain 최소 수정**: 패턴 모듈에 `canUse(ctx, p, distance)` 가 있으면 그것도 통과해야 고르고, 정의에 `priority = true` 면 조건이 맞을 때 weight 보다 먼저 고름. 둘 다 없으면 기존과 같음(다른 보스 영향 없음).
     - 편집 모드 가짜 ctx 확인: choose(10) 피격 전 KnuckleSmash / 피격 후 ForemanShove / choose(40) ForemanHookThrow, Shove·HookThrow run 오류 없음, 갈고리 복원·투사체·예고 정리 확인. 플레이어가 없어 연계 피해·밀기·붙잡기는 **플레이 확인 필요**. 스폰 위 20 이내 낮은 천장 없음(동쪽 50 원통 콜라이더만).
     - 게시 필요: Services(BossBrain + 패턴 4개), Shared(Factory 모듈).
+  - **사이렌 소환 고침 (2026-11-21, Studio 버전 84, 사용자: "사이렌 때 몬스터가 안 나옴, 사방에서 종류별 2마리씩 6마리")**: 정의 `summons = { slag_walker 2, molten_walker 2, hook_hauler 2 }`, summonRadius 20, maxSummons 6. 종류를 섞어 보스 둘레 6방향에 고르게(벽이 있으면 벽 앞 3, 최소 4). 이전 코드는 실패해도 조용히 넘어가서(pcall require 결과를 안 봄) 원인을 못 찾음 — 플레이 Output 에 오류 기록 없음. 이제 실패하면 `[ForemanSiren] ...` 경고가 뜸 → **다음 플레이에서 안 나오면 Output 확인**. 보스 자리 기준 6지점 모두 빈 평지 확인.
+  - **보스 외형 문제 (사용자: "그냥 네모난 자동차 같음")**: Studio 캡처로 확인(이번엔 캡처 됨) — 메쉬는 제대로 로드됨(RenderFidelity Precise 로 바꿔도 같음). 몸이 R15 상자 비율(네모난 어깨·몸통·다리) + 등의 노란 상자 운전실 때문에 상자 덩어리처럼 보임. 다시 디자인 방향을 사용자에게 묻는 중.
 - **몬스터 디자인 1~4번 모두 끝 (2026-11-20).** 남은 것: 사용자 능력치 결정, 패키지 게시, 실제 플레이 확인(소리 크기·효과 양·보스 패턴 난이도·플레이어 밀기 동작).
 - 기존 적 구조(참고): 모델 = `ServerStorage.Assets.Enemies.<Model>` R15 Humanoid 리그 + 몸에 용접한 MeshPart(SurfaceAppearance), 정의 = `ReplicatedStorage.Shared.Data.Enemies` 모듈(id, name, model, scale, level, maxHealth, walkSpeed, chaseSpeed, aggroRange, attack{damage,range,windup,cooldown}, xp, drops, animations, gearSpin 등). 공통 좀비 애니메이션 = EnemyConfig.ZOMBIE_ANIMATIONS. 새 적 정의 추가 = 공용 패키지(Shared) 수정 → 사용자 게시 필요. 보스 Gear Head(gear_head) 모델 = Motor6D 리그 + 파티클 7·PointLight 2.
 - 새 적이 생기면 `Workspace.FactoryEnemies.EnemySpawns`의 해당 지점 `EnemyId`를 바꾼다.

@@ -2,10 +2,11 @@
 -- 패턴 (Foreman 전용, 2페이즈): 확성기 사이렌. 확성기를 앞으로 겨누고(windup) 앞 넓은 범위에 음파를 쏜다
 -- 범위 안의 플레이어는 피해를 입는다(push 가 있으면 뒤로 밀려남 — 2026-11-21부터 정의에서 뺌, 밀치기는 ForemanShove). 옆이나 보스 뒤로 피한다
 -- 높이 판정은 바닥 기준(보스 크기와 무관)
--- 사이렌 소리에 끌려 Slag Walker(summonId)가 summonCount 마리 나온다. 이 보스가 부른 졸개가 maxSummons 이상 살아 있으면 안 부른다
+-- 사이렌 소리에 끌려 갇혀 있던 작업자들이 보스 사방(summonRadius, 벽이 있으면 벽 앞)에서 나온다: summons = { { id, count }, ... } (2026-11-21: 종류별 2마리씩 6마리)
+-- 이 보스가 부른 졸개가 maxSummons 이상 살아 있으면 그만큼 덜 부른다. 실패하면 Output 에 [ForemanSiren] 경고
 -- 울리는 동안 모델 속성 Siren = true (ForemanFX 가 음파 효과·소리), 끝나면 recover 빈틈 (Opening)
 -- 확성기가 떨어져 나가면(분노, breakParts) 이 패턴은 쓰지 않는다 (정의의 maxPhase = 2)
--- 수치: anim, windup, length, width, damage, push, blare, summonId, summonCount, maxSummons, summonScatter, recover
+-- 수치: anim, windup, length, width, damage, push?, blare, summons, summonRadius, maxSummons, recover
 
 local Debris = game:GetService("Debris")
 
@@ -126,18 +127,55 @@ return {
 			end
 		end
 
-		-- 졸개 부르기 (Enemy 서비스는 순환 참조를 피하려고 여기서 불러온다)
-		local room = (p.maxSummons or 4) - aliveSummons(model)
-		local n = math.min(p.summonCount or 2, room)
-		if n > 0 and p.summonId then
+		-- 졸개 부르기: 종류를 섞어 보스 둘레에 고르게 (Enemy 서비스는 순환 참조를 피하려고 여기서 불러온다)
+		local room = (p.maxSummons or 6) - aliveSummons(model)
+		local queue = {}
+		local longest = 0
+		for _, s in p.summons or {} do
+			longest = math.max(longest, s.count or 0)
+		end
+		for i = 1, longest do -- slag, molten, hook, slag, molten, hook 순서
+			for _, s in p.summons or {} do
+				if i <= (s.count or 0) then
+					table.insert(queue, s.id)
+				end
+			end
+		end
+		while #queue > room do
+			table.remove(queue)
+		end
+		if #queue > 0 then
 			local ok, Enemy = pcall(require, script.Parent.Parent.Parent)
-			if ok and Enemy and Enemy.spawnTemporary then
-				local behind = origin - dir * 6 * model:GetScale() / 2
-				local made = Enemy.spawnTemporary(p.summonId, Vector3.new(behind.X, g.Y, behind.Z), n, p.summonScatter or 8)
+			if not ok or type(Enemy) ~= "table" or not Enemy.spawnTemporary then
+				warn("[ForemanSiren] Enemy 서비스를 못 불러옴: " .. tostring(Enemy))
+			else
+				local params = RaycastParams.new()
+				params.FilterType = Enum.RaycastFilterType.Exclude
+				local ignore = { model }
+				local enemies = workspace:FindFirstChild("Enemies")
+				if enemies then
+					table.insert(ignore, enemies)
+				end
+				params.FilterDescendantsInstances = ignore
+				params.RespectCanCollide = true
+				local base = math.random() * math.pi * 2
+				local radius = p.summonRadius or 18
 				summons[model] = summons[model] or {}
-				for _, m in made do
-					m:SetAttribute("SummonedBy", model.Name)
-					table.insert(summons[model], m)
+				for i, id in queue do
+					local a = base + (i - 1) / #queue * math.pi * 2
+					local out = Vector3.new(math.cos(a), 0, math.sin(a))
+					local from = g + Vector3.new(0, 3, 0)
+					local hit = workspace:Raycast(from, out * radius, params)
+					local dist = if hit then math.max(4, hit.Distance - 3) else radius
+					local at = Telegraph.ground(model, from + out * dist)
+					local made = Enemy.spawnTemporary(id, at, 1, 0)
+					if #made == 0 then
+						warn(("[ForemanSiren] 소환 실패: %s"):format(id))
+					end
+					for _, m in made do
+						m:SetAttribute("SummonedBy", model.Name)
+						table.insert(summons[model], m)
+					end
 				end
 			end
 		end
