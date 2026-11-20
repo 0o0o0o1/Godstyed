@@ -223,3 +223,38 @@ def bake_jobs(jobs, subdir, size=1024):
         im.filepath_raw = TEX_DIR + subdir + "\\" + fname + ".png"; im.file_format = 'PNG'; im.save()
         done.append(fname)
     return done
+
+
+def foil_mat(name, seed=21.0):
+    """알루미늄 코팅 내열복: 구김 + 누빔 선 + 그을음 + 열 변색 + 찢겨 드러난 속감(금속 아님)."""
+    m, nt, sep = new_mat(name)
+    P, W = periodic(nt, sep, 1.0, seed)
+    crk = noise4(nt, P, W, 6.0, 8, 0.7)                     # 구김 (고주파)
+    crkb = noise4(nt, P, W, 2.2, 4, 0.6)                    # 큰 주름
+    # 누빔 선: u 방향 6줄, v 방향 4줄 (정수라 이음매 없음)
+    qu = mathn(nt, "MULTIPLY", None, TAU * 3); L(nt, sep, 0, qu, 0); qus = mathn(nt, "COSINE"); L(nt, qu, 0, qus, 0)
+    qv = mathn(nt, "MULTIPLY", None, TAU * 2); L(nt, sep, 1, qv, 0); qvs = mathn(nt, "COSINE"); L(nt, qv, 0, qvs, 0)
+    lu = mrange(nt, qus, 0, 0.975, 0.995, 0.0, 1.0); lv = mrange(nt, qvs, 0, 0.985, 0.998, 0.0, 0.5)
+    seam = mathn(nt, "MAXIMUM"); L(nt, lu, 0, seam, 0); L(nt, lv, 0, seam, 1)
+    soot = noise4(nt, P, W, 0.7, 5, 0.55); sootm = mrange(nt, soot, "Fac", 0.50, 0.78, 0.0, 0.75)
+    heat = noise4(nt, P, W, 0.55, 3, 0.5); heatm = mrange(nt, heat, "Fac", 0.50, 0.70, 0.0, 0.6)
+    tearv = voronoi4(nt, P, W, 2.4, 'F1'); tn = noise4(nt, P, W, 7.0, 4, 0.6)
+    tsum = madd(nt, tn, "Fac", 0.12, tearv, "Distance")
+    tear = mrange(nt, tsum, 0, 0.13, 0.16, 1.0, 0.0)
+    c_foil = rgb(nt, (0.62, 0.62, 0.60)); c_dull = rgb(nt, (0.50, 0.50, 0.49))
+    f1 = mix(nt, mrange(nt, crk, "Fac", 0.35, 0.65, 0.0, 1.0), 0, c_foil, c_dull)
+    f2 = mix(nt, mul(nt, seam, 0, mathn(nt, "MULTIPLY", 1.0, 0.35), 0), 0, f1, rgb(nt, (0.25, 0.25, 0.25)))
+    f3 = mix(nt, heatm, 0, f2, rgb(nt, (0.40, 0.26, 0.12)))           # 열 변색(갈색)
+    f4 = mix(nt, sootm, 0, f3, rgb(nt, (0.035, 0.032, 0.03)))         # 그을음
+    f5 = mix(nt, tear, 0, f4, rgb(nt, (0.30, 0.26, 0.19)))             # 찢긴 속감(유리섬유)
+    out_emit(nt, "Color", f5, 2)
+    metal = mix(nt, tear, 0, mix(nt, sootm, 0, rgb(nt, (0.85, 0.85, 0.85)), rgb(nt, (0.1, 0.1, 0.1))), rgb(nt, (0.0, 0.0, 0.0)))
+    out_emit(nt, "Metal", metal, 2)
+    r0 = mrange(nt, crk, "Fac", 0.3, 0.7, 0.22, 0.42, smooth=False)
+    rough = mix(nt, tear, 0, mix(nt, sootm, 0, r0, rgb(nt, (0.85, 0.85, 0.85))), rgb(nt, (0.95, 0.95, 0.95)))
+    out_emit(nt, "Rough", rough, 2)
+    h = madd(nt, crk, "Fac", 0.6, crkb, "Fac")
+    h = madd(nt, seam, 0, -0.35, h, 0)
+    h = madd(nt, tear, 0, -0.3, h, 0)
+    out_normal(nt, h, 0, 0.9, 0.025)
+    return m

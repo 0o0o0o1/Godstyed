@@ -29,10 +29,13 @@ def get_col(name):
 
 
 def reset(colname):
+    """이 몬스터 컬렉션을 비우고, 다른 몬스터의 '<부위>__<재질>' 메쉬도 지운다 (이름 충돌로 .001 이 붙는 것 방지 —
+    다른 몬스터는 각자 빌드 스크립트로 다시 만들 수 있음)."""
     PIECES.clear()
     col = get_col(colname)
-    for o in list(col.objects):
-        bpy.data.objects.remove(o, do_unlink=True)
+    for o in list(bpy.data.objects):
+        if o.users_collection and (col in o.users_collection or "__" in o.name):
+            bpy.data.objects.remove(o, do_unlink=True)
     return col
 
 
@@ -476,3 +479,19 @@ def overlaps(col, pairs_skip=()):
                 res.append((n, objs[i].name, objs[j].name))
     res.sort(reverse=True)
     return res
+
+
+def drip(name, top, length, r, seed):
+    """흘러내리다 굳은 방울: 가늘어지는 줄기 + 끝 방울 (loft 오른손 좌표계 수정 후 면 방향 정상)."""
+    top = Vector(top)
+    loft(name, [(top.x, top.y, top.z, r, r), (top.x, top.y - 0.01, top.z - length * 0.5, r * 0.55, r * 0.55),
+                (top.x, top.y - 0.02, top.z - length, r * 0.42, r * 0.42)], segs=8, sub=2, cap0=0.0, cap1=r * 0.5, amp=r * 0.15, freq=12.0, seed=seed)
+    blob(name, (top.x, top.y - 0.02, top.z - length - r * 0.1), (r * 0.62, r * 0.62, r * 0.7), 8, 6, r * 0.1, 10.0, seed)
+
+
+def rod(name, a, b, r, segs=10, amp=0.0, seed=0):
+    """곧은 막대 (양 끝 막힘)."""
+    a = Vector(a); b = Vector(b)
+    n = 4
+    keys = [tuple(a + (b - a) * (i / n)) + (r, r) for i in range(n + 1)]
+    loft(name, keys, segs=segs, sub=1, cap0=r * 0.3, cap1=r * 0.3, amp=amp, freq=10.0, seed=seed, up=(0, 0, 1) if abs((b - a).normalized().z) < 0.9 else (1, 0, 0))

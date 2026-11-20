@@ -1,6 +1,6 @@
 # 공장맵 — 이어서 할 일 (인수인계)
 
-> 마지막 작업: 2026-11-20 · **몬스터 1번 Slag Walker 완료(외형·소리·효과·공격 애니·정의·배치, Studio 버전 68), 몬스터 2번 Hook Hauler 완료(Studio 버전 72), 다음은 3번 보스 마당 경비** · **보스 Gear Head + 일반 몬스터 31지점(67마리) 배치** (Studio 버전 58) · **8단계 자동 검사·최적화 완료 — 계획서 전 단계 끝** (Studio 버전 56) · **7단계 상자·등반 태그 완료** (공장 25 + 운하 11 상자) · **6단계 조명·연기 완료** (Studio "공장" 저장 버전 54, 공용 패키지 Shared·Services 게시 필요) · **5단계 소품·표지·낙서 완료** (버전 51) · 2026-11-19 · **4단계 바닥 마감 완료 + 슬래그장 Exit4 수정** (Studio "공장" 저장 버전 49) · G 남쪽 띠(슬래그장·고철장·측선·침전조) 완성 → 블록아웃 전부 에셋화 · F2 계량소 + 광석 덤프트럭 완성 · E 발전소(터빈홀·개폐소) 완성 · 굴뚝 3기 완성(중간 에셋 단계 끝) · 컨베이어 갤러리(원료 야적장 → 용광로) 완성 · 배관 다리 키트 4노선 + H 배관 회랑 완성 · 원료 야적장(C) 완성 (Studio "공장" 저장 버전 33) · 가스 홀더(F) · 철도 야드(Lot_058) + 작업자 배랭(Lot_060) · 보스 마당 `BossYard` 완성 · 북쪽 확장 땅 · 낙하 문제 수정(스폰·경계벽) · 코크스로(B) 완료 · 압연 공장동(D)+야적장·냉각탑(E)·용광로(A) 완료
+> 마지막 작업: 2026-11-20 · **몬스터 1번 Slag Walker 완료(외형·소리·효과·공격 애니·정의·배치, Studio 버전 68), 몬스터 2번 Hook Hauler 완료(Studio 버전 72), 3번 Furnace Tender 외형 완료(Studio 버전 74), 다음은 소리·효과·애니** · **보스 Gear Head + 일반 몬스터 31지점(67마리) 배치** (Studio 버전 58) · **8단계 자동 검사·최적화 완료 — 계획서 전 단계 끝** (Studio 버전 56) · **7단계 상자·등반 태그 완료** (공장 25 + 운하 11 상자) · **6단계 조명·연기 완료** (Studio "공장" 저장 버전 54, 공용 패키지 Shared·Services 게시 필요) · **5단계 소품·표지·낙서 완료** (버전 51) · 2026-11-19 · **4단계 바닥 마감 완료 + 슬래그장 Exit4 수정** (Studio "공장" 저장 버전 49) · G 남쪽 띠(슬래그장·고철장·측선·침전조) 완성 → 블록아웃 전부 에셋화 · F2 계량소 + 광석 덤프트럭 완성 · E 발전소(터빈홀·개폐소) 완성 · 굴뚝 3기 완성(중간 에셋 단계 끝) · 컨베이어 갤러리(원료 야적장 → 용광로) 완성 · 배관 다리 키트 4노선 + H 배관 회랑 완성 · 원료 야적장(C) 완성 (Studio "공장" 저장 버전 33) · 가스 홀더(F) · 철도 야드(Lot_058) + 작업자 배랭(Lot_060) · 보스 마당 `BossYard` 완성 · 북쪽 확장 땅 · 낙하 문제 수정(스폰·경계벽) · 코크스로(B) 완료 · 압연 공장동(D)+야적장·냉각탑(E)·용광로(A) 완료
 > 설계·구역·결정: `Factory_계획서.md`. 에셋 규칙: `.claude/skills/blender-to-roblox/`.
 
 ### 몬스터 디자인 (진행 중, 2026-11-20 시작)
@@ -58,7 +58,12 @@
   - 소리·효과: 내열복 스치는 소리, 후드 안 거친 숨, 개공봉 끝 불티·열기. 피격 시 은박 찢기는 소리·불티, 사망 시 후드 안 빛 꺼짐.
   - 공격: 개공봉으로 앞 찌르기.
   - 능력치(임시): 경비 = Lab Subject(scale 1.5, 체력 280, 걷기 5/추격 18, 피해 16·사거리 8·windup 0.6·cooldown 1.6, xp 40, lvl 4), 덩치 = Bloated Husk(체력 3000, 6/16, 피해 10·사거리 6·windup 0.6·cooldown 1.8, xp 60, lvl 3) 단 scale 1.8.
-  - 다음: 외형.
+  - **외형 완료 (2026-11-20, Studio 버전 74)**: `ServerStorage.Assets.Enemies.FurnaceWarden`(메쉬 32) / `FurnaceTender`(30 — `__Plate` 2개 뺌). 속성 Variant = Warden / Tender. 메쉬 모델 assetId 118317063967066, 삼각형 12,210.
+    - 구성: 넉넉한 은박 코트(앞 여밈 띠·버클, 무릎까지 자락 + 앞트임 + 찢겨 늘어진 끝), 벨트·주머니, 후드(머리 + 어깨 덮개, 안쪽 Dark 마개), 금빛 방열 유리창(Glass 0.35) + 흘러내린 방울 4 + 유리 뒤 주황 빛(Neon), 넓은 소매(안쪽 Dark), 벙어리 장갑, 덧신 + 고무 밑창, 등 공기통(노랑 Paint) + 밸브 + 등·어깨끈 + 후드로 가는 호스. 개공봉: 오른손에서 앞으로 약간 들어 겨눈 자세(방향 (0,-0.90,0.44)), 손잡이 천, 끝 0.45 달아오름(Neon). Warden 전용 Plate: 왼팔 방열판 방패(리벳·손잡이), 가슴판(리벳).
+    - 재질: Suit = 새 은박 PBR(구김·세로 누빔·그을음·열 변색·찢긴 속감, 금속성 0.85). **첫 업로드는 얼룩이 잘고 진해 위장복처럼 보여서** 그을음·변색 노이즈를 크고 옅게 바꿔 Color·Rough·Metal 다시 올림(Normal 은 그대로). Rod·Plate(틴트 150) = Hook Hauler Rust, Tank = Hook Hauler Paint. ID → `exports/texture_ids.json` `FurnaceTender`.
+    - 스크립트: `scripts/furnace_tender_build.py`, `tex_kit.foil_mat`. 키트 보강: `monster_kit.reset` 이 다른 몬스터의 `__` 메쉬도 지움(이름 충돌로 `.001` 붙던 문제), `drip`·`rod` 추가.
+    - 겹침: 개공봉↔소매(각도 조정)·공기통↔등(뒤로 뺌)·어깨 보호대↔팔/후드(가슴판으로 교체) 해결. 남은 것은 손잡이·끈·가슴판 가장자리 접촉, 코트 안쪽 마개↔다리(속, 안 보임).
+  - 다음: 소리·효과·찌르기 공격 애니 → 적 정의(`furnace_tender`, `furnace_warden`) → 보스 마당 4지점 교체.
 - 기존 적 구조(참고): 모델 = `ServerStorage.Assets.Enemies.<Model>` R15 Humanoid 리그 + 몸에 용접한 MeshPart(SurfaceAppearance), 정의 = `ReplicatedStorage.Shared.Data.Enemies` 모듈(id, name, model, scale, level, maxHealth, walkSpeed, chaseSpeed, aggroRange, attack{damage,range,windup,cooldown}, xp, drops, animations, gearSpin 등). 공통 좀비 애니메이션 = EnemyConfig.ZOMBIE_ANIMATIONS. 새 적 정의 추가 = 공용 패키지(Shared) 수정 → 사용자 게시 필요. 보스 Gear Head(gear_head) 모델 = Motor6D 리그 + 파티클 7·PointLight 2.
 - 새 적이 생기면 `Workspace.FactoryEnemies.EnemySpawns`의 해당 지점 `EnemyId`를 바꾼다.
 

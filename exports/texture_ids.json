@@ -150,5 +150,15 @@
             "Metalness": "rbxassetid://115662586390561"
         },
         "MeshModelAssetId": "137332056598079"
+    },
+    "FurnaceTender": {
+        "_note": "Furnace Tender/Warden 은박 내열복 타일 1024 (1.4스터드/타일). 개공봉·방패·가슴판 = HookHauler Rust, 공기통 = HookHauler Paint. 원본 PNG exports/textures/furnacetender/. 첫 업로드(얼룩 잘고 진함)는 폐기: Color 79648475176255 등",
+        "Foil": {
+            "Color": "rbxassetid://124746233948095",
+            "Normal": "rbxassetid://70656256613631",
+            "Roughness": "rbxassetid://126132918817424",
+            "Metalness": "rbxassetid://76647129647730"
+        },
+        "MeshModelAssetId": "118317063967066"
     }
 }
