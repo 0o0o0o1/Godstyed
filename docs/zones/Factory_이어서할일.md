@@ -116,6 +116,16 @@
     - 이전 모델 백업: `ServerStorage.Foreman_v1_backup` (패키지 밖, 확인 후 지워도 됨).
     - 편집 모드 가짜 ctx 로 ForemanShove·ForemanHookThrow 다시 실행 → 오류 없음.
     - 게시 필요: `ServerStorage.Assets.Enemies`(Foreman v2).
+- **능력치 확정 (2026-11-21, Studio 버전 98, 사용자 선택 "추천안(보통)")** — 레벨 8 맵 Steelworks 기준, 갓운드 중간 난이도. Factory 모듈의 "임시값" 경고 삭제.
+  | 적 | Lv | 체력 | 걸음/추격 | 피해·사거리·windup·cooldown | 경험치 | 금화 | 넉백 저항 |
+  |---|---|---|---|---|---|---|---|
+  | slag_walker | 7 | 260 | 5/17 | 13·5.5·0.58·1.8 | 45 | 3~9 | 0.2 |
+  | molten_walker | 8 | 210 | 6/21 | 15·5.5·0.58·1.5 | 48 | 3~9 | 0 |
+  | hook_hauler | 10 | 560 | 5/15 | 26·9·0.8·2.3 | 90 | 5~14 | 0.6 |
+  | furnace_tender | 10 | 420 | 5/18 | 22·8.5·0.6·1.7 | 75 | 5~14 | 0.3 |
+  | furnace_warden | 12 | 900 | 6/16 | 24·7·0.65·1.8 | 140 | 8~20 | 0.5 |
+  | foreman (보스) | 14 | 6000 | 8/16 | 34 (근접 기준) | 1500 | 250~420 | 1 |
+  - 보스 패턴 피해: 내려찍기 34, 갈고리 끌기 14 + 확정 연계 40, 돌진 40, 밀치기 18, 사이렌 15, 코일 45. 아이템 드랍은 그대로. Slag·Molten 의 windup 을 동작 타격 순간(0.58)에 맞춤. 게시 필요: Shared.
 - **몬스터 디자인 1~4번 모두 끝 (2026-11-20).** 남은 것: 사용자 능력치 결정, 패키지 게시, 실제 플레이 확인(소리 크기·효과 양·보스 패턴 난이도·플레이어 밀기 동작).
 - 기존 적 구조(참고): 모델 = `ServerStorage.Assets.Enemies.<Model>` R15 Humanoid 리그 + 몸에 용접한 MeshPart(SurfaceAppearance), 정의 = `ReplicatedStorage.Shared.Data.Enemies` 모듈(id, name, model, scale, level, maxHealth, walkSpeed, chaseSpeed, aggroRange, attack{damage,range,windup,cooldown}, xp, drops, animations, gearSpin 등). 공통 좀비 애니메이션 = EnemyConfig.ZOMBIE_ANIMATIONS. 새 적 정의 추가 = 공용 패키지(Shared) 수정 → 사용자 게시 필요. 보스 Gear Head(gear_head) 모델 = Motor6D 리그 + 파티클 7·PointLight 2.
 - 새 적이 생기면 `Workspace.FactoryEnemies.EnemySpawns`의 해당 지점 `EnemyId`를 바꾼다.
