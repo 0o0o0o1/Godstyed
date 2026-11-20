@@ -1,6 +1,6 @@
 # 공장맵 — 이어서 할 일 (인수인계)
 
-> 마지막 작업: 2026-11-20 · **몬스터 1번 Slag Walker 완료(외형·소리·효과·공격 애니·정의·배치, Studio 버전 68), 몬스터 2번 Hook Hauler 완료(Studio 버전 72), 몬스터 3번 Furnace Tender 완료(Studio 버전 75), 4번 보스 The Foreman 컨셉 확정, 다음은 외형** · **보스 Gear Head + 일반 몬스터 31지점(67마리) 배치** (Studio 버전 58) · **8단계 자동 검사·최적화 완료 — 계획서 전 단계 끝** (Studio 버전 56) · **7단계 상자·등반 태그 완료** (공장 25 + 운하 11 상자) · **6단계 조명·연기 완료** (Studio "공장" 저장 버전 54, 공용 패키지 Shared·Services 게시 필요) · **5단계 소품·표지·낙서 완료** (버전 51) · 2026-11-19 · **4단계 바닥 마감 완료 + 슬래그장 Exit4 수정** (Studio "공장" 저장 버전 49) · G 남쪽 띠(슬래그장·고철장·측선·침전조) 완성 → 블록아웃 전부 에셋화 · F2 계량소 + 광석 덤프트럭 완성 · E 발전소(터빈홀·개폐소) 완성 · 굴뚝 3기 완성(중간 에셋 단계 끝) · 컨베이어 갤러리(원료 야적장 → 용광로) 완성 · 배관 다리 키트 4노선 + H 배관 회랑 완성 · 원료 야적장(C) 완성 (Studio "공장" 저장 버전 33) · 가스 홀더(F) · 철도 야드(Lot_058) + 작업자 배랭(Lot_060) · 보스 마당 `BossYard` 완성 · 북쪽 확장 땅 · 낙하 문제 수정(스폰·경계벽) · 코크스로(B) 완료 · 압연 공장동(D)+야적장·냉각탑(E)·용광로(A) 완료
+> 마지막 작업: 2026-11-20 · **몬스터 1번 Slag Walker 완료(외형·소리·효과·공격 애니·정의·배치, Studio 버전 68), 몬스터 2번 Hook Hauler 완료(Studio 버전 72), 몬스터 3번 Furnace Tender 완료(Studio 버전 75), 4번 보스 The Foreman 외형 완료(Studio 버전 76), 다음은 패턴·애니·소리** · **보스 Gear Head + 일반 몬스터 31지점(67마리) 배치** (Studio 버전 58) · **8단계 자동 검사·최적화 완료 — 계획서 전 단계 끝** (Studio 버전 56) · **7단계 상자·등반 태그 완료** (공장 25 + 운하 11 상자) · **6단계 조명·연기 완료** (Studio "공장" 저장 버전 54, 공용 패키지 Shared·Services 게시 필요) · **5단계 소품·표지·낙서 완료** (버전 51) · 2026-11-19 · **4단계 바닥 마감 완료 + 슬래그장 Exit4 수정** (Studio "공장" 저장 버전 49) · G 남쪽 띠(슬래그장·고철장·측선·침전조) 완성 → 블록아웃 전부 에셋화 · F2 계량소 + 광석 덤프트럭 완성 · E 발전소(터빈홀·개폐소) 완성 · 굴뚝 3기 완성(중간 에셋 단계 끝) · 컨베이어 갤러리(원료 야적장 → 용광로) 완성 · 배관 다리 키트 4노선 + H 배관 회랑 완성 · 원료 야적장(C) 완성 (Studio "공장" 저장 버전 33) · 가스 홀더(F) · 철도 야드(Lot_058) + 작업자 배랭(Lot_060) · 보스 마당 `BossYard` 완성 · 북쪽 확장 땅 · 낙하 문제 수정(스폰·경계벽) · 코크스로(B) 완료 · 압연 공장동(D)+야적장·냉각탑(E)·용광로(A) 완료
 > 설계·구역·결정: `Factory_계획서.md`. 에셋 규칙: `.claude/skills/blender-to-roblox/`.
 
 ### 몬스터 디자인 (진행 중, 2026-11-20 시작)
@@ -77,7 +77,13 @@
   - 페이즈: 2페이즈 60% 운전실 유리 깨짐, 분노 25% 확성기 떨어져 나감(사이렌 대신 짐 낙하).
   - 능력치(임시): Gear Head 값(체력 2500, 걷기 8/추격 16, 어그로 60, 공격 30·사거리 14·windup 0.8·cooldown 2, slam, xp 800, 보스 드랍) 단 scale 2.
   - 게시 필요: Services(새 패턴 모듈), Shared(정의), Assets.Enemies(모델).
-  - 다음: 외형(Blender).
+  - **외형 완료 (2026-11-20, Studio 버전 76)**: `ServerStorage.Assets.Enemies.Foreman` (메쉬 39, 삼각형 16,268, scale 1 기준 3.9×5.8×2.8 → 게임 scale 2). 메쉬 모델 assetId 79783467643444. `scripts/foreman_build.py`.
+    - 구성: 배 나온 거구 + 작업복, 반장 조끼(앞 열림)·반사 띠·흰 명찰, 벨트·버클·**열쇠 꾸러미(문을 잠근 열쇠)**, 불독 턱·찌푸린 이마·벌린 입·눈빛, 하얀 반장 안전모(SmoothPlastic). 왼팔: 사람 팔 + 주먹에 녹아 붙은 빨간 확성기(`LeftHand__Mega`, 나팔 안 Dark, 테두리·용접 슬래그 Rust). 오른팔: 위팔 + 용접 고리(볼트) → 팔꿈치 아래 크레인 붐 트러스(노랑 Paint, 지그재그 가새) → 도르래 블록·도르래 → 사슬 → 거대 갈고리(`RightHand__Hook`, scale 1.5). 등: 박힌 크레인 운전실(노랑 판·창 기둥·지붕, 옆·뒤 유리 `UpperTorso__Glass` Glass 0.45, 왼쪽 옆판에 날짜 센 빗금 5개 묶음×15, 안에 의자·레버, 레일 바퀴 2, 용접 받침).
+    - 부위 파괴용 이름: 2페이즈 `UpperTorso__Glass`, 분노 `LeftHand__Mega`(+ LeftHand__Dark, LeftHand__Rust).
+    - 재질은 전부 기존 텍스처 재사용(Cloth·Skin = Slag Walker, Vest·Rust·Paint = Hook Hauler) → 새 업로드 없음.
+    - 겹침: 운전실 앞판↔등(박힌 것, 의도), 붐↔용접 고리(팔꿈치), 확성기↔손, 사슬↔도르래·갈고리 접합만.
+    - **확인용 캡처 실패**: Studio 뷰포트가 검은 화면만 찍힘(창이 안 그려지는 상태) → 외형은 Blender 렌더(`exports/_preview/fm_*.png`)로만 확인, Studio 화면 확인은 다음에.
+  - 다음: 공격 애니(갈고리 내려찍기·던지기·사이렌·짐 낙하·돌진 동작) + 새 패턴 모듈 3개(HookThrow, MegaSiren(+Slag Walker 소환), CoilDrop) + 소리·효과 → 정의 → Boss_GearHead 지점 교체.
 - 기존 적 구조(참고): 모델 = `ServerStorage.Assets.Enemies.<Model>` R15 Humanoid 리그 + 몸에 용접한 MeshPart(SurfaceAppearance), 정의 = `ReplicatedStorage.Shared.Data.Enemies` 모듈(id, name, model, scale, level, maxHealth, walkSpeed, chaseSpeed, aggroRange, attack{damage,range,windup,cooldown}, xp, drops, animations, gearSpin 등). 공통 좀비 애니메이션 = EnemyConfig.ZOMBIE_ANIMATIONS. 새 적 정의 추가 = 공용 패키지(Shared) 수정 → 사용자 게시 필요. 보스 Gear Head(gear_head) 모델 = Motor6D 리그 + 파티클 7·PointLight 2.
 - 새 적이 생기면 `Workspace.FactoryEnemies.EnemySpawns`의 해당 지점 `EnemyId`를 바꾼다.
 
