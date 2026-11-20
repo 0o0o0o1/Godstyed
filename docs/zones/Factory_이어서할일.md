@@ -227,6 +227,11 @@
 - **스폰 이동**: `Spawn_C1`이 벨트 위였음(Blender x −7) → (−1164, 1180)으로 옮김(FactorySpawns·RaidSpawns 둘 다). 스폰 21곳 모두 주변 비어 있음.
 - 확인(플레이 테스트 안 함): 겹침 검사 → 더미에 묻힌 붐·휠, 붐 접합부, 불도저 블레이드만 남김(슈트-환적탑 가새 겹침은 서쪽 면 가새 제거로 해결). 레이캐스트: 더미 중턱 7.0 / 능선 13.4, 덱 6.6(위에서 쏘면 마스트 14.6), 계단 꼭대기 6.6, 붐 중간 12.6, 환적탑 지붕 52.4.
 - **수정 (2026-11-20, Studio 버전 61)**: 사용자가 "RawYard_01이 이상해" → 석탄·광석 더미 메쉬(`RwMisc_PlCoalPile`·`RwMisc_PlOrePile`)의 **면 방향(노멀)이 안쪽으로 뒤집혀** 위·바깥에서 보면 더미가 투명하게 사라져 있었음(낮은 각도에서만 반대편 안쪽 면이 보였음). Workspace·ServerStorage 원본 둘 다 `DoubleSided = true`로 해결(스크립트로 설정됨). .blend가 없어 메쉬 노멀 자체는 그대로. 조명탑·램프 등 나머지 메쉬는 정상. **앞으로 Blender에서 만든 메쉬는 내보내기 전에 노멀 방향(`recalc_face_normals`) 확인할 것.**
+- **공장 전체 노멀 검사 (2026-11-20, Studio 버전 64)**: FactoryContent·FactoryLighting·Assets.Factory·SlagWalker의 고유 메쉬 813개를 `AssetService:CreateEditableMeshAsync`로 읽어, 메쉬를 **연결된 덩어리별**로 나눠 "면이 덩어리 중심 바깥을 향하는 넓이 비율"을 계산(0.25 미만 = 뒤집힘). 메쉬 전체 평균으로만 보면 여러 덩어리짜리 메쉬에서 묻혀서 덩어리별로 봐야 함. 평평한 바닥 조각(GroundFinish 패치·웅덩이·기름, BossYard FlOil)은 이 기준이 안 맞아 면 법선이 위(+Y)를 향하는지로 따로 확인 → 정상.
+  - 뒤집힌 메쉬 20개 → 같은 MeshId 를 쓰는 MeshPart 40개(Workspace·ServerStorage 원본·SlagWalker/MoltenWalker) 모두 `DoubleSided = true`: 용광로 `BfSteel_Rails / StoveRails / StairRails / CastRails`(덩어리 전부), `BfSteel_Tower / Supports / Supports2 / Skip / Stairs / CastFrame`, `BfMisc_Valves / CastGear / SkipGear`, `BfPlate_SkipCars`, 냉각탑 `CtConcrete_BaseW / BaseE`, `CtMisc_Rebar`, 원료 야적장 더미 2, Slag Walker `RightLowerArm__Slag`(흘러내린 방울 1개).
+  - 닫힌 상자가 뒤집히면 반대편 안쪽 면이 보여 모양은 거의 같고 빛 방향만 어긋나서 그동안 눈에 띄지 않았음(바닥이 열린 더미만 사라져 보였음). 용광로 키트의 상자 생성 쪽 감김 방향 문제로 추정 — 원인 코드는 .blend·당시 스크립트가 없어 확인 못 함.
+  - 확인 화면(스크린샷)은 Studio 창이 그려지지 않아 시간 초과 → 이번 결과는 계산으로만 판정. 결과 기록 `exports/_preview/normal_check.txt`(이 PC만).
+  - Slag Walker 방울(`drip`)이 뒤집힌 건 `scripts/slag_walker_build.py`의 loft 아래 방향 경로에서 단면 축이 뒤집힌 탓 → 다음에 메쉬를 다시 만들 때 고칠 것.
 
 ### 배관 다리 키트 `PipeBridges` + H 배관 회랑 `PipeCorridor` — 2026-11-19
 - 결정(사용자): 4노선 전부 / 점검 통로 + 사다리 / 부분 파손 / H 회랑도 실제 에셋으로.
