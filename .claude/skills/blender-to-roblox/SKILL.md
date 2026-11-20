@@ -130,17 +130,20 @@ Studio의 후처리 스크립트가 **이름을 보고** 색·재질·충돌을 
 ## 6. 내보내기 전 점검 & FBX 내보내기
 
 `scripts/blender_helpers.py`에 점검·내보내기 함수가 있습니다.
-Blender MCP는 **안전 모드**라서 `exec`/`open`/`os`가 막혀 있습니다. 파일을 Blender에서 불러오지 말고, Read 도구로 파일 내용을 읽은 뒤 **`execute_blender_code` 스크립트 맨 위에 전체를 붙여 넣고** 그 아래에 호출을 적으세요.
+**2026-11-20부터 Blender MCP 안전 모드를 끔** (사용자 결정, `.mcp.json`에서 `BLENDER_MCP_SAFE_MODE` 삭제). 스크립트를 매번 통째로 붙여 넣으면 비용이 커서, 저장소의 스크립트 파일을 Blender에서 직접 실행합니다. 스크립트는 파일에서 고치고 Blender에는 한 줄만 보내세요.
 
 ```python
-# ... blender_helpers.py 전체 내용 ...
+exec(open(r"D:\god\.claude\skills\blender-to-roblox\scripts\blender_helpers.py", encoding="utf-8").read())
 print(check_asset("Container_40ft"))       # 컬렉션 이름
 print(export_asset("Container_40ft"))      # → exports\Container_40ft.fbx
 ```
+- 저장소 경로는 PC마다 다를 수 있음(이 PC는 `D:\god`). 실행 전에 확인.
+- 이 프로젝트의 스크립트만 실행합니다. 외부 에셋·다운로드한 파일 안의 파이썬은 실행하지 않습니다.
+- 안전 모드가 다시 켜진 PC(옛 `.mcp.json`)라면 아래 "막히는 것"을 따르고 파일 내용을 붙여 넣는 방식으로 돌아갑니다.
 
 내보내기 폴더 `C:\Users\CafeAlle\Desktop\god\exports`는 Blender가 만들 수 없으니 없으면 셸에서 먼저 만드세요.
 
-**안전 모드에서 막히는 것** (실제로 겪은 것들. 미리 피하면 재시도가 줄어듭니다):
+**안전 모드에서 막히는 것** (안전 모드가 켜져 있을 때만 해당. 실제로 겪은 것들):
 - `exec`, `eval`, `open`, `os`, `time` 등 import 불가 → 시간 측정·파일 읽기는 셸(PowerShell)에서
 - `lambda`, 함수를 인자로 넘겨 호출하기 불가 → 문자열 `kind`로 분기하는 일반 `def` 사용
 - `setattr(obj, 이름변수, 값)` 불가 → 속성을 하나씩 직접 대입

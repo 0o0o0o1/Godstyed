@@ -18,6 +18,7 @@
     - 재질: Slag/Cloth/Skin = SurfaceAppearance(타일 텍스처), Slag 는 **EmissiveMaskContent**(균열 발광) — 식은 형 Strength 2.5 / Tint (255,120,40), 갓 굳은 형 ColorB·EmitB, Strength 4 / Tint (255,135,45). 작업복·피부는 사진보다 밝게 나와 SA.Color 틴트(Cloth 135,135,140 / Skin 150,118,110). Helmet = Plastic (128,96,34), Boot = Leather, Dark = Plastic, Glow(눈) = Neon.
     - 텍스처 ID: `exports/texture_ids.json` → `SlagWalker`. 메쉬 모델 assetId 87082938518749(그룹 소유).
     - Blender: 씬 `SlagWalker`, 컬렉션 `SlagWalker`(메쉬, Decimate 수정자: 슬래그 0.55·큰 옷 0.7), `SW_RigRef`(R15 상자 와이어), `SW_TexBake`(굽기 판). 재현 스크립트 `scripts/slag_walker_build.py`(메쉬) → `slag_walker_tex.py`(굽기 셰이더) → `slag_walker_uv_export.py`(UV·FBX). 좌표 = Roblox HRP 기준 (-X, Z, Y), 앞 = -y. 삼각형 13,478.
+    - **Blender MCP 안전 모드 끔 (2026-11-20, 사용자 지시)**: `.mcp.json`에서 `BLENDER_MCP_SAFE_MODE` 삭제 → Claude Code 세션을 다시 시작해야 적용. 이후 스크립트는 `exec(open(r"D:\god\scripts\slag_walker_build.py", encoding="utf-8").read())`처럼 파일로 실행.
     - **Blender `look`은 이 PC에서 하얗게 나옴 → Cycles CPU 렌더를 PNG로 저장해 Read 로 확인**(`exports/_preview/`).
     - 겹침(BVH): 껍질↔옷 접합부와 관절(목·어깨·팔꿈치·무릎)만 남음. 곤봉 손↔오른 허벅지 겹침은 곤봉을 바깥으로 0.12 옮겨 해결.
     - **주의: `ServerStorage.Assets.Enemies` 폴더도 패키지(PackageLink)라 새 모델 2개를 넣었으니 사용자가 게시해야 함.**
