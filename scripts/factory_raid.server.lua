@@ -24,6 +24,7 @@ local SITE_RADIUS = 11 -- 지점 중심에서 상자를 놓는 범위
 local ENEMY_SCATTER = 10
 local ENEMY_KEEP_RANGE = 50 -- 닫힐 때 이 거리 안에 플레이어가 있는 습격 적은 남긴다
 local NOTIFY_RANGE = 90 -- 닫힘 경고를 받는 거리
+local FAST_BLINK = 5 -- 닫히기 이 초 전부터 더 빠르게 깜빡임 (클라이언트 FactoryCrateOutline 도 같은 값)
 local TAG = "TierCrate"
 
 -- 습격 지점 적 수 (상가 ShopRaidConfig 2·3·5·6·10 보다 많게, 공장 전용)
@@ -297,12 +298,20 @@ local function runSite(site: BasePart, tier: string)
 				notify(player, ("The %s cache fades in %d seconds!"):format(tier, SR.WARNING_TIME), t.light, "warn")
 			end
 		end
+		-- 상자 깜빡임·틱 소리는 클라이언트(FactoryCrateOutline)가 이 시각을 보고 직접 맞춤 (서버 시각 기준)
+		local fadeEnd = workspace:GetServerTimeNow() + SR.WARNING_TIME
+		for _, c in crates do
+			if c.Parent then
+				c:SetAttribute("FadeEnd", fadeEnd)
+			end
+		end
 		local deadline = os.clock() + SR.WARNING_TIME
 		local on = true
 		while os.clock() < deadline do
 			on = not on
 			light.Brightness = on and 2.2 or 0.35
-			task.wait(on and 0.35 or 0.15)
+			local fast = deadline - os.clock() <= FAST_BLINK -- 마지막 5초는 빠르게
+			task.wait(if fast then (on and 0.12 or 0.08) else (on and 0.35 or 0.15))
 		end
 	end)
 	if not ok then
