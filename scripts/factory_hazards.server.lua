@@ -28,6 +28,11 @@ local CRACK_PULSE = 0.3
 local CRACK_STRENGTH = { 2.5, 10 } -- 균열 발광 세기 (평소 → 최대)
 local CRACK_TINT = { Color3.fromRGB(255, 120, 40), Color3.fromRGB(255, 215, 130) }
 local HEAT_COLOR = Color3.fromRGB(255, 120, 35)
+-- 폭발 소리: Slag Walker 모델에 이미 있는 소리 (SlagFX 가 미리 불러옴). Impact = 곤봉 내려치기 쿵, HitSizzle = 피격 지글거림
+local BURST_SOUNDS = {
+	{ id = "rbxassetid://9118617342", volume = 0.9, speed = 0.8 },
+	{ id = "rbxassetid://9119166424", volume = 0.35, speed = 1.15 },
+}
 
 local DamageTaken = require(ReplicatedStorage.Shared.Util.DamageTaken)
 local enemies = workspace:WaitForChild("Enemies")
@@ -87,11 +92,50 @@ end
 
 ---------------------------------------------------------------- Slag Walker 죽음 폭발
 
+-- 근처의 죽은 Slag Walker 모델 (살아 있는 Humanoid 가 없고 SlagFX 가 든 모델)
+local function slagCorpsesNear(pos: Vector3, radius: number): { Model }
+	local found = {}
+	local function check(m: Instance)
+		if m:IsA("Model") and m:FindFirstChild("SlagFX") then
+			local hum = m:FindFirstChildOfClass("Humanoid")
+			if (not hum or hum.Health <= 0) and (m:GetPivot().Position - pos).Magnitude <= radius then
+				table.insert(found, m)
+			end
+		end
+	end
+	for _, a in workspace:GetChildren() do
+		check(a)
+		if a:IsA("Folder") then
+			for _, b in a:GetChildren() do
+				check(b)
+			end
+		end
+	end
+	return found
+end
+
 local function burst(position: Vector3, ground: number)
 	local fx = Instance.new("Folder")
 	fx.Name = "SlagBurst"
 	fx.Parent = workspace
 	local base = CFrame.new(position.X, ground, position.Z)
+	-- 폭발 소리는 경고가 시작될 때 미리 만들어 둔다 (터지는 순간 만들면 불러오기·전달 지연으로 늦게 들림).
+	-- Slag Walker 가 이미 쓰는(미리 불러온) 소리라 바로 난다: 묵직한 쿵 + 짧은 지글거림, 크기는 기본 공격 쿵 정도
+	local holder = Instance.new("Part")
+	holder.Name = "BurstSound"
+	holder.Anchored, holder.CanCollide, holder.CanQuery, holder.CanTouch = true, false, false, false
+	holder.Transparency, holder.Size, holder.CFrame = 1, Vector3.one, base + Vector3.new(0, 2, 0)
+	holder.Parent = fx
+	local sounds = {}
+	for _, s in BURST_SOUNDS do
+		local snd = Instance.new("Sound")
+		snd.SoundId = s.id
+		snd.Volume, snd.PlaybackSpeed = s.volume, s.speed
+		snd.RollOffMode = Enum.RollOffMode.InverseTapered
+		snd.RollOffMinDistance, snd.RollOffMaxDistance = 10, 90
+		snd.Parent = holder
+		table.insert(sounds, snd)
+	end
 	-- 경고: 범위 원이 바로 나타나 BURST_DELAY 동안 번쩍이고 터짐 (밝은 테두리 + 옅은 안쪽)
 	local rim = ring(fx, base * CFrame.new(0, -0.03, 0), HEAT_RADIUS + 0.5, 0.15)
 	rim.Anchored = true
@@ -117,13 +161,26 @@ local function burst(position: Vector3, ground: number)
 	light.Parent = ball
 	TweenService:Create(ball, TweenInfo.new(0.35, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), { Size = Vector3.one * HEAT_RADIUS * 2, Transparency = 1 }):Play()
 	TweenService:Create(light, TweenInfo.new(0.5), { Brightness = 0 }):Play()
-	local sound = Instance.new("Sound")
-	sound.SoundId = "rbxasset://sounds/collide.wav"
-	sound.Volume, sound.PlaybackSpeed = 1.6, 0.45
-	sound.RollOffMaxDistance = 120
-	sound.Parent = ball
-	sound:Play()
-	for _ = 1, 10 do
+	for _, snd in sounds do
+		snd:Play()
+	end
+	-- 시체의 슬래그 껍질을 폭발과 같은 순간에 날려 보냄 (SlagFX 는 1.1초 뒤에 천천히 떨어뜨림 → 폭발과 안 맞았음).
+	-- 여기서 껍질을 지우면 SlagFX 의 1.1초 처리는 남은 게 없어 건너뜀. 날아가는 조각은 아래 암석이 대신함
+	-- (껍질 파트는 CanQuery 가 꺼져 있어 범위 검색에 안 잡힘 → SlagFX 가 든 시체 모델을 workspace 2단계까지 찾음)
+	for _, corpse in slagCorpsesNear(base.Position, 8) do
+		for _, p in corpse:GetChildren() do
+			if p:IsA("MeshPart") and p.Name:find("__Slag$") then
+				p:Destroy()
+			end
+		end
+		-- 죽을 때 SlagFX 가 낸 긴 균열음(3초)은 예고로만 쓰고 폭발 순간 끊음 (소리가 겹쳐 과했음)
+		for _, s in corpse:GetDescendants() do
+			if s:IsA("Sound") and (s.Name == "Death" or s.Name == "DeathHiss") then
+				s:Stop()
+			end
+		end
+	end
+	for _ = 1, 14 do
 		local rock = Instance.new("Part")
 		rock.Size = Vector3.new(math.random(5, 12) / 10, math.random(5, 10) / 10, math.random(5, 12) / 10)
 		rock.Color = Color3.fromRGB(40, 36, 34)
