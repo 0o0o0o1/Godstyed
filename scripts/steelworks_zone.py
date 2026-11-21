@@ -80,16 +80,19 @@ def preview():
 # exec(open(r"D:\god\scripts\steelworks_zone.py", encoding="utf-8").read()); build()
 ICON_DIR = os.path.join(OUT, "icons")
 # 아이콘 배치: (이름, 바닥 가운데 x, y) — 뒤(위)부터 그림
-PLACE = [("gasholder", 165, 357), ("chimneys", 262, 360), ("cooling", 303, 395), ("tanks", 148, 405), ("furnace", 215, 412),
-         ("crane", 136, 420), ("shed2", 268, 436), ("coal", 165, 452), ("coal", 188, 461), ("shed", 228, 472),
-         ("house", 128, 346), ("house", 141, 339), ("house", 133, 358), ("house", 238, 348), ("house", 249, 342),
-         ("house", 230, 333), ("shed", 190, 351), ("tanks", 297, 354), ("shed", 175, 393), ("containers", 124, 449)]
-TREES = [(110, 340), (300, 340), (318, 368), (140, 490), (120, 478), (250, 490), (196, 330)]
+# v2 (2026-11-21): 잉크 선 아이콘(2배 렌더 → 절반), 상가처럼 길 따라 빽빽하게
+PLACE = [("house_o", 122, 352), ("house_r", 138, 346), ("house_t", 129, 368), ("house_o", 146, 365),
+         ("gasholder", 178, 368), ("office", 205, 356), ("house_t", 240, 343), ("house_o", 254, 336), ("chimneys", 272, 366),
+         ("tanks", 302, 352), ("silo", 318, 384), ("shed_t", 160, 398), ("shed_s", 186, 412), ("furnace", 228, 420),
+         ("cooling", 296, 410), ("crane", 136, 428), ("containers", 124, 452), ("sawshed", 272, 458), ("coal", 160, 458),
+         ("coal", 186, 468), ("shed_o", 230, 478), ("shed_r", 200, 446), ("house_r", 108, 466),
+         ("tree", 250, 392), ("tree", 258, 398)]
+TREES = [(110, 336), (304, 338), (325, 362), (252, 392), (140, 492), (118, 476), (252, 486), (196, 330), (318, 400)]
 ROADS = [[(326, 432), (290, 425), (250, 428), (200, 424), (160, 428), (118, 437)],      # 동서 큰길 (상가 쪽 → 부두)
          [(212, 324), (214, 360), (222, 392), (226, 428), (226, 460), (220, 500)],      # 남북 길
          [(250, 428), (268, 404), (290, 380), (318, 368)]]                              # 냉각탑 쪽 갈림길
-CONVEYOR = [(190, 455), (205, 436), (232, 404)]                                          # 석탄 → 용광로
-RAIL = [(118, 470), (160, 478), (200, 482), (240, 480), (262, 474)]
+CONVEYOR = []                                          # 석탄 → 용광로
+RAIL = []
 PAPER = np.array([217, 193, 152]) / 255.0
 
 
@@ -157,8 +160,10 @@ def build():
     for r in ROADS:
         draw_line(zone, r, 5.2, (0.55, 0.47, 0.36))
         draw_line(zone, r, 3.4, (0.80, 0.76, 0.68))
-    draw_line(zone, CONVEYOR, 3.2, (0.42, 0.30, 0.18)); draw_line(zone, CONVEYOR, 1.6, (0.80, 0.62, 0.30))
-    draw_line(zone, RAIL, 1.6, (0.33, 0.25, 0.18))
+    if CONVEYOR:
+        draw_line(zone, CONVEYOR, 3.2, (0.42, 0.30, 0.18)); draw_line(zone, CONVEYOR, 1.6, (0.80, 0.62, 0.30))
+    if RAIL:
+        draw_line(zone, RAIL, 1.6, (0.33, 0.25, 0.18))
     for (x1, y1), (x2, y2) in zip(RAIL[:-1], RAIL[1:]):
         L = math.hypot(x2 - x1, y2 - y1); n = int(L / 4)
         for k in range(n + 1):
@@ -176,6 +181,8 @@ def build():
     report = []
     for name, cx, by in sorted(PLACE, key=lambda p: p[2]):
         ic = load_png(os.path.join(ICON_DIR, name + ".png"))
+        ic = ic.reshape(ic.shape[0] // 2, 2, ic.shape[1] // 2, 2, 4).mean(axis=(1, 3))   # 2배 렌더 → 실제 크기
+        ic[..., :3] = np.where(ic[..., 3:4] > 1e-4, ic[..., :3], 0)
         h, w = ic.shape[:2]
         x0 = int(round(cx - w / 2)); y0 = int(round(by - h))
         a = ic[..., 3:4]
