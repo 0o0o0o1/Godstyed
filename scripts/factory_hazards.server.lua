@@ -3,7 +3,8 @@
 -- 원본: 저장소 scripts/factory_hazards.server.lua
 --
 -- 1) Molten Walker(molten_walker, 갓 굳은 용암 몬스터): 주변 HEAT_RADIUS 안 플레이어에게 1초마다 화염 스택 +1 (최대 10).
---    여러 마리 안에 있어도 1초에 +1. 범위 밖이면 1초마다 −1. 화염 스택마다 초당 1 피해 (1~10스택 = 초당 1~10).
+--    범위 안 마리 수만큼 한 번에 쌓임 (3마리면 1초에 +3). 범위 밖이면 1초마다 −1, 열기를 5초 동안 안 받으면 전부 사라짐.
+--    화염 스택마다 초당 1 피해 (1~10스택 = 초당 1~10).
 --    스택은 캐릭터 속성 FireStacks → 클라이언트 FactoryFireHud 가 표시. 몬스터 발밑에 범위 원(HeatRing).
 -- 2) Slag Walker(slag_walker, 식은 검은 몬스터): 체력이 75% 아래로 내려가면 균열 빛이 세지고 노랗게 변함(10%에서 최대),
 --    30% 아래면 깜빡임 + 불티·연기 증가 → 폭발 예고. 죽으면 범위 원이 BURST_DELAY 초 번쩍이고 암석 폭발,
@@ -17,6 +18,7 @@ local TweenService = game:GetService("TweenService")
 local HEAT_RADIUS = 14
 local MAX_STACKS = 10
 local DAMAGE_PER_STACK = 1
+local CLEAR_AFTER = 5 -- 열기를 이 시간(초) 동안 안 받으면 스택 전부 사라짐 (그 전에는 1초마다 −1)
 local BURST_DAMAGE = 30
 local BURST_DELAY = 0.35 -- 범위를 잠깐 보여 주고 터지는 시간
 -- Slag Walker 균열: 체력이 CRACK_START 아래로 내려가면 균열 빛이 세지고(CRACK_FULL 에서 최대), CRACK_PULSE 아래면 깜빡임
@@ -248,14 +250,17 @@ end)
 
 ---------------------------------------------------------------- 화염 스택 (1초마다)
 
-local function inHeat(pos: Vector3): boolean
+-- 범위 안 Molten Walker 수 (마리 수만큼 한 번에 쌓임)
+local function heatCount(pos: Vector3): number
+	local n = 0
 	for model, root in molten do
 		if model.Parent and root.Parent and (root.Position - pos).Magnitude <= HEAT_RADIUS then
-			return true
+			n += 1
 		end
 	end
-	return false
+	return n
 end
+local lastHeat = setmetatable({}, { __mode = "k" }) -- [Model] = 마지막으로 열기를 받은 os.clock
 
 Players.PlayerAdded:Connect(function(player)
 	player.CharacterAdded:Connect(function(char)
@@ -271,8 +276,12 @@ while true do
 		local hum = char and char:FindFirstChildOfClass("Humanoid")
 		if root and hum and hum.Health > 0 then
 			local stacks = char:GetAttribute("FireStacks") or 0
-			if inHeat(root.Position) then
-				stacks = math.min(MAX_STACKS, stacks + 1)
+			local n = heatCount(root.Position)
+			if n > 0 then
+				stacks = math.min(MAX_STACKS, stacks + n)
+				lastHeat[char] = os.clock()
+			elseif os.clock() - (lastHeat[char] or 0) >= CLEAR_AFTER then
+				stacks = 0 -- 열기를 CLEAR_AFTER 초 동안 안 받으면 전부 사라짐
 			else
 				stacks = math.max(0, stacks - 1)
 			end

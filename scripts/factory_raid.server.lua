@@ -10,6 +10,7 @@
 -- 2) 공장 등급 상자 = 맵에 놓인 고정 상자 (속성 FactoryCrate = 예전 CrateConfig 상자 종류 이름, 기록용)
 --    채워질 때마다 등급을 새로 뽑고, 열면 상가 상자처럼 내용물이 튀어나와 연 사람에게 빨려 들어간다.
 --    고정 상자에는 등급별 경비 적(GUARD_COUNT)이 플레이어가 다가올 때 상자 둘레에 나타난다 (종류 = 가까운 습격 지점 몬스터).
+-- 야외 몬스터(slag_walker·molten_walker 자리)는 습격·경비 모두 Molten·Slag 반반 (홀수면 Molten 한 마리 더).
 -- 등급은 상자 모델 속성 CrateTier / CrateTierColor + 태그 "TierCrate" → 클라이언트 FactoryCrateOutline 이 테두리 빛을 그린다.
 
 local CollectionService = game:GetService("CollectionService")
@@ -52,6 +53,15 @@ local SR = require(ReplicatedStorage.Shared.Config.ShopRaidConfig)
 local CrateConfig = require(ReplicatedStorage.Shared.Config.CrateConfig)
 
 local rng = Random.new()
+
+-- 야외 용암 몬스터(slag_walker·molten_walker)는 반반 섞어서 (홀수면 molten 이 한 마리 더)
+local WALKERS = { slag_walker = true, molten_walker = true }
+local function enemyKinds(kind: string, count: number): { [string]: number }
+	if WALKERS[kind] then
+		return { molten_walker = math.ceil(count / 2), slag_walker = math.floor(count / 2) }
+	end
+	return { [kind] = count }
+end
 
 local function notify(player: Player, text: string, color: Color3?, kind: string?)
 	pcall(InventoryService.notify, player, text, color, kind)
@@ -267,8 +277,12 @@ local function runSite(site: BasePart, tier: string)
 		end
 		-- 등급만큼 적
 		local count = RAID_ENEMIES[tier] or t.enemies
-		if count > 0 then
-			enemies = EnemyService.spawnTemporary(site:GetAttribute("EnemyId"), center, count, ENEMY_SCATTER)
+		for kind, n in enemyKinds(site:GetAttribute("EnemyId"), count) do
+			if n > 0 then
+				for _, m in EnemyService.spawnTemporary(kind, center, n, ENEMY_SCATTER) do
+					table.insert(enemies, m)
+				end
+			end
 		end
 		if t.announce then
 			for _, player in Players:GetPlayers() do
@@ -458,11 +472,13 @@ task.spawn(function()
 			if not entry.open and not entry.spawned and d <= GUARD_WAKE then
 				entry.spawned = true
 				local want = (GUARD_COUNT[entry.inst:GetAttribute("CrateTier")] or 2) - #alive
-				for _ = 1, want do
-					local at = guardSpot(pos)
-					if at then
-						for _, m in EnemyService.spawnTemporary(entry.kind, at, 1, 0) do
-							table.insert(entry.guards, m)
+				for kind, n in enemyKinds(entry.kind, math.max(0, want)) do
+					for _ = 1, n do
+						local at = guardSpot(pos)
+						if at then
+							for _, m in EnemyService.spawnTemporary(kind, at, 1, 0) do
+								table.insert(entry.guards, m)
+							end
 						end
 					end
 				end
