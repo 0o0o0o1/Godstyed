@@ -21,7 +21,7 @@ Roblox Studio(MCP) + Blender(MCP)로 포스트 아포칼립스 맵 존을 만드
 - 수정은 `multi_edit` 으로 하고, 끝나면 `execute_luau` 로 Source 를 한 번 다시 써서(내용 + `"\n"` 후 원래 내용) 패키지 수정 표시를 띄운다.
 - 그 스크립트 탭이 Studio 에 열려 있으면 Source 수정이 되돌아가고, "자동 업데이트 비활성화" 확인 창이 뜨면 Studio 가 응답하지 않으니 사용자에게 확인을 눌러 달라고 한다.
 - 작업이 끝나면 게시할 패키지 이름을 알려 준다.
-- 공장 place 전용 스크립트(`ServerScriptService.FactoryRaid`·`FactoryHazards`, `StarterPlayerScripts.FactoryCrateOutline`·`FactoryFireHud` 등, 패키지 밖)는 이 규칙 대상이 아니다 — 공장 place 에서 고치고 place 를 게시한다.
+- 공장 전용 코드도 패키지 안에 있다 (2026-11-21 옮김): Services `FactoryRaid`·`FactoryHazards` (Shared `PlaceConfig.SERVICE_PLACE` 로 공장에서만 시작), Controllers `FactoryCrateOutlineController`·`FactoryFireHudController`·`FactoryLightFXController` (init 에서 공장 place 가 아니면 바로 끝). 원본은 저장소 `scripts/packages/<패키지>/<이름>.lua` — 마을 place 에서 고친 뒤 이 파일도 같이 고친다.
 
 ## 폴더 구조
 | 경로 | 내용 |
