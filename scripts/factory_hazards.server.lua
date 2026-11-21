@@ -9,6 +9,7 @@
 -- 2) Slag Walker(slag_walker, 식은 검은 몬스터): 체력이 75% 아래로 내려가면 균열 빛이 세지고 노랗게 변함(10%에서 최대),
 --    30% 아래면 깜빡임 + 불티·연기 증가 → 폭발 예고. 죽으면 범위 원이 BURST_DELAY 초 번쩍이고 암석 폭발,
 --    HEAT_RADIUS 안 플레이어에게 BURST_DAMAGE 피해.
+-- 3) Hook Hauler(hook_hauler, 실내): 등의 갈고리가 약점 — 앞에서 맞으면 피해 50%, 등 뒤에서 맞으면 150% + 갈고리 불티·쇳소리.
 -- 피해는 적 기본 공격과 같은 방식: Humanoid:TakeDamage(피해 × DamageTaken(캐릭터)), LastHitBy 기록 (ForceField 면 막힘)
 
 local Players = game:GetService("Players")
@@ -278,6 +279,88 @@ local function setupSlag(model: Model, root: BasePart)
 	end)
 end
 
+---------------------------------------------------------------- Hook Hauler 등 약점
+-- 앞에서 맞으면 피해 FRONT_MULT, 등 뒤에서 맞으면 BACK_MULT (옆은 그대로). 등에 박힌 크레인 갈고리 = 약점.
+-- 공용 Combat.DamageDealer 가 피해마다 EnemyService.damageTakenMultiplier(적, 때린 사람 위치)를 부르므로
+-- 공장 place 에서만 그 함수를 감싸 hook_hauler 일 때 배율을 곱한다 (공용 패키지는 그대로).
+
+local FRONT_MULT = 0.5
+local BACK_MULT = 1.5
+local SIDE_DOT = 0.3 -- 보는 방향과 때린 방향의 내적이 이보다 크면 앞, −이보다 작으면 뒤
+
+local weakFx = setmetatable({}, { __mode = "k" }) -- [Model] = { sparks, sound, last }
+
+local function setupWeakPoint(model: Model)
+	local hook = model:FindFirstChild("UpperTorso__Paint") -- 등에 박힌 갈고리
+	local sparksSrc = model:FindFirstChild("HitSparks", true)
+	local clangSrc = model:FindFirstChild("HitClang", true)
+	if not hook then
+		return
+	end
+	local sparks
+	if sparksSrc then
+		sparks = sparksSrc:Clone()
+		sparks.Name = "WeakSparks"
+		sparks.Enabled = false
+		sparks.Parent = hook
+	end
+	local sound
+	if clangSrc then
+		sound = clangSrc:Clone()
+		sound.Name = "WeakClang"
+		sound.PlaybackSpeed = clangSrc.PlaybackSpeed * 1.35 -- 더 높고 날카로운 쇳소리
+		sound.Volume = clangSrc.Volume * 0.9
+		sound.Parent = hook
+	end
+	weakFx[model] = { sparks = sparks, sound = sound, last = 0 }
+end
+
+local Services = game:GetService("ServerScriptService"):WaitForChild("Services")
+local EnemyService = require(Services.Enemy)
+local baseMultiplier = EnemyService.damageTakenMultiplier
+EnemyService.damageTakenMultiplier = function(humanoid: Humanoid, from: Vector3?): number
+	local mult = baseMultiplier(humanoid, from)
+	local model = humanoid.Parent
+	if not from or not model or model:GetAttribute("EnemyId") ~= "hook_hauler" then
+		return mult
+	end
+	local root = model:FindFirstChild("HumanoidRootPart")
+	if not root then
+		return mult
+	end
+	local to = Vector3.new(from.X - root.Position.X, 0, from.Z - root.Position.Z)
+	if to.Magnitude < 0.1 then
+		return mult
+	end
+	local dot = to.Unit:Dot(root.CFrame.LookVector)
+	if dot >= SIDE_DOT then
+		return mult * FRONT_MULT
+	elseif dot <= -SIDE_DOT then
+		local fx = weakFx[model]
+		if fx and os.clock() - fx.last > 0.15 then -- 여러 타가 한꺼번에 들어와도 효과는 한 번
+			fx.last = os.clock()
+			if fx.sparks then
+				fx.sparks:Emit(16)
+			end
+			if fx.sound then
+				fx.sound:Play()
+			end
+		end
+		return mult * BACK_MULT
+	end
+	return mult
+end
+
+-- 개발용 확인: ServerStorage.FactoryHazardsTest:Invoke(humanoid, from) → 지금 적용되는 받는 피해 배율
+do
+	local probe = Instance.new("BindableFunction")
+	probe.Name = "FactoryHazardsTest"
+	probe.OnInvoke = function(humanoid, from)
+		return EnemyService.damageTakenMultiplier(humanoid, from)
+	end
+	probe.Parent = game:GetService("ServerStorage")
+end
+
 ---------------------------------------------------------------- 적 감시
 
 local function onEnemy(model: Instance)
@@ -298,6 +381,8 @@ local function onEnemy(model: Instance)
 		setupMolten(model, root)
 	elseif id == "slag_walker" then
 		setupSlag(model, root)
+	elseif id == "hook_hauler" then
+		setupWeakPoint(model)
 	end
 end
 
