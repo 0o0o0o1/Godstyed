@@ -527,6 +527,11 @@
 - 확인: RaidConfig·LoadingConfig require OK, 새 이미지 6장 PreloadAsync Success, 미니맵 1024×993.
 - **사용자 할 일**: 공용 패키지 **Shared 게시**(RaidConfig·LoadingConfig) — 게시해야 마을 지도 창에 Steelworks 가 뜸. 마을→공장 입장, 도착 연출, 탈출구 A/B/C, M키 지도는 실제 플레이로 확인 필요(플레이 테스트 안 함).
 
+### 패키지 게시 (2026-11-21)
+- 공장 place에서 게시 성공: **Shared v88, Services v60, Enemies v5** (Studio 가 "UploadStatusPolling max polling retry reached" 오류를 띄웠지만 실제로는 서버에 올라가 있었음 → 오류가 나도 Open Cloud `GET /assets/v1/assets/<id>` revisionId 로 확인할 것). 패키지 ID: Shared 135710242377375, Services 73196577937994, Enemies 91177418448007.
+- ⚠ 사고: 마을 place(신이 머물렀다, 133122559439695)의 **예전 Shared 사본이 v89 로 게시**되면서 공장 내용(RaidConfig·LoadingConfig·PlaceConfig·LightingConfig·CrateConfig·Data.Enemies.Factory)이 빠졌고 공장 place 도 v89 로 자동 업데이트됨. → Open Cloud `POST /assets/v1/assets/135710242377375/versions:rollback` (assetVersion …/versions/88) 로 **v90 = v88 내용** 복구. v89 와 v90 차이는 위 공장 파일들뿐(마을에만 있던 내용 없음, 전체 소스 해시 비교). 마을 place `ServerStorage.Shared_v89_backup` 에 v89 사본 보관(확인 후 지워도 됨).
+- **규칙: 패키지는 수정한 place 에서만 게시. 다른 place 에서는 "패키지 업데이트"만 누르고 게시하지 않는다.**
+
 ## 2. 다음 할 일
 
 1. 사용자 확인 → 수정. 보스 마당·철도 야드·배랭 완료(✔).
