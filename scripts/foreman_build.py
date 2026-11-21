@@ -1,6 +1,6 @@
 # The Foreman (공장 4번 보스) 메쉬 생성
 # 실행 (Blender MCP): exec(open(r"D:\god\scripts\monster_kit.py", encoding="utf-8").read()); exec(open(r"D:\god\scripts\foreman_build.py", encoding="utf-8").read())
-# 좌표: Blender (x, y, z) = Roblox HRP 기준 (-X, Z, Y). 앞 = -y, 캐릭터 오른쪽 = -x. 게임에서 scale 3.5.
+# 좌표: Blender (x, y, z) = Roblox HRP 기준 (-X, Z, Y). 앞 = -y, 캐릭터 오른쪽 = -x. 게임에서는 정의의 scale 2 (Studio 에 넣을 때 MeshPart.Size = MeshSize 그대로 — 3.5 곱하지 말 것).
 # 2026-11-21 재제작: 상자 같던 몸 -> 구부정한 괴물 실루엣(혹 등, 파묻힌 머리, 굵은 팔다리), 운전실은 작게 기울어 혹에 파묻힘, 등에 파이프·철근·사슬
 # 부위 파괴용 이름(정의 breakParts): 2페이즈 "UpperTorso__Glass"(운전실 유리), 분노 "LeftHand__Mega"(확성기)
 import math
