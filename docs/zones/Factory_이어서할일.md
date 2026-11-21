@@ -623,6 +623,8 @@
 - **공격 소리**(Enemies 모델): Slag/Molten Impact 0.8→1.0, HookHauler Swing 0.45→0.7·Impact 0.75→1.0, Tender/Warden Thrust 0.4→0.7·Impact 0.6→0.9, 모두 RollOffMin 8→10 (상가 1.2 보다 낮게). Slag/Molten **예고음** `UpperTorso.Windup`(HookHauler Swing 9119468100, 0.55, 10~60) — SlagFX 가 공격 애니 시작마다 play("Windup").
 - **체력바 피격 강조** Controllers `StatsController.HealthBarView` (모든 맵 공통): 깎인 비율 2% 미만은 예전처럼 잔상만, 2~30% 비례 세기 k — 띠 흔들림 1.5~6px·0.12~0.35초, 테두리(frame 이미지) 붉게 번쩍, 잔상 깜빡임(k≥0.3 1번, ≥0.75 2번), 잔상 머무름 0.35~0.6초·줄어듦 0.5~0.8초, 체력 숫자 붉게 + 1~5 커짐. 상수 표 `HIT`. 흰 번쩍은 이미지 밝기를 올릴 수 없어 깜빡임으로 대신.
 - 마을 컴파일 OK, 수정 표시, 마을 저장. **사용자 할 일: 마을에서 Shared · Controllers · Enemies 게시** → 공장 place 게시. 실제 소리 크기·체력바 느낌은 플레이 확인 필요.
+- **게시 완료**: Shared v110 · Controllers v92 · Enemies v7 · Services v66. ⚠ 게시 전부터 열려 있던 공장 Studio 창은 예전 버전(v107/91/6/64)을 들고 있었고, 패키지 옵션에 업데이트 메뉴가 없었음(버전 비교·세부 정보만) → **공장 place 를 닫고 다시 열자 자동으로 최신**이 됨. 스크립트 InsertService·insert_asset 으로 패키지를 다시 넣는 건 권한 오류로 안 됨. **다른 place 가 예전 버전이면 그 place 를 다시 열 것.**
+- 공장 플레이 확인: 보스 마당 근처 적 17마리 모두 `FactoryBodyLoop` 붙음, 소리 나는 건 범위 안 2마리(가까운 6마리 제한 동작), 보스 근처라 BossMusic 재생. **사용자 할 일: 공장 place 게시.**
 
 ### 패키지 게시 (2026-11-21)
 - 공장 place에서 게시 성공: **Shared v88, Services v60, Enemies v5** (Studio 가 "UploadStatusPolling max polling retry reached" 오류를 띄웠지만 실제로는 서버에 올라가 있었음 → 오류가 나도 Open Cloud `GET /assets/v1/assets/<id>` revisionId 로 확인할 것). 패키지 ID: Shared 135710242377375, Services 73196577937994, Enemies 91177418448007.
