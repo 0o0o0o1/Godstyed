@@ -16,6 +16,13 @@ Roblox Studio(MCP) + Blender(MCP)로 포스트 아포칼립스 맵 존을 만드
 - `exports/` 의 FBX·PNG는 올리지 않는다(.gitignore). 텍스처 업로드 ID는 `exports/texture_ids.json` 에 기록해 올린다.
   다른 PC에서 원본 FBX/PNG가 필요하면 Blender에서 다시 굽거나 Studio의 `ServerStorage.Assets` 를 쓴다.
 
+## Roblox 패키지 스크립트 수정 규칙 (2026-11-21 사용자 지시)
+- 패키지 코드는 **마을 플레이스(Godstayed, 133122559439695)에서만** 수정하고, 게시는 사용자가 직접 한다.
+- 수정은 `multi_edit` 으로 하고, 끝나면 `execute_luau` 로 Source 를 한 번 다시 써서(내용 + `"\n"` 후 원래 내용) 패키지 수정 표시를 띄운다.
+- 그 스크립트 탭이 Studio 에 열려 있으면 Source 수정이 되돌아가고, "자동 업데이트 비활성화" 확인 창이 뜨면 Studio 가 응답하지 않으니 사용자에게 확인을 눌러 달라고 한다.
+- 작업이 끝나면 게시할 패키지 이름을 알려 준다.
+- 공장 place 전용 스크립트(`ServerScriptService.FactoryRaid`·`FactoryHazards`, `StarterPlayerScripts.FactoryCrateOutline`·`FactoryFireHud` 등, 패키지 밖)는 이 규칙 대상이 아니다 — 공장 place 에서 고치고 place 를 게시한다.
+
 ## 폴더 구조
 | 경로 | 내용 |
 |---|---|
