@@ -3,6 +3,8 @@
 -- 원본: 저장소 scripts/factory_fire_hud.client.lua
 -- 서버 FactoryHazards 가 캐릭터 속성 FireStacks(0~10)를 바꾸면 체력바 바로 위에 작은 띠로 표시한다.
 -- 시야를 가리지 않게: 화면 가장자리 효과 없음, 작은 불 아이콘 + 칸 10개(쌓인 만큼 주황) + 숫자. 스택이 오를 때만 잠깐 밝아짐.
+-- 화면 효과: 스택 비례 주황 색보정 + 화염 피해 틱마다 짧게 붉게 번쩍 (Camera.FactoryHeat, 내 화면만).
+-- Molten Walker 발밑 범위 원(HeatRing)은 가까이(28 안) 와야 보임.
 
 local Players = game:GetService("Players")
 local TweenService = game:GetService("TweenService")
@@ -100,11 +102,67 @@ local function show(stacks: number)
 	shown = stacks
 end
 
+---------------------------------------------------------------- 화면 효과 (불탈 때)
+-- 화면을 가리는 것 없이 색만: 스택에 비례해 따뜻한 주황 틴트 + 살짝 대비, 화염 피해 틱(스택이 있는 매초)마다 짧게 붉게 번쩍.
+-- 카메라 안에 두면 내 화면에만 적용되고, 조명 프리셋(LightingService)이 Lighting 을 바꿔도 안 지워짐
+local heat = Instance.new("ColorCorrectionEffect")
+heat.Name = "FactoryHeat"
+heat.Parent = workspace.CurrentCamera
+local HEAT_TINT = Color3.fromRGB(255, 226, 205) -- 10스택일 때 틴트 (옅게 — 맵이 이미 주황 안개라 강하면 화면이 다 주황)
+local FLASH_TINT = Color3.fromRGB(255, 170, 145)
+
+local function heatTint(stacks: number): Color3
+	return Color3.new(1, 1, 1):Lerp(HEAT_TINT, stacks / MAX_STACKS)
+end
+local function screen(stacks: number)
+	local k = stacks / MAX_STACKS
+	TweenService:Create(heat, TweenInfo.new(0.4), {
+		TintColor = heatTint(stacks),
+		Contrast = 0.05 * k,
+		Saturation = 0.05 * k,
+	}):Play()
+end
+local function flash(stacks: number)
+	heat.TintColor = heatTint(stacks):Lerp(FLASH_TINT, 0.25 + 0.25 * stacks / MAX_STACKS)
+	TweenService:Create(heat, TweenInfo.new(0.35, Enum.EasingStyle.Quad), { TintColor = heatTint(stacks) }):Play()
+end
+
+---------------------------------------------------------------- 범위 원 (가까울 때만)
+-- 서버가 Molten Walker 발밑에 단 HeatRing 은 멀리서는 안 보이고, RING_SHOW 안으로 오면 서서히 나타남 (내 화면에서만)
+local RING_SHOW = 28 -- 이 거리부터 보이기 시작
+local RING_FULL = 18 -- 이 거리 안이면 완전히 보임
+local enemiesFolder = workspace:WaitForChild("Enemies", 30)
+task.spawn(function()
+	while enemiesFolder do
+		local char = player.Character
+		local root = char and char:FindFirstChild("HumanoidRootPart")
+		for _, m in enemiesFolder:GetChildren() do
+			local ring = m:FindFirstChild("HeatRing")
+			if ring and ring:IsA("BasePart") then
+				local d = if root then (ring.Position - root.Position).Magnitude else math.huge
+				ring.LocalTransparencyModifier = math.clamp((d - RING_FULL) / (RING_SHOW - RING_FULL), 0, 1)
+			end
+		end
+		task.wait(0.15)
+	end
+end)
+
 local function watch(char: Model)
 	shown = 0
-	show(char:GetAttribute("FireStacks") or 0)
+	local s0 = char:GetAttribute("FireStacks") or 0
+	show(s0)
+	screen(s0)
 	char:GetAttributeChangedSignal("FireStacks"):Connect(function()
-		show(char:GetAttribute("FireStacks") or 0)
+		local s = char:GetAttribute("FireStacks") or 0
+		show(s)
+		screen(s)
+	end)
+	-- 화염 피해 틱마다 번쩍 (서버 FactoryHazards 가 피해를 줄 때 BurnTick 을 올림 — 스택이 그대로여도)
+	char:GetAttributeChangedSignal("BurnTick"):Connect(function()
+		local s = char:GetAttribute("FireStacks") or 0
+		if s > 0 then
+			flash(s)
+		end
 	end)
 end
 

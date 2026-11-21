@@ -71,7 +71,10 @@ end
 ---------------------------------------------------------------- Molten Walker 열기
 
 local function setupMolten(model: Model, root: BasePart)
-	local r = ring(model, root.CFrame * CFrame.new(0, groundOffset(model, root), 0), HEAT_RADIUS, 0.88)
+	-- 멀리서는 클라이언트(FactoryFireHud)가 숨기고 가까이 와야 보임. 여러 마리가 겹쳐도 바닥이 형광으로 덮이지 않게
+	-- 빛나지 않는 재질(SmoothPlastic) + 옅게
+	local r = ring(model, root.CFrame * CFrame.new(0, groundOffset(model, root), 0), HEAT_RADIUS, 0.82)
+	r.Material = Enum.Material.SmoothPlastic
 	r.Anchored = false
 	r.Massless = true
 	local w = Instance.new("WeldConstraint")
@@ -345,6 +348,7 @@ while true do
 			char:SetAttribute("FireStacks", stacks)
 			if stacks > 0 then
 				hurt(char, stacks * DAMAGE_PER_STACK, "Burning")
+				char:SetAttribute("BurnTick", (char:GetAttribute("BurnTick") or 0) + 1) -- 클라이언트 화면 번쩍임
 			end
 		end
 	end
