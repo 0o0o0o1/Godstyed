@@ -66,6 +66,27 @@ local function run()
 		return p
 	end
 
+	-- 열기·폭발이 닿는가: 수평 거리 radius 안 + 높이 차이 MAX_HEIGHT_DIFF 안 + 사이에 벽·바닥·지붕이 없음
+	-- (예전에는 3D 거리만 봐서 몬스터가 바닥에 있고 플레이어가 바로 위 옥상에 있어도 화염 피해를 받았음)
+	local MAX_HEIGHT_DIFF = 7
+	local losParams = RaycastParams.new()
+	losParams.FilterType = Enum.RaycastFilterType.Exclude
+	local function reaches(from: Vector3, to: Vector3, radius: number): boolean
+		local flat = Vector3.new(to.X - from.X, 0, to.Z - from.Z)
+		if flat.Magnitude > radius or math.abs(to.Y - from.Y) > MAX_HEIGHT_DIFF then
+			return false
+		end
+		local ignore = { enemies }
+		for _, p in Players:GetPlayers() do
+			if p.Character then
+				table.insert(ignore, p.Character)
+			end
+		end
+		losParams.FilterDescendantsInstances = ignore
+		local hit = workspace:Raycast(from, to - from, losParams)
+		return hit == nil or not hit.Instance.CanCollide
+	end
+
 	-- 발밑 높이 (HRP 아래 HipHeight + 반 높이)
 	local function groundOffset(model: Model, root: BasePart): number
 		local hum = model:FindFirstChildOfClass("Humanoid")
@@ -202,7 +223,7 @@ local function run()
 		for _, player in Players:GetPlayers() do
 			local char = player.Character
 			local root = char and char:FindFirstChild("HumanoidRootPart")
-			if root and (root.Position - base.Position).Magnitude <= HEAT_RADIUS + 1.5 then
+			if root and reaches(base.Position + Vector3.new(0, 2.5, 0), root.Position, HEAT_RADIUS + 1.5) then
 				hurt(char, BURST_DAMAGE, "Slag Walker")
 			end
 		end
@@ -398,11 +419,11 @@ local function run()
 
 	---------------------------------------------------------------- 화염 스택 (1초마다)
 
-	-- 범위 안 Molten Walker 수 (마리 수만큼 한 번에 쌓임)
+	-- 범위 안 Molten Walker 수 (마리 수만큼 한 번에 쌓임). 같은 층·가려지지 않은 경우만 (reaches)
 	local function heatCount(pos: Vector3): number
 		local n = 0
 		for model, root in molten do
-			if model.Parent and root.Parent and (root.Position - pos).Magnitude <= HEAT_RADIUS then
+			if model.Parent and root.Parent and reaches(root.Position, pos, HEAT_RADIUS) then
 				n += 1
 			end
 		end
