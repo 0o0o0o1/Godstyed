@@ -9,6 +9,7 @@
 --    등급·확률·시간·적 수·상자 수·상자 내용물은 상가와 같은 ShopRaidConfig 를 쓴다.
 -- 2) 공장 등급 상자 = 맵에 놓인 고정 상자 (속성 FactoryCrate = 예전 CrateConfig 상자 종류 이름, 기록용)
 --    채워질 때마다 등급을 새로 뽑고, 열면 상가 상자처럼 내용물이 튀어나와 연 사람에게 빨려 들어간다.
+--    고정 상자에는 등급별 경비 적(GUARD_COUNT)이 플레이어가 다가올 때 상자 둘레에 나타난다 (종류 = 가까운 습격 지점 몬스터).
 -- 등급은 상자 모델 속성 CrateTier / CrateTierColor + 태그 "TierCrate" → 클라이언트 FactoryCrateOutline 이 테두리 빛을 그린다.
 
 local CollectionService = game:GetService("CollectionService")
@@ -23,6 +24,18 @@ local ENEMY_SCATTER = 10
 local ENEMY_KEEP_RANGE = 50 -- 닫힐 때 이 거리 안에 플레이어가 있는 습격 적은 남긴다
 local NOTIFY_RANGE = 90 -- 닫힘 경고를 받는 거리
 local TAG = "TierCrate"
+
+-- 습격 지점 적 수 (상가 ShopRaidConfig 2·3·5·6·10 보다 많게, 공장 전용)
+local RAID_ENEMIES = { Common = 4, Uncommon = 6, Rare = 8, Epic = 10, Legendary = 14 }
+-- 고정 상자 경비 적 수 (등급별). 플레이어가 GUARD_WAKE 안에 처음 들어오면 상자 둘레에 나타나고,
+-- 상자가 열리거나 GUARD_IDLE 초 동안 아무도 GUARD_SLEEP 안에 없으면 (살아 있는 경비만) 사라졌다가 다시 다가오면 또 나온다
+local GUARD_COUNT = { Common = 2, Uncommon = 3, Rare = 5, Epic = 7, Legendary = 10 }
+local GUARD_WAKE = 110
+local GUARD_SLEEP = 170
+local GUARD_IDLE = 30
+local GUARD_RING = { 7, 16 } -- 상자에서 경비가 서는 거리
+local GUARD_DEFAULT = "slag_walker"
+local GUARD_SKIP_NEAR_BOSS = 140 -- 보스 마당 상자는 경비 안 붙임 (보스 마당 경비가 따로 있음)
 
 -- 공용 서비스가 다 시작될 때까지 (Main 이 Loot·Enemy init 에서 만드는 폴더)
 workspace:WaitForChild("Drops")
@@ -68,6 +81,8 @@ end
 
 ---------------------------------------------------------------- 고정 등급 상자
 
+local fixedCrates = {} -- { inst, anchor, open, spawned, guards = {Model}, idleSince }
+
 local function registerFixed(inst: Instance)
 	local parts = {}
 	if inst:IsA("BasePart") then
@@ -89,12 +104,15 @@ local function registerFixed(inst: Instance)
 	inst:SetAttribute("CrateOpen", false)
 	CollectionService:AddTag(inst, TAG)
 	local prompt = makePrompt(anchor, tier, CrateConfig.HOLD_DURATION)
+	local entry = { inst = inst, anchor = anchor, open = false, spawned = false, guards = {}, idleSince = nil }
+	table.insert(fixedCrates, entry)
 
 	prompt.Triggered:Connect(function(player)
 		if not prompt.Enabled then
 			return
 		end
 		prompt.Enabled = false
+		entry.open = true
 		grant(player, tier, anchor.Position)
 		inst:SetAttribute("CrateOpen", true)
 		for _, p in parts do
@@ -112,6 +130,7 @@ local function registerFixed(inst: Instance)
 			setTier(inst, tier)
 			prompt.ObjectText = tier .. " Crate"
 			inst:SetAttribute("CrateOpen", false)
+			entry.open, entry.spawned = false, false -- 새 등급 경비가 다시 나올 수 있게
 			prompt.Enabled = true
 		end)
 	end)
@@ -247,8 +266,9 @@ local function runSite(site: BasePart, tier: string)
 			end
 		end
 		-- 등급만큼 적
-		if t.enemies > 0 then
-			enemies = EnemyService.spawnTemporary(site:GetAttribute("EnemyId"), center, t.enemies, ENEMY_SCATTER)
+		local count = RAID_ENEMIES[tier] or t.enemies
+		if count > 0 then
+			enemies = EnemyService.spawnTemporary(site:GetAttribute("EnemyId"), center, count, ENEMY_SCATTER)
 		end
 		if t.announce then
 			for _, player in Players:GetPlayers() do
@@ -344,6 +364,126 @@ if folder then
 	end
 end
 print(("[FactoryRaid] 습격 지점 %d곳"):format(#sites))
+
+---------------------------------------------------------------- 고정 상자 경비
+
+local bossPoint = nil
+do
+	local spawns = workspace:FindFirstChild("EnemySpawns", true)
+	for _, p in spawns and spawns:GetChildren() or {} do
+		if p:IsA("BasePart") and p:GetAttribute("EnemyId") == "foreman" then
+			bossPoint = p.Position
+		end
+	end
+end
+
+-- 상자 근처 습격 지점의 적 종류 (구역마다 다른 몬스터), 없으면 기본
+local function guardKind(pos: Vector3): string
+	local best, bestD = GUARD_DEFAULT, 160
+	for _, s in sites do
+		local d = (s.Position - pos).Magnitude
+		if d < bestD then
+			best, bestD = s:GetAttribute("EnemyId"), d
+		end
+	end
+	return best
+end
+
+-- 상자 둘레 바닥 (높은 곳 상자면 그 아래 땅에 서도 됨)
+local function guardSpot(center: Vector3): Vector3?
+	local rp = RaycastParams.new()
+	rp.FilterType = Enum.RaycastFilterType.Exclude
+	rp.FilterDescendantsInstances = ignoreList()
+	local op = OverlapParams.new()
+	op.FilterType = Enum.RaycastFilterType.Exclude
+	for _ = 1, 20 do
+		local a, r = rng:NextNumber(0, math.pi * 2), rng:NextNumber(GUARD_RING[1], GUARD_RING[2])
+		local hit = workspace:Raycast(center + Vector3.new(math.cos(a) * r, 6, math.sin(a) * r), Vector3.new(0, -60, 0), rp)
+		if hit and hit.Normal.Y > 0.8 then
+			op.FilterDescendantsInstances = { hit.Instance, table.unpack(ignoreList()) }
+			local blocked = false
+			for _, h in workspace:GetPartBoundsInBox(CFrame.new(hit.Position + Vector3.new(0, 3.5, 0)), Vector3.new(3, 5, 3), op) do
+				if h.CanCollide then
+					blocked = true
+					break
+				end
+			end
+			if not blocked then
+				return hit.Position
+			end
+		end
+	end
+	return nil
+end
+
+local function aliveGuards(entry): { Model }
+	local alive = {}
+	for _, m in entry.guards do
+		local hum = m.Parent and m:FindFirstChildOfClass("Humanoid")
+		if hum and hum.Health > 0 then
+			table.insert(alive, m)
+		end
+	end
+	entry.guards = alive
+	return alive
+end
+
+local function nearestPlayer(pos: Vector3): number
+	local best = math.huge
+	for _, player in Players:GetPlayers() do
+		local root = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
+		local hum = player.Character and player.Character:FindFirstChildOfClass("Humanoid")
+		if root and hum and hum.Health > 0 then
+			best = math.min(best, (root.Position - pos).Magnitude)
+		end
+	end
+	return best
+end
+
+task.spawn(function()
+	task.wait(5) -- registerFixed 가 다 끝나게
+	for _, entry in fixedCrates do
+		local pos = entry.anchor.Position
+		entry.kind = guardKind(pos)
+		entry.skip = bossPoint ~= nil and (pos - bossPoint).Magnitude < GUARD_SKIP_NEAR_BOSS
+	end
+	while true do
+		for _, entry in fixedCrates do
+			if entry.skip or not entry.inst.Parent then
+				continue
+			end
+			local pos = entry.anchor.Position
+			local d = nearestPlayer(pos)
+			local alive = aliveGuards(entry)
+			if not entry.open and not entry.spawned and d <= GUARD_WAKE then
+				entry.spawned = true
+				local want = (GUARD_COUNT[entry.inst:GetAttribute("CrateTier")] or 2) - #alive
+				for _ = 1, want do
+					local at = guardSpot(pos)
+					if at then
+						for _, m in EnemyService.spawnTemporary(entry.kind, at, 1, 0) do
+							table.insert(entry.guards, m)
+						end
+					end
+				end
+				entry.idleSince = nil
+			elseif d > GUARD_SLEEP and #alive > 0 then
+				entry.idleSince = entry.idleSince or os.clock()
+				if os.clock() - entry.idleSince > GUARD_IDLE then
+					for _, m in alive do
+						m:Destroy()
+					end
+					entry.guards = {}
+					entry.spawned = false -- 다시 다가오면 또 나옴 (상자가 아직 안 열렸으면)
+					entry.idleSince = nil
+				end
+			else
+				entry.idleSince = nil
+			end
+		end
+		task.wait(1)
+	end
+end)
 _G.FactoryRaid = FactoryRaid -- 개발용: 서버 콘솔에서 _G.FactoryRaid.startWave("Legendary")
 
 if #sites > 0 then
