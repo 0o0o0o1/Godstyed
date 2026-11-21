@@ -4,6 +4,7 @@
 -- 시야를 가리지 않게: 화면 가장자리 효과 없음, 작은 불 아이콘 + 칸 10개(쌓인 만큼 주황) + 숫자. 스택이 오를 때만 잠깐 밝아짐.
 -- 화면 효과: 스택 비례 주황 색보정 + 화염 피해 틱마다 짧게 붉게 번쩍 (Camera.FactoryHeat, 내 화면만).
 -- Molten Walker 발밑 범위 원(HeatRing)은 가까이(28 안) 와야 보임.
+-- 화염 피해 틱마다 화면이 살짝 흔들리고(스택 비례, 0.2초) 지글거리는 소리가 남.
 -- 원본: 저장소 scripts/packages/Controllers/FactoryFireHudController.lua (패키지 코드는 마을 place 에서만 수정, CLAUDE.md)
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -133,6 +134,33 @@ local function run()
 		TweenService:Create(heat, TweenInfo.new(0.35, Enum.EasingStyle.Quad), { TintColor = heatTint(stacks) }):Play()
 	end
 
+	---------------------------------------------------------------- 화염 피해 틱: 화면 흔들림 + 지글거리는 소리
+	-- 스택이 많을수록 조금 더 세게. 흔들림은 게임 공용 CameraShake(설정에서 끈 사람은 안 흔들림)로 짧게(0.2초).
+	-- 세기 비교: 무기 타격 흔들림 0.25 정도, 대지 가르기 0.55 → 화염은 0.08~0.2 로 약하게.
+	-- 소리는 Slag Walker 피격 지글거림(이미 게임에서 쓰는 소리)을 내 화면에서만 2D 로.
+	local SoundService = game:GetService("SoundService")
+	local CameraShake = require(ReplicatedStorage.Shared.Util.CameraShake)
+	local SHAKE_TIME = 0.2
+	local SHAKE_MIN, SHAKE_MAX = 0.08, 0.2 -- 1스택 ~ 10스택 흔들림 세기
+	local burnSound = Instance.new("Sound")
+	burnSound.Name = "FactoryBurnTick"
+	burnSound.SoundId = "rbxassetid://9119166424" -- Slag Walker HitSizzle
+	burnSound.Parent = SoundService
+	task.spawn(function()
+		game:GetService("ContentProvider"):PreloadAsync({ burnSound }) -- 첫 틱부터 바로 나게
+	end)
+
+	local function burnTick(stacks: number)
+		local t = stacks / MAX_STACKS
+		if CameraShake.isEnabled() then
+			CameraShake.shake(SHAKE_MIN + (SHAKE_MAX - SHAKE_MIN) * t, SHAKE_TIME, nil)
+		end
+		burnSound.Volume = 0.25 + 0.3 * t
+		burnSound.PlaybackSpeed = 0.95 + math.random() * 0.15 -- 매번 살짝 다르게
+		burnSound.TimePosition = 0
+		burnSound:Play()
+	end
+
 	---------------------------------------------------------------- 범위 원 (가까울 때만)
 	-- 서버가 Molten Walker 발밑에 단 HeatRing 은 멀리서는 안 보이고, RING_SHOW 안으로 오면 서서히 나타남 (내 화면에서만)
 	local RING_SHOW = 28 -- 이 거리부터 보이기 시작
@@ -168,6 +196,7 @@ local function run()
 			local s = char:GetAttribute("FireStacks") or 0
 			if s > 0 then
 				flash(s)
+				burnTick(s)
 			end
 		end)
 	end
