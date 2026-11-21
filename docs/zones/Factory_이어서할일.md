@@ -1,6 +1,6 @@
 # 공장맵 — 이어서 할 일 (인수인계)
 
-> 마지막 작업: 2026-11-21 · **보스 Foreman 메쉬 3.5배 버그 고침(Studio 버전 107, Enemies 패키지 게시 필요)** · **몬스터 1번 Slag Walker 완료(외형·소리·효과·공격 애니·정의·배치, Studio 버전 68), 몬스터 2번 Hook Hauler 완료(Studio 버전 72), 몬스터 3번 Furnace Tender 완료(Studio 버전 75), 몬스터 디자인 1~4번 모두 완료(보스 The Foreman, Studio 버전 79) — 남은 것: 능력치·게시·플레이 확인** · **보스 Gear Head + 일반 몬스터 31지점(67마리) 배치** (Studio 버전 58) · **8단계 자동 검사·최적화 완료 — 계획서 전 단계 끝** (Studio 버전 56) · **7단계 상자·등반 태그 완료** (공장 25 + 운하 11 상자) · **6단계 조명·연기 완료** (Studio "공장" 저장 버전 54, 공용 패키지 Shared·Services 게시 필요) · **5단계 소품·표지·낙서 완료** (버전 51) · 2026-11-19 · **4단계 바닥 마감 완료 + 슬래그장 Exit4 수정** (Studio "공장" 저장 버전 49) · G 남쪽 띠(슬래그장·고철장·측선·침전조) 완성 → 블록아웃 전부 에셋화 · F2 계량소 + 광석 덤프트럭 완성 · E 발전소(터빈홀·개폐소) 완성 · 굴뚝 3기 완성(중간 에셋 단계 끝) · 컨베이어 갤러리(원료 야적장 → 용광로) 완성 · 배관 다리 키트 4노선 + H 배관 회랑 완성 · 원료 야적장(C) 완성 (Studio "공장" 저장 버전 33) · 가스 홀더(F) · 철도 야드(Lot_058) + 작업자 배랭(Lot_060) · 보스 마당 `BossYard` 완성 · 북쪽 확장 땅 · 낙하 문제 수정(스폰·경계벽) · 코크스로(B) 완료 · 압연 공장동(D)+야적장·냉각탑(E)·용광로(A) 완료
+> 마지막 작업: 2026-11-21 · **공장 습격(셔터 없는 상가 습격) + 등급 상자 테두리 빛·자동 흡수(Studio 버전 108)** · **보스 Foreman 메쉬 3.5배 버그 고침(Studio 버전 107, Enemies 패키지 게시 필요)** · **몬스터 1번 Slag Walker 완료(외형·소리·효과·공격 애니·정의·배치, Studio 버전 68), 몬스터 2번 Hook Hauler 완료(Studio 버전 72), 몬스터 3번 Furnace Tender 완료(Studio 버전 75), 몬스터 디자인 1~4번 모두 완료(보스 The Foreman, Studio 버전 79) — 남은 것: 능력치·게시·플레이 확인** · **보스 Gear Head + 일반 몬스터 31지점(67마리) 배치** (Studio 버전 58) · **8단계 자동 검사·최적화 완료 — 계획서 전 단계 끝** (Studio 버전 56) · **7단계 상자·등반 태그 완료** (공장 25 + 운하 11 상자) · **6단계 조명·연기 완료** (Studio "공장" 저장 버전 54, 공용 패키지 Shared·Services 게시 필요) · **5단계 소품·표지·낙서 완료** (버전 51) · 2026-11-19 · **4단계 바닥 마감 완료 + 슬래그장 Exit4 수정** (Studio "공장" 저장 버전 49) · G 남쪽 띠(슬래그장·고철장·측선·침전조) 완성 → 블록아웃 전부 에셋화 · F2 계량소 + 광석 덤프트럭 완성 · E 발전소(터빈홀·개폐소) 완성 · 굴뚝 3기 완성(중간 에셋 단계 끝) · 컨베이어 갤러리(원료 야적장 → 용광로) 완성 · 배관 다리 키트 4노선 + H 배관 회랑 완성 · 원료 야적장(C) 완성 (Studio "공장" 저장 버전 33) · 가스 홀더(F) · 철도 야드(Lot_058) + 작업자 배랭(Lot_060) · 보스 마당 `BossYard` 완성 · 북쪽 확장 땅 · 낙하 문제 수정(스폰·경계벽) · 코크스로(B) 완료 · 압연 공장동(D)+야적장·냉각탑(E)·용광로(A) 완료
 > 설계·구역·결정: `Factory_계획서.md`. 에셋 규칙: `.claude/skills/blender-to-roblox/`.
 
 ### 몬스터 디자인 (진행 중, 2026-11-20 시작)
@@ -530,6 +530,18 @@
 - **로딩 화면 배경** (LoadingConfig image): 동서 큰길에서 올려다본 용광로 (카메라 (−690, 16, 650) → (−835, 62, 840), FOV 45) 1913×670 → 1024 + 889 두 장: **140333903077208**, **81638109401459**.
 - 확인: RaidConfig·LoadingConfig require OK, 새 이미지 6장 PreloadAsync Success, 미니맵 1024×993.
 - **사용자 할 일**: 공용 패키지 **Shared 게시**(RaidConfig·LoadingConfig) — 게시해야 마을 지도 창에 Steelworks 가 뜸. 마을→공장 입장, 도착 연출, 탈출구 A/B/C, M키 지도는 실제 플레이로 확인 필요(플레이 테스트 안 함).
+
+### 공장 습격 + 등급 상자 — 2026-11-21 (Studio 저장 버전 108, 공장 place 전용 — 패키지 게시 필요 없음)
+- 사용자 요청: "몬스터는 상가맵 생성 방식과 같은데 개방된 것 / 상자 등급을 테두리 빛으로 / 열면 상가 상자처럼 뿌려지고 자동 흡수". 결정(사용자): **상가 습격 방식(셔터 없이)** / 고정 상자 등급은 **다시 채워질 때마다 무작위** / **공장 place 상자만**(공용 Crate 서비스는 안 건드림).
+- 상가 방식 참고: `Services.ShopRaid`(+ Storefront, ShopRaidLogic) + `Shared.Config.ShopRaidConfig` — 웨이브(첫 30초, 300초 간격)마다 상가 셔터가 무작위 등급(Common 45·Uncommon 28·Rare 16·Epic 8·Legendary 3)으로 열림 → 등급 빛, 등급 상자(끈이 Neon 등급 색 + PointLight), 등급별 적 2~10, Legendary 빛기둥·전체 알림, 경고 15초 후 닫힘. 상자 = `Loot.drop(pos, CRATE_DROPS[tier], 6, player)` → 연 사람 전용, 땅에 닿으면 빨려 들어감.
+- **`ServerScriptService.FactoryRaid`** (Script, 원본 `scripts/factory_raid.server.lua`): 공용 서비스(Loot·Enemy·Inventory·ShopRaidLogic·MapTools.Kits)를 require 해서 씀, 수치는 ShopRaidConfig 그대로.
+  - 습격 지점 `Workspace.FactoryEnemies.FactoryRaidSites` 26곳 = 예전 고정 스폰 Yard_ 22 + Indoor_ 4 (속성 EnemyId 그대로 → 그 자리 몬스터 종류). 웨이브마다 9곳(SITES_PER_WAVE). 지점 위 높이 9 등급 PointLight(범위 30), 반경 11 안 빈 바닥에 등급 상자(Loot_SupplyStack, 광선+겹침 검사), 등급만큼 `Enemy.spawnTemporary`. 닫힐 때 상자·빛 지우고, **플레이어 50 안에 없는 습격 적만 사라짐**(싸우는 적은 남음). 개발용 `_G.FactoryRaid.startWave("Legendary")`.
+  - **고정 상자 36개**(공장 25 + 운하 11): 속성 `Crate` → `FactoryCrate`(예전 상자 종류 이름 기록용)로 바꿔 공용 Crate 서비스가 안 잡게 함. 채워질 때마다 등급 무작위, 열면 `CRATE_DROPS[등급]` 연 사람 전용 드랍 + 숨김 → CrateConfig.DEFAULT_RESPAWN_TIME(120초) 뒤 새 등급으로 다시 나옴.
+  - 등급 표시: 상자 속성 `CrateTier`·`CrateTierColor`, `CrateOpen`, 태그 `TierCrate`.
+- **`StarterPlayerScripts.FactoryCrateOutline`** (LocalScript, 원본 `scripts/factory_crate_outline.client.lua`): 가까운 16개(160 이내) 상자에 등급 색 Highlight(테두리 + 옅은 채움 0.82, Occluded). Highlight 는 한 화면 31개 제한이라 가까운 것만.
+- 고정 스폰은 보스 Foreman + 보스 마당 경비 4곳(5지점)만 남김. 예전 31지점 백업: `ServerStorage.EnemySpawns_FixedBackup_20261121`.
+- 확인(플레이 테스트 안 함): 두 스크립트 컴파일 OK, 26지점 EnemyId 모두 EnemyDatabase 에 있음, 지점마다 상자 3개 놓을 빈 바닥 있음(Yard (−702, 828)만 빈 곳이 적어 가끔 상자 수가 모자랄 수 있음).
+- ⚠ 상자 내용물은 상가(레벨 2~4 무기) 수치 그대로 → 레벨 8 맵이라 낮을 수 있음. 웨이브 사이(닫힌 뒤 ~1~3분)에는 야외 적이 거의 없음. **실제 플레이로 확인 필요**: 웨이브 알림, 상자 테두리, 흡수, 적 수.
 
 ### 패키지 게시 (2026-11-21)
 - 공장 place에서 게시 성공: **Shared v88, Services v60, Enemies v5** (Studio 가 "UploadStatusPolling max polling retry reached" 오류를 띄웠지만 실제로는 서버에 올라가 있었음 → 오류가 나도 Open Cloud `GET /assets/v1/assets/<id>` revisionId 로 확인할 것). 패키지 ID: Shared 135710242377375, Services 73196577937994, Enemies 91177418448007.
