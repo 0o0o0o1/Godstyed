@@ -645,3 +645,15 @@
 3. ✔ (2026-11-21) 대각선 길 북서쪽 삼각 부지 Lot_025 → **고로 가스 정제 시설** `GasClean` 완성 (아래 "### 고로 가스 정제 시설" 참고).
 4. (완료) 굴뚝 3기 배치 — 블록아웃 자리 그대로 사용.
 5. 옛 LotDressing(공원 나무·주차 차량) 정리 → 산업 부지 바닥 마감 (사용자가 알아서 정리해도 된다고 함).
+
+## 3. 창(Polearm) 무기 스킬 (2026-11-23 시작, 마을 place 패키지 코드)
+- 설계(사용자): 창 = 긴 사거리로 거리를 지배하는 창병. 스킬 5종 — 도약 찌르기 / 창 휘두르기 / 관통 돌격 / 사슬 갈고리 / 신의 창.
+- 결정(사용자): 관통 돌격 = 기존 `piercing_lunge` **강화**(새로 만들지 않음) / **하나씩 만들고 확인** / 모션은 **기존 모션 재활용**(든 무기 첫 타 콤보를 당긴 자세로 멈췄다 빠르게, PiercingLunge 방식).
+- 구조: 스킬 정의 `Shared.Data.Skills`(kind별 판정), 성유물 `Shared.Data.Relics.PolearmRelics`(skill = id, 무기 소켓에 끼움), 서버 판정 `Services.Skill`(plan()에서 kind별 분기), 연출 `Controllers.SkillController.Vfx.<vfx>`. 기존 끌어당기기 = `Skill.pullTarget` → `Enemy.pull`(보스는 안 끌림).
+- ✔ **사슬 갈고리** `chain_hook` (kind **"hook"** 새로 추가, 성유물 `relic_chain_hook`):
+  - 판정: castDelay 0.22 → 창이 직선 150스터드/초, 최대 45, 폭 2.5(벽·첫 적에서 멈춤, Humanoid 모델은 벽으로 안 봄) → 도착 순간 그 적이 6스터드 안에 있으면 피해 ×1.6 + 내 앞 4.5까지 0.35초에 끌어옴 → 끌려온 뒤 경직 0.6. 쿨 9초. 분신(echo)은 따라 하지 않음.
+  - 연출 `Vfx.ChainHook`: 든 창(HeldWeapon) 복제본을 실제로 던짐(원래 창은 이 화면에서만 숨김), 손→창 꼬리 쇠사슬 고리 70개(BulkMoveTo) + 금빛 Beam, 벽이면 불꽃·먼지, 걸리면 섬광·불꽃·타격음·화면 흔들림, 창끝이 끌려오는 적 몸에 붙어 따라옴 → 손으로 회수 + 짤랑. 빗나가면 빈 사슬을 거둠. 소리는 Hook Hauler 사슬 소리 재사용.
+  - 확인: Studio 플레이에서 서버 모듈 로드 OK, 클라이언트 연출(빗나감·걸림) 오류 없음, 창 숨김/복귀·사슬·창이 대상에 붙음 확인. ⚠ **실제 시전(서버 판정→끌어오기)은 아직 안 해 봄** — 사용자 저장 데이터를 건드리지 않으려고. 확인하려면 플레이 중 `/relics polearm` + 창 무기에 끼워서.
+  - 임시: 성유물·스킬 아이콘 = Piercing Lunge 아이콘(전용 아이콘 필요). `Skills` 의 `TEST_COOLDOWN = 1`은 예전부터 켜져 있음(게시 전 nil 로).
+  - **게시할 패키지: Shared(Skills·PolearmRelics), Services(Skill), Controllers(Vfx.ChainHook 새 모듈).** 수정 표시 후 패키지 버전이 Shared v127 · Services v75 · Controllers v106 으로 올라가 있었음(이전 v126/74/104).
+- 다음: 실제 시전 확인 → 도약 찌르기 → 창 휘두르기 → 신의 창 → 관통 돌격 강화 (하나씩).
