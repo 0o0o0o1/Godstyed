@@ -723,4 +723,11 @@
 - ✔ **도약 찌르기 추가 수정 (2026-11-24, 사용자)**: ① 먼지 더 하얗게 → `DUST_COLOR` (255,255,255) + `DUST_LIGHT_INFLUENCE 0.35`(0.9면 어두운 곳에서 회색) ② 시전 중 몸 앞에 떠 있던 창끝 빛(모임 알갱이·반짝임·불빛)을 새 holder `LeapSpearTip` 으로 옮겨 **든 창 TrailTip** 을 매 프레임 따라가게(든 창 없으면 예전 몸 앞). 빛 꼬리(Trail)는 몸 기준 `LeapTip` 그대로 ③ 적중 범위 1.3배: `Skills.leap_strike.radius 9 → 11.7` (서버 `leapHits`·착지 연출 크기 모두 이 값).
   - 플레이 확인: 빛과 창끝 거리 대부분 0.0~0.15(측정 타이밍 차로 한두 프레임 튐), 먼지 색 (1,1,1)·LI 0.35, 오류 없음. 넓어진 범위로 실제 적이 맞는지는 확인 안 함(서버가 같은 값 사용).
   - 게시할 패키지: Shared(Skills), Controllers(Vfx.LeapStrike).
+- **진행 중: 창 휘두르기** `spear_sweep` (kind **"spin"** 새로 추가, 성유물 `relic_spear_sweep`, 2026-11-24). 결정(사용자): **제자리 한 바퀴 회전** / 반경 **20** / 맞으면 그 자리에서 **바깥으로 15 + 살짝 위로(높이 4)** 날아감 / 보스는 피해만, PvP 플레이어는 날아감 / 이펙트 = **Blender 프레임 시트** / 모션 = **새 모션 만들기**.
+  - ✔ 1단계 판정: `Skills.spear_sweep` (cd 9, 피해 ×2.2, castDelay 0.2, spinTime 0.35, radius 20, flingDistance 15, flingHeight 4, flingTime 0.45, flinch 0.4, vfx "SpearSweep"), `PolearmRelics.relic_spear_sweep` (아이콘 임시 = Piercing Lunge). 서버 `spinHits`: 반경 20·높이 차 10 안, 가슴에서 보이는(벽 너머 아님) 대상을 **창이 그 각도를 지나는 시각**(castDelay + spinTime × 각도/360, 바라보는 방향에서 시작해 왼쪽=반시계)에 때림 → `spinFling`: 적(적 폴더·보스 아님)은 서버가 포물선으로 15(벽이면 벽 앞) 옮기고 바닥에 내려놓음 + 경직, 플레이어는 수평 forceMove + 위로 띄움, 보스·더미는 피해만. 분신(echo) 제외.
+    - 플레이 확인: 주변 4마리(각도 38/260/295/345°) 모두 맞음, 각각 정확히 15 밀려나 최고 +3.7~4.0, 맞는 시각 차이가 각도 계산과 일치(0.217/0.265/0.312초). 오류 없음.
+    - 사용자 데이터 변경: 돌창 **소켓 3칸째 해금**(테스트라 비용은 안 냄 — 원래 bloodstone 3·금화 8000), 소켓 3 = relic_spear_sweep.
+    - 연출 모듈 `Vfx.SpearSweep` 은 아직 없음(SkillController 가 없으면 그냥 넘어감). 모션도 아직 없음.
+  - 다음: 2단계 새 모션(Blender) → 3단계 프레임 시트 이펙트 + `Vfx.SpearSweep`.
+  - 게시할 패키지(지금까지): Shared(Skills·PolearmRelics), Services(Skill).
 - 다음: 창 휘두르기 → 신의 창 → 관통 돌격 강화 (하나씩).
