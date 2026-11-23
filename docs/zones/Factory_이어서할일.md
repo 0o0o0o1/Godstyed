@@ -755,6 +755,12 @@
     - Open Cloud 그룹 업로드 Model **128999563181818** → **`ReplicatedStorage.Assets.Vfx.GodSpear`** (피벗 = 창끝, +Y = 꼬리, Anchored·충돌/쿼리/터치/그림자 끔). Glass (205,255,220) 투명 0.3, Core Neon (120,255,150), Edge Neon (225,255,232). ID → `exports/texture_ids.json` `VFX.GodSpear`.
     - ⚠ FBX 로 넣은 MeshPart 는 **PivotOffset 에 회전(−90° X)** 이 들어 있음 → 모델에 PrimaryPart 를 두고 PivotTo 하면 창이 눕혀짐. PivotOffset 을 비우고 PrimaryPart 없이 WorldPivot 으로.
     - 확인용 사본 `Workspace.GodSpear_Preview`(로비 도착 데크 앞, 8° 기울임) — 사용자 확인 뒤 지울 것. Assets 패키지에 들어갔는지(Assets 가 패키지면 게시 필요) 확인 필요.
-  - 다음: `Vfx.GodSpear`(예고 원·하늘에서 내리꽂힘·충격·속박 사슬/빛 조각, phase "pin" 의 targets 에 붙임) → 시전 모션. 지금은 연출 모듈이 없어 눈에 보이는 게 없음.
-  - 게시할 패키지(지금까지): Shared(Skills·PolearmRelics·StatusEffects), Services(StatusEffect·Skill), Controllers(MovementController·SkillController).
+  - ✔ **연출 `Vfx.GodSpear`** (2026-11-24, 원본 `scripts/packages/Controllers/Vfx_GodSpear.lua`). 결정(사용자): 예고 = 바닥 빛의 원 + 하늘 빛 기둥 + 하늘 높이 창이 나타남 / 꽂힘 = 크고 화려하게(도약 찌르기 시트 재사용) / 창은 속박 끝날 때까지 박혀 있다 빛 조각으로 / 속박 = 발밑 빛의 사슬.
+    - 순서: 0 → 마법진 3겹(반경 18, 돎) + 바깥 1.7배에서 조여드는 고리(꽂히는 순간 반경에 맞음) + 높이 160에서 내려오며 굵어지는 빛 기둥(Beam PillarCore) / castDelay 0.3 → 높이 70에 창이 빛 알갱이에서 맞춰지며 나타나 살짝 떠 있음 / 1.06 → 0.14초 동안 가속 낙하 / 1.2 꽂힘: 창끝 5 박힘(4° 기울기), 섬광·충격파 시트 2겹·퍼지는 빛 고리·균열(선+빛)·흰 먼지 18+4·초록 불뛰·돌 16·돌판 고리(×2 크기)·소리(충격·타격·하강 바람), 내 캐릭터가 70 안이면 화면 흔들림(가까울수록 세게) / 박힌 채 2초 빛남 → 아래부터 투명해지며 알갱이 120 + 결정 조각 14.
+    - phase "pin": 대상마다 창 아래(바닥+2) → 발밑까지 Neon 사슬 고리(1.1 간격, 90° 교차, 살짝 처짐, 0.12초에 뻗음) + 감싸는 Beam + 발밑 HaloRing(돎), root 초 뒤 알갱이로 부서짐. 보스(pinned false)는 반짝임만.
+    - ⚠ **HolyCircle·HaloRing·PillarCore·HolyFlare 텍스처는 금색** → ImageColor3 를 WHITE/연초록으로 두면 금빛·노란빛. **GREEN(70,255,110)** 으로 물들일 것. 초록 PointLight 가 세면 흰 먼지가 초록으로 물듦 → 먼지 LightInfluence 0.1, 섬광 불빛 3·0.35초, 창 불빛 2.
+    - 플레이 확인: 실제 시전(ashen_husk 3, 돌창 소켓 3 메모리에서만 바꿨다 되돌림) → +1.27초 phase "pin" targets=3, 사슬·고리 생성, 오류 없음. 느린 재생(timeScale 0.05~0.12) 확인용 캡처로 기둥·낙하·충격·사슬 확인. **실제 속도 손맛·소리 크기는 사용자 확인 필요**. 로비처럼 천장이 70보다 낮은 실내에서는 하늘의 창이 천장에 가려짐(공장 실내 확인 필요).
+    - 시전 모션은 아직 없음(창을 치켜드는 자세 등) — 필요하면 다음에.
+  - 다음: 사용자 손맛 확인 → 시전 모션(선택)(예고 원·하늘에서 내리꽂힘·충격·속박 사슬/빛 조각, phase "pin" 의 targets 에 붙임) → 시전 모션. 지금은 연출 모듈이 없어 눈에 보이는 게 없음.
+  - 게시할 패키지(지금까지): Shared(Skills·PolearmRelics·StatusEffects), Services(StatusEffect·Skill), Controllers(MovementController·SkillController·**Vfx.GodSpear 새 모듈**), **Assets(Vfx.GodSpear 메시, 패키지 v15)**.
 - 다음: 창 휘두르기 → 신의 창 → 관통 돌격 강화 (하나씩).
