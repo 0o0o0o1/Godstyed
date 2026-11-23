@@ -660,4 +660,13 @@
     - 사용자 저장 데이터 변경: stone_spear 1개 지급(/get), 창 성유물(/relics polearm), 돌창 소켓 1칸 해금(비용만큼 /money 1000·/get bloodstone 1 먼저 지급), relic_chain_hook 끼움, **장착 무기를 Junkyard Ripper → Stone Spear 로 바꿈**.
   - 임시: 성유물·스킬 아이콘 = Piercing Lunge 아이콘(전용 아이콘 필요). `Skills` 의 `TEST_COOLDOWN = 1`은 예전부터 켜져 있음(게시 전 nil 로).
   - **게시할 패키지: Shared(Skills·PolearmRelics), Services(Skill), Controllers(Vfx.ChainHook 새 모듈).** 수정 표시 후 패키지 버전이 Shared v127 · Services v75 · Controllers v106 으로 올라가 있었음(이전 v126/74/104).
+- ✔ **사슬 갈고리 위·아래 조준 (2026-11-23, 사용자: "카메라 + 보정, 보정은 조금만 낮게" / "포물선으로 끌어옴")**:
+  - 클라이언트 `SkillController.cast`: 카메라 화면 가운데 레이가 닿는 점(캐릭터 앞부터, 250)을 내 가슴에서 본 방향 = `aim` → `SkillCast:FireServer(소켓, facing, nil, aim)` (모든 스킬에 보내지만 hook만 씀). hook은 조준 쪽으로 몸을 돌리고 던짐.
+  - 서버 `hookAim`: 몸 방향(facing)에 aim 의 **높낮이만** 가져옴(±maxPitch 55°, aim 수평 방향이 facing 에서 30° 넘게 벗어나면 수평). 그다음 **보정 aimAssist 6°**: 그 안의 가려지지 않은 적 몸 중심으로.
+  - `hookPath` 교체: 가슴에서 3D. 벽 = **가는 레이**(굵은 구로 재면 턱 위 적을 노릴 때 턱 모서리에 걸림 — 테스트에서 실제로 걸렸음), 적 = 굵기 pathRadius 구를 대상 모델만 Include 로(큰 적은 몸 어디든), 몸에 붙은 적은 따로. HOOK_SLACK 8(3D).
+  - `hookPull`(새): 적 폴더 안·보스 아닌 적을 서버가 매 프레임 위치를 옮겨 **포물선**(높이 arcHeight 3 + 올라올 때 높이 차 × 0.5)으로 내 앞 4.5 **바닥(레이로 찾음)**에 내려놓음, 끌리는 동안+끝나고 flinch 경직. 플레이어(PvP)는 forceMove 직선. 보스·더미는 피해만. pullTime 0.35 → 0.4.
+  - 테스트(임시 발판 12스터드 높이, Bloated Husk): ① 발판 위 적(24 앞, 13.7 위)을 3° 낮게 조준 → 보정으로 맞음, 포물선으로 내 앞 바닥(4.5)에 내려옴. ② 내가 발판 위, 적은 9.8 아래 → 포물선(최고 +6.8)으로 발판 위 내 앞 4.5에 올라옴(착지 후 살짝 튐). 오류 없음.
+  - ⚠ 테스트 팁: 서버에서 캐릭터를 PivotTo 하면 클라이언트 위치와 어긋남 → 캐릭터 이동은 Client 쪽에서.
+  - 한계: 서버에 몸 회전이 늦게 도착하면 facing 이 예전 방향(±90° 안)일 수 있음 → 그때는 수평으로 던짐.
+  - 게시할 패키지에 **Controllers(SkillController)** 추가.
 - 다음: 도약 찌르기 → 창 휘두르기 → 신의 창 → 관통 돌격 강화 (하나씩).
