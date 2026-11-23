@@ -1,4 +1,4 @@
-﻿{
+{
     "_note": "Group-owned (597081155) image IDs, uploaded via TexUpload_*.fbx import. Do not use IDs from MCP upload_image (user-owned, fail to load in this group game).",
     "Container40": {
         "Color": {
@@ -160,5 +160,15 @@
             "Metalness": "rbxassetid://76647129647730"
         },
         "MeshModelAssetId": "118317063967066"
+    },
+    "VFX": {
+        "LeapStrike": {
+            "_note": "도약 찌르기 프레임 시트 8x8(칸 128px, 1024). Open Cloud Decal 업로드 후 childOperations 의 이미지 ID",
+            "Dust": "rbxassetid://138956275728767",
+            "Shock": "rbxassetid://139231006156621",
+            "Crack": "rbxassetid://110852548933346",
+            "_crack_note": "1024x512: 왼쪽 512 균열 선, 오른쪽 512 빛(흐림)",
+            "MeshesModel": "114243306439321 (Open Cloud Model, 넣은 뒤 ReplicatedStorage.Assets.Vfx.LeapStrike 로 정리)"
+        }
     }
 }

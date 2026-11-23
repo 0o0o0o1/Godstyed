@@ -678,4 +678,17 @@
   - 테스트(사용자 데이터, 테스트 동안 내 캐릭터에 보이지 않는 ForceField — 적에게 맞아 죽고 리스폰하면 위치가 튀어 결과가 엉킴): ① 몸 방향과 40° 다른 쪽 20 앞 적 → 적 바로 앞 착지, 피해 들어감, apex 10, 0.62초. ② 허리 위 +6 천장(임시 판) 아래 → apex 10→2.5 로 자동, 머리 꼭대기가 천장에서 0.55 아래까지만, 18.5 앞 착지. 오류 없음.
   - 사용자 데이터 변경 추가: 돌창 소켓 2칸째 해금(비용만큼 /money 3000·/get bloodstone 2 먼저 지급), /relics polearm 한 번 더, 소켓 2 = relic_leap_strike.
   - 게시할 패키지: Shared(Skills·PolearmRelics), Services(Skill), Controllers(SkillController·Vfx.LeapStrike 새 모듈).
+- ✔ **도약 찌르기 수정 + 이펙트 새로 (2026-11-24, 사용자: 달리면서 쓰면 제자리 점프 / 지그재그 균열 AI티 / 이펙트 밋밋 → Blender 프레임 시트로)**
+  - 결정(사용자): **무기별 이펙트 색 — 창 = 흰 + 초록** (헤비 주황, 대거 보라, 라이트 파랑, 원핸드 자홍) / 제작 = Blender 시뮬·렌더 / 균열 = 그림 + 들린 돌판 둘 다 / PC 우선 고품질 / 요소 = 착지 폭발·균열+돌판·도약 구간(착지 예고 표시는 뺌) / 간판 = 땅에 박힌 초록 빛 결정 창 / 다른 창 스킬 초록은 나중에.
+  - **달리며 쓰면 제자리**: 원인 ① 서버가 보는 내 자리가 달리는 동안 뒤처져 착지가 짧아짐 ② 기본 카메라 각도면 조준이 ~16 앞이라 달리는 거리를 빼면 거의 안 뜀. 수정: 클라이언트가 시전 순간 자기 자리를 같이 보냄(`SkillCast` 5번째 인자, 서버 자리 10 안이면 씀), `minDistance 14`, **달리던 힘**(조준 쪽 속도 × (castDelay + 0.5)) 만큼 더 멀리(최대 28). W+F 실제 키 입력 테스트: 14 → 21 앞.
+  - **Blender 이펙트 파이프라인** (`scripts/vfx_sheet_kit.py`: vfx_scene / pack_sheet / render_sheet): 이 PC Blender 는 **GPU 렌더 없음(CPU)**, 볼륨은 프레임당 ~20초 고정 비용 → `.blend` 저장 후 **명령줄 Blender 4개 병렬** `D:lender.exe -b <blend> -S <장면> -o //_frames/<이름>/f#### -F PNG -t 4 -s a -e b -a`, 그다음 pack_sheet 로 8x8(칸 128) 합침. 업로드 = Open Cloud Decal(그룹) → childOperations 의 이미지 ID.
+    - `vfx_leap_dust.py` 흙먼지 덩이(볼륨 구 + 4D 노이즈, 콜리플라워 모양) → `Dust` 138956275728767
+    - `vfx_leap_shock.py` 바닥 충격파(발광, 날카로운 앞 날 + 뒤 초록 꼬리 + 둘레 밝기 + 방사 줄기) → `Shock` 139231006156621
+    - `vfx_leap_crack.py` 균열: 선을 실제 리본 메시로 그림(주 균열 8개 랜덤워크 + 가끔 꺾임 + 갈래 + 동심 이음 + 중심 잔금), 1024x512 = 왼쪽 선 / 오른쪽 빛(굵게+흐림) → `Crack` 110852548933346
+    - `vfx_leap_meshes.py` 결정 창날 7조각(+옆 결정 가시, 코등이) + Core + BaseShards + 돌판 8 + 돌 4 → Model 114243306439321 → **`ReplicatedStorage.Assets.Vfx.LeapStrike`** (CrystalSpear·Slabs 피벗 = 땅 높이 중심, 결정 = Glass 초록, 심 = Neon)
+    - ID 기록: `exports/texture_ids.json` → `VFX.LeapStrike`
+  - 연출 `Vfx.LeapStrike` 새로 씀: 웅크림 초록 기운 → 뛸 때 발밑 작은 충격파 + 먼지 + 초록 꼬리 → 착지: 결정 창(1.6배, 땅에 2.2 박힘, 크게 나타났다 제 크기, 0.7초 뒤 조각이 튀며 부서짐), 바닥 충격파 시트, 먼지(파티클 Flipbook Grid8x8 OneShot, ZOffset 2.5 — 큰 덩이가 바닥에 잘려 보이는 문제), 균열 선(2.4초)+빛, 돌판 고리 솟음→1.3초→가라앉음, 돌 파편 12(물리), 섬광·짧은 초록 빛, 화면 흔들림.
+    - ⚠ 같은 속성 트윈을 지연으로 미리 만들면 앞 트윈이 취소됨(돌판이 안 솟던 원인) → 뒤 트윈은 `ctx:at` 으로 나중에 만듦. 시트 재생 시작 시각은 `ctx:clock()` 기준.
+  - 확인: `/fx` 대신 Client 에서 모듈을 직접 불러 0.2배속 재생 + 확인용 캡처(보고용 아님). 남은 아쉬움: 결정 조각 튀는 순간·먼지 색은 실제 플레이로 봐 줘야 함.
+  - **게시할 패키지 추가: Assets (Vfx.LeapStrike 메시)**. 전체: Shared(Skills·PolearmRelics), Services(Skill), Controllers(SkillController·Vfx.ChainHook·Vfx.LeapStrike), Assets.
 - 다음: 창 휘두르기 → 신의 창 → 관통 돌격 강화 (하나씩).
