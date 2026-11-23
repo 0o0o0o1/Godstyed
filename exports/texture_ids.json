@@ -1,174 +1,179 @@
 {
-    "_note": "Group-owned (597081155) image IDs, uploaded via TexUpload_*.fbx import. Do not use IDs from MCP upload_image (user-owned, fail to load in this group game).",
-    "Container40": {
-        "Color": {
-            "RustRed": "rbxassetid://130510789441720",
-            "FadedBlue": "rbxassetid://107206467524502",
-            "Olive": "rbxassetid://91598772669186",
-            "DirtyWhite": "rbxassetid://135545618962984"
-        },
-        "Normal": "rbxassetid://126151414262873",
-        "Roughness": "rbxassetid://136677513751331",
-        "Metalness": "rbxassetid://115530291617642"
+  "_note": "Group-owned (597081155) image IDs, uploaded via TexUpload_*.fbx import. Do not use IDs from MCP upload_image (user-owned, fail to load in this group game).",
+  "Container40": {
+    "Color": {
+      "RustRed": "rbxassetid://130510789441720",
+      "FadedBlue": "rbxassetid://107206467524502",
+      "Olive": "rbxassetid://91598772669186",
+      "DirtyWhite": "rbxassetid://135545618962984"
     },
-    "Container20": {
-        "Color": {
-            "RustRed": "rbxassetid://101783122966276",
-            "FadedBlue": "rbxassetid://72643923011469",
-            "Olive": "rbxassetid://125074963537265",
-            "DirtyWhite": "rbxassetid://135252773487669"
-        },
-        "Normal": "rbxassetid://138452119007577",
-        "Roughness": "rbxassetid://79159293771381",
-        "Metalness": "rbxassetid://93220606877060"
+    "Normal": "rbxassetid://126151414262873",
+    "Roughness": "rbxassetid://136677513751331",
+    "Metalness": "rbxassetid://115530291617642"
+  },
+  "Container20": {
+    "Color": {
+      "RustRed": "rbxassetid://101783122966276",
+      "FadedBlue": "rbxassetid://72643923011469",
+      "Olive": "rbxassetid://125074963537265",
+      "DirtyWhite": "rbxassetid://135252773487669"
     },
-    "CraneSTS": {
-        "_note": "Crane_STS tileable maps, UV = world box projection 20 studs/tile",
-        "Color": {
-            "CraneYellow": "rbxassetid://112714235470357"
-        },
-        "Normal": "rbxassetid://81085273014661",
-        "Roughness": "rbxassetid://79409976353138",
-        "Metalness": "rbxassetid://127183483645771"
+    "Normal": "rbxassetid://138452119007577",
+    "Roughness": "rbxassetid://79159293771381",
+    "Metalness": "rbxassetid://93220606877060"
+  },
+  "CraneSTS": {
+    "_note": "Crane_STS tileable maps, UV = world box projection 20 studs/tile",
+    "Color": {
+      "CraneYellow": "rbxassetid://112714235470357"
     },
-    "WhSiding": {
-        "_note": "Warehouse corrugated siding, tiles in U only. UV: U = 24 studs (16 ribs), V = 0..1 over 30 studs of wall height (grime at V=0). Color variant = palette key of the part name.",
-        "Color": {
-            "SidingTeal": "rbxassetid://126209095166827",
-            "RoofZinc": "rbxassetid://103975482907154",
-            "ShutterOrange": "rbxassetid://129767392683582"
-        },
-        "Normal": "rbxassetid://134641190476675",
-        "Roughness": "rbxassetid://114139515165698",
-        "Metalness": "rbxassetid://106273879084217"
+    "Normal": "rbxassetid://81085273014661",
+    "Roughness": "rbxassetid://79409976353138",
+    "Metalness": "rbxassetid://127183483645771"
+  },
+  "WhSiding": {
+    "_note": "Warehouse corrugated siding, tiles in U only. UV: U = 24 studs (16 ribs), V = 0..1 over 30 studs of wall height (grime at V=0). Color variant = palette key of the part name.",
+    "Color": {
+      "SidingTeal": "rbxassetid://126209095166827",
+      "RoofZinc": "rbxassetid://103975482907154",
+      "ShutterOrange": "rbxassetid://129767392683582"
     },
-    "WhSteel": {
-        "_note": "Painted structural steel, tiles in U and V, 8 studs per tile (box projection).",
-        "Color": {
-            "SteelBlue": "rbxassetid://125962397461553"
-        },
-        "Normal": "rbxassetid://99734605337204",
-        "Roughness": "rbxassetid://92645181061547",
-        "Metalness": "rbxassetid://122834005449657"
+    "Normal": "rbxassetid://134641190476675",
+    "Roughness": "rbxassetid://114139515165698",
+    "Metalness": "rbxassetid://106273879084217"
+  },
+  "WhSteel": {
+    "_note": "Painted structural steel, tiles in U and V, 8 studs per tile (box projection).",
+    "Color": {
+      "SteelBlue": "rbxassetid://125962397461553"
     },
-    "Graffiti": {
-        "_note": "Decal images (image asset ids, group-owned). Open Cloud Decal upload returns a DECAL asset id that does not load as Decal.Texture; the image id is in the upload child operation (ModerationPending ids). Source PNGs: exports/decals (rendered in Blender scene DecalStudio).",
-        "NoShipComing": "rbxassetid://103170271684816",
-        "TallyDay37": "rbxassetid://118606640318798",
-        "DeadInside": "rbxassetid://73780404314425",
-        "CampArrow": "rbxassetid://117477982321946",
-        "CheckpointSign": "rbxassetid://94688905917930",
-        "ReliefNotice": "rbxassetid://85103735375765"
+    "Normal": "rbxassetid://99734605337204",
+    "Roughness": "rbxassetid://92645181061547",
+    "Metalness": "rbxassetid://122834005449657"
+  },
+  "Graffiti": {
+    "_note": "Decal images (image asset ids, group-owned). Open Cloud Decal upload returns a DECAL asset id that does not load as Decal.Texture; the image id is in the upload child operation (ModerationPending ids). Source PNGs: exports/decals (rendered in Blender scene DecalStudio).",
+    "NoShipComing": "rbxassetid://103170271684816",
+    "TallyDay37": "rbxassetid://118606640318798",
+    "DeadInside": "rbxassetid://73780404314425",
+    "CampArrow": "rbxassetid://117477982321946",
+    "CheckpointSign": "rbxassetid://94688905917930",
+    "ReliefNotice": "rbxassetid://85103735375765"
+  },
+  "BfPlate": {
+    "_note": "Blast furnace riveted steel plate tile (16 studs/tile, box projection). v2 ids: first upload ids were applied before moderation finished and stayed failed in Studio cache -> re-uploaded with 1 pixel changed (identical files dedupe to the old id).",
+    "Color": {
+      "FurnaceRust": "rbxassetid://122131344315446",
+      "StoveGrey": "rbxassetid://79607605643431"
     },
-    "BfPlate": {
-        "_note": "Blast furnace riveted steel plate tile (16 studs/tile, box projection). v2 ids: first upload ids were applied before moderation finished and stayed failed in Studio cache -> re-uploaded with 1 pixel changed (identical files dedupe to the old id).",
-        "Color": {
-            "FurnaceRust": "rbxassetid://122131344315446",
-            "StoveGrey": "rbxassetid://79607605643431"
-        },
-        "Normal": "rbxassetid://123309083804330",
-        "Roughness": "rbxassetid://132541626304065",
-        "Metalness": "rbxassetid://83484080935029"
+    "Normal": "rbxassetid://123309083804330",
+    "Roughness": "rbxassetid://132541626304065",
+    "Metalness": "rbxassetid://83484080935029"
+  },
+  "BfSteel": {
+    "_note": "Painted structural steel tile (8 studs/tile, box projection). RailYellow v3 = small chips, faint rust (thin rails).",
+    "Color": {
+      "SteelOxide": "rbxassetid://119629515631396",
+      "RailYellow": "rbxassetid://96292080718093"
     },
-    "BfSteel": {
-        "_note": "Painted structural steel tile (8 studs/tile, box projection). RailYellow v3 = small chips, faint rust (thin rails).",
-        "Color": {
-            "SteelOxide": "rbxassetid://119629515631396",
-            "RailYellow": "rbxassetid://96292080718093"
-        },
-        "Normal": "rbxassetid://126595521156261",
-        "Roughness": "rbxassetid://139401555689152",
-        "Metalness": "rbxassetid://124757904571295"
+    "Normal": "rbxassetid://126595521156261",
+    "Roughness": "rbxassetid://139401555689152",
+    "Metalness": "rbxassetid://124757904571295"
+  },
+  "CtConcrete": {
+    "_note": "Cooling tower weathered concrete tile (16 studs/tile; shell UV = 14 tiles around x height/16). No metalness map (all-black image dedupes to an existing id; omit).",
+    "Color": {
+      "CoolConcrete": "rbxassetid://94441348372533"
     },
-    "CtConcrete": {
-        "_note": "Cooling tower weathered concrete tile (16 studs/tile; shell UV = 14 tiles around x height/16). No metalness map (all-black image dedupes to an existing id; omit).",
-        "Color": {
-            "CoolConcrete": "rbxassetid://94441348372533"
-        },
-        "Normal": "rbxassetid://92748025489804",
-        "Roughness": "rbxassetid://75919075351069"
+    "Normal": "rbxassetid://92748025489804",
+    "Roughness": "rbxassetid://75919075351069"
+  },
+  "FactorySigns": {
+    "_note": "Decal image IDs (assetType Decal, group 597081155). PNGs from scripts/make_decals.ps1",
+    "SIGN_BlastFurnace": "103048280284826",
+    "SIGN_RollingMill": "135818752799098",
+    "SIGN_PowerStation": "77867226360396",
+    "SIGN_CokeOvens": "76751832770863",
+    "SIGN_GasHolder": "135433918613670",
+    "SIGN_Weighbridge": "109379733951496",
+    "SIGN_Direction": "134520426822321",
+    "HAZ_HighVoltage": "129712860948666",
+    "HAZ_Gas": "109235697271779",
+    "HAZ_HotMetal": "74163699077086",
+    "HAZ_NoEntry": "130222841825255",
+    "HAZ_HardHat": "82063070866271",
+    "FLOOR_KeepClear": "128527646551739",
+    "GR_StillInside": "70692187683387",
+    "GR_DontGoNorth": "123531715244810",
+    "GR_Day112": "88711405238781",
+    "GR_Mina": "83598049657695",
+    "GR_SOS": "137325031834169",
+    "GR_Water": "79088635782315"
+  },
+  "SlagWalker": {
+    "_note": "Slag Walker / Molten Walker 타일 텍스처 1024 (Open Cloud Decal 업로드 → 이미지 ID). 슬래그 1.5스터드/타일, 작업복 1.2, 피부 1.0. 원본 PNG exports/textures/slagwalker/",
+    "Slag": {
+      "ColorA": "rbxassetid://131590196890185",
+      "ColorB": "rbxassetid://98465375012961",
+      "EmitA": "rbxassetid://139784319945348",
+      "EmitB": "rbxassetid://90714019146278",
+      "Normal": "rbxassetid://108986564193001",
+      "Roughness": "rbxassetid://129045109035499"
     },
-    "FactorySigns": {
-        "_note": "Decal image IDs (assetType Decal, group 597081155). PNGs from scripts/make_decals.ps1",
-        "SIGN_BlastFurnace": "103048280284826",
-        "SIGN_RollingMill": "135818752799098",
-        "SIGN_PowerStation": "77867226360396",
-        "SIGN_CokeOvens": "76751832770863",
-        "SIGN_GasHolder": "135433918613670",
-        "SIGN_Weighbridge": "109379733951496",
-        "SIGN_Direction": "134520426822321",
-        "HAZ_HighVoltage": "129712860948666",
-        "HAZ_Gas": "109235697271779",
-        "HAZ_HotMetal": "74163699077086",
-        "HAZ_NoEntry": "130222841825255",
-        "HAZ_HardHat": "82063070866271",
-        "FLOOR_KeepClear": "128527646551739",
-        "GR_StillInside": "70692187683387",
-        "GR_DontGoNorth": "123531715244810",
-        "GR_Day112": "88711405238781",
-        "GR_Mina": "83598049657695",
-        "GR_SOS": "137325031834169",
-        "GR_Water": "79088635782315"
+    "Cloth": {
+      "Color": "rbxassetid://112942635076996",
+      "Normal": "rbxassetid://115555145154649",
+      "Roughness": "rbxassetid://85869642305108"
     },
-    "SlagWalker": {
-        "_note": "Slag Walker / Molten Walker 타일 텍스처 1024 (Open Cloud Decal 업로드 → 이미지 ID). 슬래그 1.5스터드/타일, 작업복 1.2, 피부 1.0. 원본 PNG exports/textures/slagwalker/",
-        "Slag": {
-            "ColorA": "rbxassetid://131590196890185",
-            "ColorB": "rbxassetid://98465375012961",
-            "EmitA": "rbxassetid://139784319945348",
-            "EmitB": "rbxassetid://90714019146278",
-            "Normal": "rbxassetid://108986564193001",
-            "Roughness": "rbxassetid://129045109035499"
-        },
-        "Cloth": {
-            "Color": "rbxassetid://112942635076996",
-            "Normal": "rbxassetid://115555145154649",
-            "Roughness": "rbxassetid://85869642305108"
-        },
-        "Skin": {
-            "Color": "rbxassetid://127578999453527",
-            "Normal": "rbxassetid://135831684717210",
-            "Roughness": "rbxassetid://72683672029385"
-        },
-        "MeshModelAssetId": "87082938518749"
+    "Skin": {
+      "Color": "rbxassetid://127578999453527",
+      "Normal": "rbxassetid://135831684717210",
+      "Roughness": "rbxassetid://72683672029385"
     },
-    "HookHauler": {
-        "_note": "Hook Hauler 타일 텍스처 1024. 천·피부는 SlagWalker 것 재사용(Cloth/Skin), 조끼 노멀·거칠기 = SlagWalker Cloth. 원본 PNG exports/textures/hookhauler/",
-        "Vest": {
-            "Color": "rbxassetid://71808294235358"
-        },
-        "Rust": {
-            "Color": "rbxassetid://115535459028861",
-            "Normal": "rbxassetid://82998247968541",
-            "Roughness": "rbxassetid://119016181869139",
-            "Metalness": "rbxassetid://132168352114924"
-        },
-        "Paint": {
-            "Color": "rbxassetid://74576970065827",
-            "Normal": "rbxassetid://128650803947525",
-            "Roughness": "rbxassetid://111518412004710",
-            "Metalness": "rbxassetid://115662586390561"
-        },
-        "MeshModelAssetId": "137332056598079"
+    "MeshModelAssetId": "87082938518749"
+  },
+  "HookHauler": {
+    "_note": "Hook Hauler 타일 텍스처 1024. 천·피부는 SlagWalker 것 재사용(Cloth/Skin), 조끼 노멀·거칠기 = SlagWalker Cloth. 원본 PNG exports/textures/hookhauler/",
+    "Vest": {
+      "Color": "rbxassetid://71808294235358"
     },
-    "FurnaceTender": {
-        "_note": "Furnace Tender/Warden 은박 내열복 타일 1024 (1.4스터드/타일). 개공봉·방패·가슴판 = HookHauler Rust, 공기통 = HookHauler Paint. 원본 PNG exports/textures/furnacetender/. 첫 업로드(얼룩 잘고 진함)는 폐기: Color 79648475176255 등",
-        "Foil": {
-            "Color": "rbxassetid://124746233948095",
-            "Normal": "rbxassetid://70656256613631",
-            "Roughness": "rbxassetid://126132918817424",
-            "Metalness": "rbxassetid://76647129647730"
-        },
-        "MeshModelAssetId": "118317063967066"
+    "Rust": {
+      "Color": "rbxassetid://115535459028861",
+      "Normal": "rbxassetid://82998247968541",
+      "Roughness": "rbxassetid://119016181869139",
+      "Metalness": "rbxassetid://132168352114924"
     },
-    "VFX": {
-        "LeapStrike": {
-            "_note": "도약 찌르기 프레임 시트 8x8(칸 128px, 1024). Open Cloud Decal 업로드 후 childOperations 의 이미지 ID",
-            "Dust": "rbxassetid://138956275728767",
-            "Shock": "rbxassetid://139231006156621",
-            "Crack": "rbxassetid://110852548933346",
-            "_crack_note": "1024x512: 왼쪽 512 균열 선, 오른쪽 512 빛(흐림)",
-            "MeshesModel": "114243306439321 (Open Cloud Model, 넣은 뒤 ReplicatedStorage.Assets.Vfx.LeapStrike 로 정리)"
-        }
+    "Paint": {
+      "Color": "rbxassetid://74576970065827",
+      "Normal": "rbxassetid://128650803947525",
+      "Roughness": "rbxassetid://111518412004710",
+      "Metalness": "rbxassetid://115662586390561"
+    },
+    "MeshModelAssetId": "137332056598079"
+  },
+  "FurnaceTender": {
+    "_note": "Furnace Tender/Warden 은박 내열복 타일 1024 (1.4스터드/타일). 개공봉·방패·가슴판 = HookHauler Rust, 공기통 = HookHauler Paint. 원본 PNG exports/textures/furnacetender/. 첫 업로드(얼룩 잘고 진함)는 폐기: Color 79648475176255 등",
+    "Foil": {
+      "Color": "rbxassetid://124746233948095",
+      "Normal": "rbxassetid://70656256613631",
+      "Roughness": "rbxassetid://126132918817424",
+      "Metalness": "rbxassetid://76647129647730"
+    },
+    "MeshModelAssetId": "118317063967066"
+  },
+  "VFX": {
+    "LeapStrike": {
+      "_note": "도약 찌르기 프레임 시트 8x8(칸 128px, 1024). Open Cloud Decal 업로드 후 childOperations 의 이미지 ID",
+      "Dust": "rbxassetid://138956275728767",
+      "Shock": "rbxassetid://139231006156621",
+      "Crack": "rbxassetid://110852548933346",
+      "_crack_note": "1024x512: 왼쪽 512 균열 선, 오른쪽 512 빛(흐림)",
+      "MeshesModel": "114243306439321 (Open Cloud Model, 넣은 뒤 ReplicatedStorage.Assets.Vfx.LeapStrike 로 정리)"
+    },
+    "SpearSweep": {
+      "Arc": "rbxassetid://70714911497187",
+      "_decal": "71426770544323",
+      "_note": "scripts/vfx_sweep_arc.py, 8x8 칸 128, 0.6초(회전 0~37칸), 그림 위 = 정면, 반시계. 눕힌 SurfaceGui 는 그림 오른쪽이 판 앞이라 판을 -90° 돌려 씀. 위아래 뒤집은 v2 130739621951445 는 잘못된 보정이라 폐기"
     }
+  }
 }
