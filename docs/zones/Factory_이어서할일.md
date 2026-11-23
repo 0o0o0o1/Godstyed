@@ -715,4 +715,9 @@
     - **다음 2단계 계획**: 마스크를 행 단위(≈0.1스터드)로 읽어 부품별 윤곽을 그대로 따라 메시 생성 → IoU ≥ 0.9. 색으로 나눔(파랑 채도 큰 곳 = 결정, 작은 조각 = 금속 위 빛 줄 → 꼭짓점 Glow, 어두운 곳 = 금속). 단면: 결정 = 가운데 능선 마름모(폭 따라 두께), 금속 = 폭에 비례한 두께. **참고 그림 픽셀을 텍스처로 쓰지 않음**(모양만 측정, 재질은 직접). 그다음 3단계 두께·단면 → 굽기(색/발광/금속/거칠기) → 업로드 → `Vfx.LeapStrike` 에서 CrystalSpear 대신 사용(내리꽂힘 + 빛 조각으로 흩어짐).
     - ⚠ Blender MCP 가 응답 없음(Blender 는 멀쩡, CPU 0) → **명령줄 Blender 로 작업**: `D:lender.exe -b --factory-startup --python-expr "exec(open(r'D:\god\scripts\lance3_blockout.py', encoding='utf-8').read()); exec(open(r'D:\god\scripts\lance3_iou.py', encoding='utf-8').read())"` (한 번 10초). 스크립트는 창이 없으면 기본 장면을 비워 씀. 시스템 Python 엔 numpy 없음 → 이미지 처리는 Blender 안에서.
     - 저작권: 참고 이미지가 남의 작품인지 사용자에게 물었고 아직 답 없음.
+- ✔ **도약 찌르기: 꽂히는 창 = 내 창, 먼지 회백색 (2026-11-24, 사용자 지시)** — 결정: 손의 창은 그대로(땅에는 복제본) / 초록 빛 유지 / 크기 1.6배 / 먼지 = 밝은 회백색.
+  - `Vfx.LeapStrike`: `cloneHeld()`(HeldWeapon 복제, 손 연결·스크립트 떼고 Trail 끔, 손잡이만 고정, `Model:ScaleTo` ×`HELD_SCALE 1.6`, 창 축 = Handle 의 TrailBase→TrailTip) + `heldLance()`(창끝이 땅 속 2, 진행 방향으로 10° 기울어 위에서 내리꽂힘 → 초록 불빛·후광·알갱이 → 0.7초 뒤 투명해지며 초록 빛 조각으로 흩어짐). 든 창이 없으면 예전 `lightLance`(빛의 창 v1) 그대로. 빛의 창 v3 작업은 이걸로 사실상 대체됨(필요하면 사용자에게 확인).
+  - 먼지: `dustEmitter` 색 (200,188,170) → `DUST_COLOR` (232,230,226) — 착지 먼지·뛸 때 발밑 먼지 모두.
+  - 플레이 확인: 돌창 복제본 scale 5.51→8.82(1.6배), 창끝이 바닥 2.0 아래, 자루가 위(축 Y 0.98), 먼지 색 적용, 손의 창 보임, 오류 없음. 화면으로 모양은 안 봄.
+  - 게시할 패키지: Controllers(Vfx.LeapStrike).
 - 다음: 창 휘두르기 → 신의 창 → 관통 돌격 강화 (하나씩).
