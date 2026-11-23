@@ -727,7 +727,17 @@
   - ✔ 1단계 판정: `Skills.spear_sweep` (cd 9, 피해 ×2.2, castDelay 0.2, spinTime 0.35, radius 20, flingDistance 15, flingHeight 4, flingTime 0.45, flinch 0.4, vfx "SpearSweep"), `PolearmRelics.relic_spear_sweep` (아이콘 임시 = Piercing Lunge). 서버 `spinHits`: 반경 20·높이 차 10 안, 가슴에서 보이는(벽 너머 아님) 대상을 **창이 그 각도를 지나는 시각**(castDelay + spinTime × 각도/360, 바라보는 방향에서 시작해 왼쪽=반시계)에 때림 → `spinFling`: 적(적 폴더·보스 아님)은 서버가 포물선으로 15(벽이면 벽 앞) 옮기고 바닥에 내려놓음 + 경직, 플레이어는 수평 forceMove + 위로 띄움, 보스·더미는 피해만. 분신(echo) 제외.
     - 플레이 확인: 주변 4마리(각도 38/260/295/345°) 모두 맞음, 각각 정확히 15 밀려나 최고 +3.7~4.0, 맞는 시각 차이가 각도 계산과 일치(0.217/0.265/0.312초). 오류 없음.
     - 사용자 데이터 변경: 돌창 **소켓 3칸째 해금**(테스트라 비용은 안 냄 — 원래 bloodstone 3·금화 8000), 소켓 3 = relic_spear_sweep.
-    - 연출 모듈 `Vfx.SpearSweep` 은 아직 없음(SkillController 가 없으면 그냥 넘어감). 모션도 아직 없음.
-  - 다음: 2단계 새 모션(Blender) → 3단계 프레임 시트 이펙트 + `Vfx.SpearSweep`.
-  - 게시할 패키지(지금까지): Shared(Skills·PolearmRelics), Services(Skill).
+  - ✔ 2단계 모션 — **사용자가 도중에 "기존 모션 재활용"으로 바꿈**: 새 `Vfx.SpearSweep` 이 다른 창 스킬처럼 든 무기 콤보 첫 타를 당긴 자세(HOLD_FRACTION 0.25)에서 멈췄다가 castDelay 에 남은 휘두르기를 spinTime 에 맞춰 빠르게 + **내 몸(HRP)을 왼쪽으로 한 바퀴** 돌림(AutoRotate 잠금, 끝나면 처음 방향으로 맞춤). 내 캐릭터만(다른 사람은 회전이 복제돼 보임), /fx(timeScale)면 안 함.
+    - 플레이 확인: 시전 신호 +0.05 에 연출 도착, 0.27~0.61 동안 몸이 0→360°, 끝나고 0°, 오류 없음. 창끝은 몸보다 ~10° 뒤에서 바닥 높이(0~0.7)로 따라감(콤보 동작 자세 그대로).
+    - 폐기(쓰지 않음): 전용 모션 `scripts/spear_sweep_anim.py` → 업로드 v1 112805095494076, v2 99353418131605 (그룹 소유, Skills 에서 뺌). 기록용으로 스크립트는 남김.
+    - 참고: 이 세션 중 Studio 에 다른 작업(`skyfall` kind·`relic_god_spear` — 신의 창?)이 들어와 있음. 이 작업에서 만든 것 아님.
+  - 다음: 3단계 Blender 프레임 시트 이펙트(흰+초록) → `Vfx.SpearSweep` 에 추가.
+  - 게시할 패키지(지금까지): Shared(Skills·PolearmRelics), Services(Skill), Controllers(Vfx.SpearSweep 새 모듈).
+- **진행 중: 신의 창** `god_spear` (kind **"skyfall"** 새로 추가, 성유물 `relic_god_spear`, 2026-11-24). 결정(사용자): 떨어질 자리 = **카메라 조준 지점**(최대 40, 보정 6°) / **반경 18, 예고 0.9초** / 맞은 효과 = **속박 2초**(보스·강철 의지는 피해만) / 창 모습 = **Blender 로 새 빛의 창**(흰+초록).
+  - 판정 수치: cd 14, 피해 ×3.5, castDelay 0.3(창을 하늘로 치켜듦, 이때 예고 원) + warnTime 0.9 → 꽂힘. 벽 너머 안 맞음, 높이 차 radius×0.6. 지붕은 무시(하늘에서 떨어짐). 맞은 대상 목록은 phase "pin" 연출(targets = { model, pinned }).
+  - **속박 상태 새로 추가**: `StatusEffects.rooted` (kind "root", 아이콘 임시 = Slow) → `Services.StatusEffect.publish` 가 MoveSpeedMult 0 + 모델 속성 **Rooted**. 막는 곳: MovementController 대시·점프, SkillController(클라)·Skill(서버 `ROOT_BLOCKED`) 의 lunge·charge·leap. 공격·다른 스킬은 됨. 적은 MoveSpeedMult 0 으로 못 걸음.
+  - ✔ Studio 적용됨(마을 place, 저장·게시 전): Shared(Skills·PolearmRelics·StatusEffects), Services(StatusEffect), Controllers(MovementController·SkillController).
+  - ✖ **아직 안 됨: Services.Skill** — 다른 세션이 Studio 를 플레이 중이라 편집 못 함. 넣을 코드 전부 `scripts/patches/god_spear_skill_service.lua` (6곳). **다음에 제일 먼저 적용**하고 플레이 테스트(훈련용 적에 시전 → 속박 2초·피해·벽 너머 제외 확인). ⚠ 다른 세션이 같은 스크립트(Skills·Skill)를 고쳤을 수 있으니 적용 전 god_spear 부분이 남아 있는지 확인.
+  - 다음: 판정 테스트 → Blender 빛의 창 메시 → `Vfx.GodSpear`(예고 원·하늘에서 내리꽂힘·충격·속박 사슬/빛 조각) → 시전 모션. 수정 표시(Source 다시 쓰기)도 아직 안 함.
+  - 게시할 패키지(지금까지): Shared(Skills·PolearmRelics·StatusEffects), Services(StatusEffect, + Skill 예정), Controllers(MovementController·SkillController).
 - 다음: 창 휘두르기 → 신의 창 → 관통 돌격 강화 (하나씩).
