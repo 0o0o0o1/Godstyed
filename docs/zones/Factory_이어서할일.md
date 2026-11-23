@@ -736,8 +736,10 @@
 - **진행 중: 신의 창** `god_spear` (kind **"skyfall"** 새로 추가, 성유물 `relic_god_spear`, 2026-11-24). 결정(사용자): 떨어질 자리 = **카메라 조준 지점**(최대 40, 보정 6°) / **반경 18, 예고 0.9초** / 맞은 효과 = **속박 2초**(보스·강철 의지는 피해만) / 창 모습 = **Blender 로 새 빛의 창**(흰+초록).
   - 판정 수치: cd 14, 피해 ×3.5, castDelay 0.3(창을 하늘로 치켜듦, 이때 예고 원) + warnTime 0.9 → 꽂힘. 벽 너머 안 맞음, 높이 차 radius×0.6. 지붕은 무시(하늘에서 떨어짐). 맞은 대상 목록은 phase "pin" 연출(targets = { model, pinned }).
   - **속박 상태 새로 추가**: `StatusEffects.rooted` (kind "root", 아이콘 임시 = Slow) → `Services.StatusEffect.publish` 가 MoveSpeedMult 0 + 모델 속성 **Rooted**. 막는 곳: MovementController 대시·점프, SkillController(클라)·Skill(서버 `ROOT_BLOCKED`) 의 lunge·charge·leap. 공격·다른 스킬은 됨. 적은 MoveSpeedMult 0 으로 못 걸음.
-  - ✔ Studio 적용됨(마을 place, 저장·게시 전): Shared(Skills·PolearmRelics·StatusEffects), Services(StatusEffect), Controllers(MovementController·SkillController).
-  - ✖ **아직 안 됨: Services.Skill** — 다른 세션이 Studio 를 플레이 중이라 편집 못 함. 넣을 코드 전부 `scripts/patches/god_spear_skill_service.lua` (6곳). **다음에 제일 먼저 적용**하고 플레이 테스트(훈련용 적에 시전 → 속박 2초·피해·벽 너머 제외 확인). ⚠ 다른 세션이 같은 스크립트(Skills·Skill)를 고쳤을 수 있으니 적용 전 god_spear 부분이 남아 있는지 확인.
-  - 다음: 판정 테스트 → Blender 빛의 창 메시 → `Vfx.GodSpear`(예고 원·하늘에서 내리꽂힘·충격·속박 사슬/빛 조각) → 시전 모션. 수정 표시(Source 다시 쓰기)도 아직 안 함.
-  - 게시할 패키지(지금까지): Shared(Skills·PolearmRelics·StatusEffects), Services(StatusEffect, + Skill 예정), Controllers(MovementController·SkillController).
+  - ✔ 1단계 판정 Studio 적용(마을 place): Shared(Skills·PolearmRelics·StatusEffects), Services(StatusEffect·**Skill** — `skyfallPlan`·`skyfallHits`·`ROOT_BLOCKED`, 원본 기록 `scripts/patches/god_spear_skill_service.lua`), Controllers(MovementController·SkillController). 수정 표시(Source 다시 쓰기) 함 — 패키지 버전 Shared v129 · Services v76 · Controllers v107 기준.
+  - 플레이 확인 (2026-11-24): 돌창 소켓 3 을 **메모리에서만** 잠깐 relic_god_spear 로 바꿔 시전(끝나고 relic_spear_sweep 로 되돌림, 사용자 인벤토리에 god_spear 성유물은 없음). 훈련용 적 4마리에 조준 → 보정으로 적 발밑, **+1.28초 phase "pin" targets=4**, 4마리 모두 피해(42) + Rooted **2.02초**, 오류 없음. 새로 만든 ashen_husk: MoveSpeedMult 0 → WalkSpeed 20→0, 1.5초 이동 0.1 → 풀린 뒤 다시 걸음. 내 캐릭터에 rooted: WalkSpeed 0·점프 꺼짐 → 2초 뒤 13·점프 켜짐.
+    - ⚠ 테스트 팁: 오래 있던 훈련용 적(bloated_husk)은 AI가 멈춰 있어 MoveSpeedMult 에 반응 안 함(속박과 무관) → 이동 확인은 새로 만든 적으로. 서버 Script 에 넣는 코드 문자열에 `]]` 가 있으면(`t[a[b]]`) 잘림 → `[==[ ]==]` 사용.
+    - 확인 안 함: 대시·이동 스킬이 속박 중 막히는지 실제 키 입력, PvP, 보스(피해만), 벽 너머 제외.
+  - 다음: Blender 빛의 창 메시 → `Vfx.GodSpear`(예고 원·하늘에서 내리꽂힘·충격·속박 사슬/빛 조각, phase "pin" 의 targets 에 붙임) → 시전 모션. 지금은 연출 모듈이 없어 눈에 보이는 게 없음.
+  - 게시할 패키지(지금까지): Shared(Skills·PolearmRelics·StatusEffects), Services(StatusEffect·Skill), Controllers(MovementController·SkillController).
 - 다음: 창 휘두르기 → 신의 창 → 관통 돌격 강화 (하나씩).
