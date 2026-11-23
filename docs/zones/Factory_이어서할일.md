@@ -705,7 +705,7 @@
     - ⚠ 같은 속성 트윈을 지연으로 미리 만들면 앞 트윈이 취소됨(돌판이 안 솟던 원인) → 뒤 트윈은 `ctx:at` 으로 나중에 만듦. 시트 재생 시작 시각은 `ctx:clock()` 기준.
   - 확인: `/fx` 대신 Client 에서 모듈을 직접 불러 0.2배속 재생 + 확인용 캡처(보고용 아님). 남은 아쉬움: 결정 조각 튀는 순간·먼지 색은 실제 플레이로 봐 줘야 함.
   - **게시할 패키지 추가: Assets (Vfx.LeapStrike 메시)**. 전체: Shared(Skills·PolearmRelics), Services(Skill), Controllers(SkillController·Vfx.ChainHook·Vfx.LeapStrike), Assets.
-- **진행 중: 도약 찌르기 '빛의 창' 다시 만들기 (2026-11-24)** — 사용자: 결정 창이 "초록 덩어리 같다, 렌더링 안 된 느낌" → 참고 이미지(기계식 검은 창 + 빛나는 결정 날)와 **모양은 똑같이, 색은 초록**. **단계마다 사용자 검사받기.**
+- **✖ 접음 (2026-11-24, 사용자: "접어") — 꽂히는 창을 든 창 복제본으로 바꿔서 더 안 함. 아래는 기록용.** 도약 찌르기 '빛의 창' 다시 만들기 (2026-11-24) — 사용자: 결정 창이 "초록 덩어리 같다, 렌더링 안 된 느낌" → 참고 이미지(기계식 검은 창 + 빛나는 결정 날)와 **모양은 똑같이, 색은 초록**. **단계마다 사용자 검사받기.**
   - 같이 바꿈(마을 place, 게시 전): 도약을 빠르게 — `castDelay 0.2→0.1`, `apex 10→8`, 체공 `0.24~0.42`, `LEAP_RUN_AIR 0.35`.
   - 중간 시도(폐기): v1 `vfx_leap_lance(_mat).py`(잎 모양 날, SurfaceAppearance 색·발광·금속·거칠기 구워 업로드 → `Assets.Vfx.LeapStrike.LightLance` 에 들어가 있음, 이미지 ID 색 126950760243716 / 발광 100757329927763 / 금속 93798015252632 / 거칠기 125238419555069, 모델 109484363035524) — **Vfx.LeapStrike 코드는 아직 옛 CrystalSpear 사용**(lightLance 교체 편집은 사용자가 중단). v2 `vfx_leap_lance2(_mat).py` 도 참고 이미지와 달라 폐기.
   - **v3 = reference-modeling 스킬 절차** (새로 설치: reference-modeling·game-asset-modeling·blender-modeling·roblox-vfx·roblox-animation-vfx):
@@ -716,7 +716,7 @@
     - ⚠ Blender MCP 가 응답 없음(Blender 는 멀쩡, CPU 0) → **명령줄 Blender 로 작업**: `D:lender.exe -b --factory-startup --python-expr "exec(open(r'D:\god\scripts\lance3_blockout.py', encoding='utf-8').read()); exec(open(r'D:\god\scripts\lance3_iou.py', encoding='utf-8').read())"` (한 번 10초). 스크립트는 창이 없으면 기본 장면을 비워 씀. 시스템 Python 엔 numpy 없음 → 이미지 처리는 Blender 안에서.
     - 저작권: 참고 이미지가 남의 작품인지 사용자에게 물었고 아직 답 없음.
 - ✔ **도약 찌르기: 꽂히는 창 = 내 창, 먼지 회백색 (2026-11-24, 사용자 지시)** — 결정: 손의 창은 그대로(땅에는 복제본) / 초록 빛 유지 / 크기 1.6배 / 먼지 = 밝은 회백색.
-  - `Vfx.LeapStrike`: `cloneHeld()`(HeldWeapon 복제, 손 연결·스크립트 떼고 Trail 끔, 손잡이만 고정, `Model:ScaleTo` ×`HELD_SCALE 1.6`, 창 축 = Handle 의 TrailBase→TrailTip) + `heldLance()`(창끝이 땅 속 2, 진행 방향으로 10° 기울어 위에서 내리꽂힘 → 초록 불빛·후광·알갱이 → 0.7초 뒤 투명해지며 초록 빛 조각으로 흩어짐). 든 창이 없으면 예전 `lightLance`(빛의 창 v1) 그대로. 빛의 창 v3 작업은 이걸로 사실상 대체됨(필요하면 사용자에게 확인).
+  - `Vfx.LeapStrike`: `cloneHeld()`(HeldWeapon 복제, 손 연결·스크립트 떼고 Trail 끔, 손잡이만 고정, `Model:ScaleTo` ×`HELD_SCALE 1.6`, 창 축 = Handle 의 TrailBase→TrailTip) + `heldLance()`(창끝이 땅 속 2, 진행 방향으로 10° 기울어 위에서 내리꽂힘 → 초록 불빛·후광·알갱이 → 0.7초 뒤 투명해지며 초록 빛 조각으로 흩어짐). 든 창이 없으면 예전 `lightLance`(빛의 창 v1) 그대로. 빛의 창 v3 작업은 **접음**(사용자 결정).
   - 먼지: `dustEmitter` 색 (200,188,170) → `DUST_COLOR` (232,230,226) — 착지 먼지·뛸 때 발밑 먼지 모두.
   - 플레이 확인: 돌창 복제본 scale 5.51→8.82(1.6배), 창끝이 바닥 2.0 아래, 자루가 위(축 Y 0.98), 먼지 색 적용, 손의 창 보임, 오류 없음. 화면으로 모양은 안 봄.
   - 게시할 패키지: Controllers(Vfx.LeapStrike).
