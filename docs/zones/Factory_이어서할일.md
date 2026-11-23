@@ -653,7 +653,11 @@
 - ✔ **사슬 갈고리** `chain_hook` (kind **"hook"** 새로 추가, 성유물 `relic_chain_hook`):
   - 판정: castDelay 0.22 → 창이 직선 150스터드/초, 최대 45, 폭 2.5(벽·첫 적에서 멈춤, Humanoid 모델은 벽으로 안 봄) → 도착 순간 그 적이 6스터드 안에 있으면 피해 ×1.6 + 내 앞 4.5까지 0.35초에 끌어옴 → 끌려온 뒤 경직 0.6. 쿨 9초. 분신(echo)은 따라 하지 않음.
   - 연출 `Vfx.ChainHook`: 든 창(HeldWeapon) 복제본을 실제로 던짐(원래 창은 이 화면에서만 숨김), 손→창 꼬리 쇠사슬 고리 70개(BulkMoveTo) + 금빛 Beam, 벽이면 불꽃·먼지, 걸리면 섬광·불꽃·타격음·화면 흔들림, 창끝이 끌려오는 적 몸에 붙어 따라옴 → 손으로 회수 + 짤랑. 빗나가면 빈 사슬을 거둠. 소리는 Hook Hauler 사슬 소리 재사용.
-  - 확인: Studio 플레이에서 서버 모듈 로드 OK, 클라이언트 연출(빗나감·걸림) 오류 없음, 창 숨김/복귀·사슬·창이 대상에 붙음 확인. ⚠ **실제 시전(서버 판정→끌어오기)은 아직 안 해 봄** — 사용자 저장 데이터를 건드리지 않으려고. 확인하려면 플레이 중 `/relics polearm` + 창 무기에 끼워서.
+  - 확인: Studio 플레이에서 서버 모듈 로드 OK, 클라이언트 연출(빗나감·걸림) 오류 없음, 창 숨김/복귀·사슬·창이 대상에 붙음 확인.
+  - **실제 시전 확인 (2026-11-23, 사용자 데이터로)**: Bloated Husk(스킬 훈련용, `Enemy.spawnTemporary` 를 플레이 중 임시 Script 로 호출)에 43스터드에서 시전 → +0.54초 phase "hit", 0.3초 만에 47→6스터드로 끌려옴, 피해 들어감, 오류 없음.
+    - 고친 버그 2: ① 큰 적(몸 중심이 5스터드 높음)을 옆 거리 3D로 재서 빗나감 → 옆은 수평으로만, 높이는 따로(HOOK_HEIGHT 8). ② 몸에 붙은 적(창 출발점보다 뒤)은 안 걸림 → 몸 중심부터(along > −CAST_FORWARD−1). ②는 로드만 확인.
+    - 참고: 플러그인(MCP execute_luau)에서 require 한 모듈은 게임과 다른 복사본 → 실제 서비스 함수는 플레이 중 Script 를 만들어 부르면 됨. NPC(RelicKeeper)는 Humanoid 가 없어 벽으로 막힘(정상).
+    - 사용자 저장 데이터 변경: stone_spear 1개 지급(/get), 창 성유물(/relics polearm), 돌창 소켓 1칸 해금(비용만큼 /money 1000·/get bloodstone 1 먼저 지급), relic_chain_hook 끼움, **장착 무기를 Junkyard Ripper → Stone Spear 로 바꿈**.
   - 임시: 성유물·스킬 아이콘 = Piercing Lunge 아이콘(전용 아이콘 필요). `Skills` 의 `TEST_COOLDOWN = 1`은 예전부터 켜져 있음(게시 전 nil 로).
   - **게시할 패키지: Shared(Skills·PolearmRelics), Services(Skill), Controllers(Vfx.ChainHook 새 모듈).** 수정 표시 후 패키지 버전이 Shared v127 · Services v75 · Controllers v106 으로 올라가 있었음(이전 v126/74/104).
-- 다음: 실제 시전 확인 → 도약 찌르기 → 창 휘두르기 → 신의 창 → 관통 돌격 강화 (하나씩).
+- 다음: 도약 찌르기 → 창 휘두르기 → 신의 창 → 관통 돌격 강화 (하나씩).
