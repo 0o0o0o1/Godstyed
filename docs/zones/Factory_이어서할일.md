@@ -691,4 +691,14 @@
     - ⚠ 같은 속성 트윈을 지연으로 미리 만들면 앞 트윈이 취소됨(돌판이 안 솟던 원인) → 뒤 트윈은 `ctx:at` 으로 나중에 만듦. 시트 재생 시작 시각은 `ctx:clock()` 기준.
   - 확인: `/fx` 대신 Client 에서 모듈을 직접 불러 0.2배속 재생 + 확인용 캡처(보고용 아님). 남은 아쉬움: 결정 조각 튀는 순간·먼지 색은 실제 플레이로 봐 줘야 함.
   - **게시할 패키지 추가: Assets (Vfx.LeapStrike 메시)**. 전체: Shared(Skills·PolearmRelics), Services(Skill), Controllers(SkillController·Vfx.ChainHook·Vfx.LeapStrike), Assets.
+- **진행 중: 도약 찌르기 '빛의 창' 다시 만들기 (2026-11-24)** — 사용자: 결정 창이 "초록 덩어리 같다, 렌더링 안 된 느낌" → 참고 이미지(기계식 검은 창 + 빛나는 결정 날)와 **모양은 똑같이, 색은 초록**. **단계마다 사용자 검사받기.**
+  - 같이 바꿈(마을 place, 게시 전): 도약을 빠르게 — `castDelay 0.2→0.1`, `apex 10→8`, 체공 `0.24~0.42`, `LEAP_RUN_AIR 0.35`.
+  - 중간 시도(폐기): v1 `vfx_leap_lance(_mat).py`(잎 모양 날, SurfaceAppearance 색·발광·금속·거칠기 구워 업로드 → `Assets.Vfx.LeapStrike.LightLance` 에 들어가 있음, 이미지 ID 색 126950760243716 / 발광 100757329927763 / 금속 93798015252632 / 거칠기 125238419555069, 모델 109484363035524) — **Vfx.LeapStrike 코드는 아직 옛 CrystalSpear 사용**(lightLance 교체 편집은 사용자가 중단). v2 `vfx_leap_lance2(_mat).py` 도 참고 이미지와 달라 폐기.
+  - **v3 = reference-modeling 스킬 절차** (새로 설치: reference-modeling·game-asset-modeling·blender-modeling·roblox-vfx·roblox-animation-vfx):
+    - 0단계 ✔: 참고 `references/lance_ref.jpg` → 세로로 세움 `lance_ref_straight.png`(머리 끝 아래 z=0, 꼬리 위 z=30, **1스터드 = 49.15px, 아래 여백 20px, 폭 260 / 높이 1514**), 실루엣 마스크 `lance_mask.png`(어두운 모양/밝은 배경), 확대 `zoom_head/neck/butt.png`. 사용자 확인함.
+    - 부위(세운 이미지 기준, x 가로 / z 높이): **오른쪽 큰 결정** z0→9.7(끝 x0.45 → 뿌리 x1.75, 폭~0.85) / 왼쪽 작은 결정 z2→7 / 왼쪽 위로 솟은 검은 지느러미 2 z6.5→10.3 / 가운데 검은 창끝 z0.4→6 / 머리 하우징(링 구멍) z5.5→8 / 톱니 척추 z8→11 / 늘어진 빛 띠(왼쪽 사선) z10.7→11.6 / 오른쪽 케이블 z11→12.5 / 빛 구슬 허브 z12.3→12.9 / 열린 틀(오른쪽 연 모양) z12.9→14.8 / 자루 z14.8→23.4 / 캡슐 틀(빛 관) z23.4→25 / 꼬리: 세로 창끝 + 오른쪽 삼각 지느러미(바깥 날에 빛 줄) z25→30.
+    - 1단계 블록아웃 ✔(사용자 검사 대기였음): `scripts/lance3_blockout.py`(상자 17 + 꼬리 삼각), 측정 `scripts/lance3_iou.py`(정면 렌더 vs 마스크 IoU, 구간별 넘침/모자람, 차이 그림 `references/lance_iou_diff.png`). IoU 0.594 (머리 0.61/목 0.39/자루 0.80/꼬리 0.62). 비교 그림 `references/lance3_blockout_check.png`. 저장 `exports/vfx/lance3.blend`.
+    - **다음 2단계 계획**: 마스크를 행 단위(≈0.1스터드)로 읽어 부품별 윤곽을 그대로 따라 메시 생성 → IoU ≥ 0.9. 색으로 나눔(파랑 채도 큰 곳 = 결정, 작은 조각 = 금속 위 빛 줄 → 꼭짓점 Glow, 어두운 곳 = 금속). 단면: 결정 = 가운데 능선 마름모(폭 따라 두께), 금속 = 폭에 비례한 두께. **참고 그림 픽셀을 텍스처로 쓰지 않음**(모양만 측정, 재질은 직접). 그다음 3단계 두께·단면 → 굽기(색/발광/금속/거칠기) → 업로드 → `Vfx.LeapStrike` 에서 CrystalSpear 대신 사용(내리꽂힘 + 빛 조각으로 흩어짐).
+    - ⚠ Blender MCP 가 응답 없음(Blender 는 멀쩡, CPU 0) → **명령줄 Blender 로 작업**: `D:lender.exe -b --factory-startup --python-expr "exec(open(r'D:\god\scripts\lance3_blockout.py', encoding='utf-8').read()); exec(open(r'D:\god\scripts\lance3_iou.py', encoding='utf-8').read())"` (한 번 10초). 스크립트는 창이 없으면 기본 장면을 비워 씀. 시스템 Python 엔 numpy 없음 → 이미지 처리는 Blender 안에서.
+    - 저작권: 참고 이미지가 남의 작품인지 사용자에게 물었고 아직 답 없음.
 - 다음: 창 휘두르기 → 신의 창 → 관통 돌격 강화 (하나씩).
