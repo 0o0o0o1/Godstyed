@@ -748,6 +748,11 @@
   - 플레이 확인 (2026-11-24): 돌창 소켓 3 을 **메모리에서만** 잠깐 relic_god_spear 로 바꿔 시전(끝나고 relic_spear_sweep 로 되돌림, 사용자 인벤토리에 god_spear 성유물은 없음). 훈련용 적 4마리에 조준 → 보정으로 적 발밑, **+1.28초 phase "pin" targets=4**, 4마리 모두 피해(42) + Rooted **2.02초**, 오류 없음. 새로 만든 ashen_husk: MoveSpeedMult 0 → WalkSpeed 20→0, 1.5초 이동 0.1 → 풀린 뒤 다시 걸음. 내 캐릭터에 rooted: WalkSpeed 0·점프 꺼짐 → 2초 뒤 13·점프 켜짐.
     - ⚠ 테스트 팁: 오래 있던 훈련용 적(bloated_husk)은 AI가 멈춰 있어 MoveSpeedMult 에 반응 안 함(속박과 무관) → 이동 확인은 새로 만든 적으로. 서버 Script 에 넣는 코드 문자열에 `]]` 가 있으면(`t[a[b]]`) 잘림 → `[==[ ]==]` 사용.
     - 확인 안 함: 대시·이동 스킬이 속박 중 막히는지 실제 키 입력, PvP, 보스(피해만), 벽 너머 제외.
-  - 다음: Blender 빛의 창 메시 → `Vfx.GodSpear`(예고 원·하늘에서 내리꽂힘·충격·속박 사슬/빛 조각, phase "pin" 의 targets 에 붙임) → 시전 모션. 지금은 연출 모듈이 없어 눈에 보이는 게 없음.
+  - ✔ **빛의 창 메시** (2026-11-24, 단계마다 사용자 확인): 결정 = 순수한 빛 결정 / 길고 가느다란 잎사귀형 날 / 길이 40 / 장식 없이(밋밋하면 나중에 추가) / v1 가늘어서 굵게 → v2 날이 통통해서 날 폭 3.2 / 목 = 6각 쌍뿔 결정 마디(지름 2.5) / 디테일 = 날 결정 면 나눔(띠 9개, 단면 꺾임 번갈아 → 삼각 결정면) + 양날 빛 테두리 띠 / 재질 = 날·자루 Glass + 심·테두리 Neon.
+    - `scripts/vfx_god_spear.py` (Blender MCP 로 exec, `export()` → `exports/vfx/GodSpear.fbx`), 부품 6(Blade 214면·Edge·Core·Collar·Shaft·Butt), 삼각형 750. 미리보기 `exports/_preview/godspear_*.png`(이 PC만).
+    - Open Cloud 그룹 업로드 Model **128999563181818** → **`ReplicatedStorage.Assets.Vfx.GodSpear`** (피벗 = 창끝, +Y = 꼬리, Anchored·충돌/쿼리/터치/그림자 끔). Glass (205,255,220) 투명 0.3, Core Neon (120,255,150), Edge Neon (225,255,232). ID → `exports/texture_ids.json` `VFX.GodSpear`.
+    - ⚠ FBX 로 넣은 MeshPart 는 **PivotOffset 에 회전(−90° X)** 이 들어 있음 → 모델에 PrimaryPart 를 두고 PivotTo 하면 창이 눕혀짐. PivotOffset 을 비우고 PrimaryPart 없이 WorldPivot 으로.
+    - 확인용 사본 `Workspace.GodSpear_Preview`(로비 도착 데크 앞, 8° 기울임) — 사용자 확인 뒤 지울 것. Assets 패키지에 들어갔는지(Assets 가 패키지면 게시 필요) 확인 필요.
+  - 다음: `Vfx.GodSpear`(예고 원·하늘에서 내리꽂힘·충격·속박 사슬/빛 조각, phase "pin" 의 targets 에 붙임) → 시전 모션. 지금은 연출 모듈이 없어 눈에 보이는 게 없음.
   - 게시할 패키지(지금까지): Shared(Skills·PolearmRelics·StatusEffects), Services(StatusEffect·Skill), Controllers(MovementController·SkillController).
 - 다음: 창 휘두르기 → 신의 창 → 관통 돌격 강화 (하나씩).
