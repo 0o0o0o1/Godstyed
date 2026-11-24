@@ -32,7 +32,7 @@ local GLASS = Color3.fromRGB(225, 255, 238)
 local IMG = {
 	auroraCurtain = "rbxassetid://128896189725887", -- 가로 반복, 아래 가장자리 밝은 띠 → 위로 청록·보라 빛살
 	auroraFlow = "rbxassetid://115207308874249", -- 가로 반복, 가운데 흰빛 → 바깥 초록·청록
-	lightning = { "rbxassetid://99501452920501", "rbxassetid://83874513440546", "rbxassetid://103476098391061", "rbxassetid://75288832809005" }, -- scripts/vfx_lightning.py
+	lightning = { "rbxassetid://77421751359118", "rbxassetid://121014956046177", "rbxassetid://84844745264959", "rbxassetid://130450657168303" }, -- scripts/vfx_lightning.py v2 (8:1, 1024x128)
 	shock = "rbxassetid://139231006156621",
 	crack = "rbxassetid://110852548933346",
 }
@@ -314,77 +314,60 @@ local function makeSpear(ctx: Kit.Ctx, size: number): Spear?
 	return { model = model, rig = rig, size = size, light = light, motes = motes, update = update, fade = fade }
 end
 
--- 번개 빛 줄기: 하늘(top) → 아래(bottom: 떨어지는 동안 창끝, 꽂힌 뒤 땅). Blender 번개 그림 4장(scripts/vfx_lightning.py, 가로 = 길이)
--- 사용자 2026-11-24: 그림 한 장을 140 길이로 늘리니 "바람 같다", 끝에서 "뚝 끊긴다"
--- → 꺾인 길을 BOLT_SEGS 마디(각 ~30)로 나눠 마디마다 그림을 씌움(그림 비율이 살아 번개 모양이 보임), 0.05초마다 길·그림을 바꿈
--- 위 마디는 하늘에서 서서히 나타나고, 아래 끝은 창끝·땅에 닿음. 사라질 때는 BOLT_FADE 동안 옅어지며 가늘어짐
-local BOLT_SEGS = 5
+-- 번개 빛 줄기: 투명 번개 그림 한 장(8:1, scripts/vfx_lightning.py v2, 가로 = 길이, 오른쪽 = 땅 쪽)을 띠 하나에 씌움 (사용자 2026-11-24)
+-- v1 4:1 그림을 140 길이로 늘리니 "바람 같다", v2 마디 5개로 나누니 이음매가 "끊겨" 보였음 → 길이·폭을 그림 비율(8:1)에 맞춘 한 장
+-- 길이를 고정: 아래 끝(떨어지는 동안 창끝, 꽂힌 뒤 땅) 위로 length 만큼 → 늘어나지 않음. 하늘 쪽 끝은 투명하게 흐려짐
+-- 두 겹(다른 그림)을 0.05초마다 바꿔 번쩍임. 나타날 때 0.04초, 사라질 때 BOLT_FADE 동안 옅어지며 가늘어짐
 local BOLT_FADE = 0.18
-local function bolt(ctx: Kit.Ctx, top: Vector3, getBottom: () -> Vector3, startAt: number, endAt: number, width: number)
+local function bolt(ctx: Kit.Ctx, getBottom: () -> Vector3, startAt: number, endAt: number, width: number, length: number)
 	local holder = Kit.holder(ctx, CFrame.new(), "Bolt")
-	local atts: { Attachment } = {}
-	for i = 0, BOLT_SEGS do
-		local a = Instance.new("Attachment")
-		a.Parent = holder
-		atts[i] = a
-	end
-	local segs: { Beam } = {}
-	for i = 1, BOLT_SEGS do
-		segs[i] = beam(atts[i - 1], atts[i], {
+	local a0 = Instance.new("Attachment") -- 하늘 쪽
+	local a1 = Instance.new("Attachment") -- 땅 쪽
+	a0.Parent, a1.Parent = holder, holder
+	local drift = Vector3.new((math.random() - 0.5) * 0.25, 1, (math.random() - 0.5) * 0.25).Unit * length
+	local function layer(w: number): Beam
+		return beam(a0, a1, {
 			Texture = IMG.lightning[1],
 			TextureMode = Enum.TextureMode.Stretch,
 			FaceCamera = true,
 			Brightness = 3,
-			Width0 = width,
-			Width1 = width,
+			Width0 = w,
+			Width1 = w,
 			Segments = 1,
 			Color = ColorSequence.new(WHITE),
 			Enabled = false,
 		})
 	end
-	local offsets: { Vector3 } = {}
+	local main = layer(width)
+	local back = layer(width * 1.15)
 	local nextSwap = -1
 	ctx:step(endAt, function(t)
 		if t < startAt then
 			return
 		end
-		local fadeK = math.clamp((endAt - t) / BOLT_FADE, 0, 1) -- 1 → 0 (끝날 때)
+		local fadeK = math.clamp((endAt - t) / BOLT_FADE, 0, 1)
 		local inK = math.clamp((t - startAt) / 0.04, 0, 1)
 		if fadeK <= 0 then
-			for _, b in segs do
-				b.Enabled = false
-			end
+			main.Enabled, back.Enabled = false, false
 			return
 		end
 		local bottom = getBottom()
-		local axis = bottom - top
-		local len = axis.Magnitude
+		a0.WorldPosition, a1.WorldPosition = bottom + drift, bottom
 		if t >= nextSwap then
 			nextSwap = t + 0.05
-			-- 꺾인 길: 마디 끝점마다 옆으로 무작위 (끝점 두 개는 고정)
-			local side = axis:Cross(Vector3.new(math.random() - 0.5, 0, math.random() - 0.5))
-			for i = 0, BOLT_SEGS do
-				local s = axis:Cross(Vector3.new(math.random() - 0.5, math.random() - 0.5, math.random() - 0.5))
-				s = if s.Magnitude > 1e-4 then s.Unit else (if side.Magnitude > 1e-4 then side.Unit else Vector3.xAxis)
-				offsets[i] = if i == 0 or i == BOLT_SEGS then Vector3.zero else s * (math.random() - 0.5) * len / BOLT_SEGS * 0.55
-			end
-			for i, b in segs do
-				b.Texture = IMG.lightning[math.random(1, #IMG.lightning)]
-				b.Brightness = 2.2 + math.random() * 1.4
-			end
+			local i = math.random(1, #IMG.lightning)
+			main.Texture = IMG.lightning[i]
+			back.Texture = IMG.lightning[i % #IMG.lightning + 1]
+			main.Brightness = 2.4 + math.random() * 1.2
+			back.Brightness = 1.0 + math.random() * 0.6
 		end
-		for i = 0, BOLT_SEGS do
-			atts[i].WorldPosition = top + axis * (i / BOLT_SEGS) + (offsets[i] or Vector3.zero)
-		end
-		local w = width * (0.35 + 0.65 * fadeK)
-		for i, b in segs do
-			b.Enabled = true
-			-- 위 첫 마디는 하늘 쪽 끝을 투명하게, 전체는 끝날 때 옅어짐
-			local base = 1 - inK * fadeK
-			local topAlpha = if i == 1 then 1 else base
-			b.Transparency = seq({ { 0, math.max(topAlpha, base) }, { 1, base } })
-			b.Width0, b.Width1 = w, w * (if i == BOLT_SEGS then 0.75 else 1)
-		end
+		local base = 1 - inK * fadeK
+		main.Transparency = seq({ { 0, 1 }, { 0.3, base }, { 1, base } })
+		back.Transparency = seq({ { 0, 1 }, { 0.3, math.min(1, base + 0.5) }, { 1, math.min(1, base + 0.5) } })
+		local w = width * (0.4 + 0.6 * fadeK)
+		main.Width0, main.Width1 = w, w
+		back.Width0, back.Width1 = w * 1.15, w * 1.15
+		main.Enabled, back.Enabled = true, true
 	end)
 end
 
@@ -582,14 +565,18 @@ end
 local function strike(ctx: Kit.Ctx, ground: Vector3, radius: number, size: number, hitAt: number, removeAt: number, big: boolean)
 	local startAt = math.max(hitAt - jitter(FALL_TIME, 0.15), 0)
 	-- 예고: 꽂힐 자리 땅을 번개가 긁음 (떨어지기 직전 ~ 꽂힌 뒤 0.1초)
-	groundArcs(ctx, ground, radius * 0.9, if big then 6 else 4, math.max(startAt - 0.05, 0), hitAt + 0.12, if big then 2.2 else 1.5, 2.5)
+	-- 세 창이 같은 자리·같은 반경이라 작은 창의 바닥 효과는 작게(0.6)
+	local vr = if big then radius else radius * 0.6
+	groundArcs(ctx, ground, vr * 0.9, if big then 6 else 4, math.max(startAt - 0.05, 0), hitAt + 0.12, if big then 2.2 else 1.5, 2.5)
 	ctx:at(startAt, function()
 		local spear = makeSpear(ctx, size)
 		if not spear then
 			return
 		end
 		local s = spear :: Spear
-		local tilt = CFrame.Angles(0, math.random() * math.pi * 2, 0) * CFrame.Angles(math.rad(jitter(SPEAR_TILT, 0.6)), 0, 0)
+		-- 작은 창은 같은 자리에 15° 안팎으로 기울어 꽂힘 (세 창이 겹쳐 박힌 모양, 큰 창과 몸이 겹치지 않게)
+		local lean = if big then jitter(SPEAR_TILT, 0.6) else jitter(15, 0.25)
+		local tilt = CFrame.Angles(0, math.random() * math.pi * 2, 0) * CFrame.Angles(math.rad(lean), 0, 0)
 		local rest = CFrame.new(ground - Vector3.new(0, SPEAR_SINK * size, 0)) * tilt
 		local sky = rest + Vector3.new(0, (jitter(SKY_HEIGHT, 0.15) + SPEAR_SINK) * size, 0)
 		s.model:PivotTo(sky)
@@ -602,16 +589,15 @@ local function strike(ctx: Kit.Ctx, ground: Vector3, radius: number, size: numbe
 			s.model:PivotTo(sky:Lerp(rest, k * k * k))
 			s.update(t - t0)
 		end)
-		-- 빛 줄기: 하늘에서 창끝(꽂힌 뒤에는 땅)까지, 꽂힌 뒤 BOLT_AFTER 지나 BOLT_FADE 동안 옅어짐 (창이 번개를 타고 내려옴)
-		local topPoint = ground + Vector3.new(math.random(-6, 6), BOLT_TOP, math.random(-6, 6))
-		bolt(ctx, topPoint, function()
+		-- 빛 줄기: 창끝(꽂힌 뒤에는 땅)에서 위로 고정 길이, 꽂힌 뒤 BOLT_AFTER 지나 BOLT_FADE 동안 옅어짐 (창이 번개를 타고 내려옴)
+		bolt(ctx, function()
 			local p = s.model:GetPivot().Position
 			return Vector3.new(p.X, math.max(p.Y, ground.Y + 0.3), p.Z)
-		end, t0, t0 + fall + BOLT_AFTER + BOLT_FADE, if big then 6 else 4)
+		end, t0, t0 + fall + BOLT_AFTER + BOLT_FADE, if big then 16 else 11, if big then 140 else 96)
 		ctx:at(fall, function()
 			s.light.Brightness = if big then 3 else 2
 			s.motes.Rate = if big then 10 else 0 -- 박혀 있는 동안 주인공은 오로라 흐름, 반짝이는 조금만
-			impactFx(ctx, ground, radius, big)
+			impactFx(ctx, ground, vr, big)
 		end)
 		-- 흩어짐: 창 길이를 따라 오로라 빛 알갱이로
 		ctx:at(removeAt - startAt, function()

@@ -6,7 +6,7 @@
 import bpy, random, os, math
 
 OUT = r"D:\god\exports\vfx"
-W, H = 1024, 256
+W, H = 1024, 128  # v2 (2026-11-24): 8:1 — 번개 길이 140 · 폭 16 에 그대로 맞춰 늘어나지 않게 (4:1 을 늘리니 바람 줄기처럼 보였음, 마디로 나누니 이음매가 끊겨 보였음)
 ASPECT = H / W  # 화면 세로 반높이 = ASPECT (가로 -1..1)
 
 
@@ -62,7 +62,7 @@ def jag(a, b, depth, rough, rng):
     pts = [a, b]
     for d in range(depth):
         nxt = [pts[0]]
-        amp = rough * (0.55 ** d)
+        amp = rough * (DECAY ** d)
         for i in range(len(pts) - 1):
             (x0, y0), (x1, y1) = pts[i], pts[i + 1]
             mx, my = (x0 + x1) / 2, (y0 + y1) / 2
@@ -92,6 +92,7 @@ def curve(sc, name, pts, radius, mat, taper_end=1.0):
     return ob
 
 
+DECAY = 0.82  # 단계마다 꺾임 세기 감소 (0.55 는 잔 꺾임이 거의 없어 매끈했음)
 WHITE = (1.0, 1.0, 1.0)
 MINT = (0.75, 1.0, 0.85)
 TEAL = (0.25, 1.0, 0.85)
@@ -118,18 +119,18 @@ def bolt(index, seed):
     rng = random.Random(seed)
     m_core = glow_mat("Core%d" % index, WHITE, 6.0, 1.0)
     m_in = glow_mat("In%d" % index, MINT, 3.0, 0.8)
-    ymax = ASPECT * 0.6
-    main = jag((-1.02, 0.0), (1.02, 0.0), 7, 0.42, rng)
+    ymax = ASPECT * 0.55
+    main = jag((-1.02, 0.0), (1.0, 0.0), 6, 0.5, rng)
     # 세로로 화면을 넘지 않게 비율로 줄임 (잘라내면 평평한 구간이 생겼음)
     peak = max(abs(y) for _, y in main) or 1.0
     scale = min(1.0, ymax / peak)
     main = [(x, y * scale) for x, y in main]
-    curve(sc, "MainIn", main, 0.012, m_in)
-    curve(sc, "MainCore", main, 0.0055, m_core)
+    curve(sc, "MainIn", main, 0.0075, m_in)
+    curve(sc, "MainCore", main, 0.0032, m_core)
     for _ in range(rng.randint(4, 6)):
         i = rng.randint(len(main) // 8, len(main) * 7 // 8)
         x0, y0 = main[i]
-        length = rng.uniform(0.12, 0.4)
+        length = rng.uniform(0.08, 0.22)
         ang = rng.uniform(0.3, 0.85) * (1 if rng.random() < 0.5 else -1)
         br = jag((x0, y0), (x0 + math.cos(ang) * length, y0 + math.sin(ang) * length * 0.5), 5, 0.45, rng)
         peak_b = max(abs(y) for _, y in br) or 1.0
@@ -146,9 +147,9 @@ def bolt(index, seed):
     os.remove(tmp)
     base = px[:, :, :3] * px[:, :, 3:4]  # 검은 바탕 위 빛
     lum = base.max(axis=2, keepdims=True)
-    g1 = blur(lum, 3.0) * np.array(TEAL)
-    g2 = blur(lum, 11.0) * np.array((0.3, 1.0, 0.65))  # 초록·청록 (파랑으로 치우치지 않게)
-    g3 = blur(lum, 26.0) * np.array((0.55, 0.6, 1.0))  # 바깥 엷은 보랏빛
+    g1 = blur(lum, 2.0) * np.array(TEAL)
+    g2 = blur(lum, 6.0) * np.array((0.3, 1.0, 0.65))  # 초록·청록 (파랑으로 치우치지 않게)
+    g3 = blur(lum, 14.0) * np.array((0.55, 0.6, 1.0))  # 바깥 엷은 보랏빛
     rgb = base + g1 * 2.2 + g2 * 2.6 + g3 * 2.0
     a = np.clip(rgb.max(axis=2, keepdims=True), 0, 1)
     col = np.clip(rgb / np.maximum(a, 1e-4), 0, 1)
