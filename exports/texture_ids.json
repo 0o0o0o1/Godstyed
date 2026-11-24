@@ -221,5 +221,18 @@
         "rbxassetid://112634341954437"
       ]
     }
+  },
+  "SpearIcons": {
+    "_note": "2026-11-24 창 스킬·성유물 아이콘. 스킬 = 흰 실루엣(scripts/spear_skill_icons.py), 성유물 = 초록 룬 돌판(scripts/spear_relic_icons.py). 512x512, Decal 그룹 업로드 → 이미지 ID",
+    "Skill_chain_hook": "rbxassetid://123513643390143",
+    "Skill_leap_strike": "rbxassetid://108793794450569",
+    "Skill_spear_sweep": "rbxassetid://121844632731315",
+    "Skill_god_spear": "rbxassetid://73977985421128",
+    "Relic_piercing_lunge": "rbxassetid://132639492526129",
+    "Relic_chain_hook": "rbxassetid://136135172445211",
+    "Relic_leap_strike": "rbxassetid://101552959946591",
+    "Relic_spear_sweep": "rbxassetid://104596984114484",
+    "Relic_god_spear": "rbxassetid://95627576562842",
+    "_decals": "skill 93985771030498/108019314974509/71118353499864/106139086267801, relic 106356603668321/93103301187395/86423554860261/115750402043045/122621903116339"
   }
 }
