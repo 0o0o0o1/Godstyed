@@ -823,4 +823,10 @@
     - 확인: 플레이 느린 재생 캡처(확인용)로 돔·고리·꽃잎·옆 번개·돌판·번개가 같이 나옴, 스크립트 오류 없음. 새 그림은 올린 직후라 "being generated" — 잠시 뒤 보임. **실제 속도 느낌은 사용자 확인 필요**.
   - 다음: 사용자 피드백 → 시전 모션(선택)(예고 원·하늘에서 내리꽂힘·충격·속박 사슬/빛 조각, phase "pin" 의 targets 에 붙임) → 시전 모션. 지금은 연출 모듈이 없어 눈에 보이는 게 없음.
   - 게시할 패키지(지금까지): Shared(Skills·PolearmRelics·StatusEffects), Services(StatusEffect·Skill), Controllers(MovementController·SkillController·VfxKit·Vfx.LeapStrike·**Vfx.GodSpear 새 모듈**), **Assets(Vfx.GodSpear·Vfx.GodSpearImpact 메시, 패키지 v15)**.
+- ✔ **훈련용 더미 움직이게 (2026-11-24, 사용자: "고정시켜 놓지 말고 기절도 당하고 갈고리에도 끌리게")** — 마을 place `Workspace.Lobby.TrainingDummies.TrainingDummy` (패키지 아님 → **place 저장 필요**):
+  - 부품 고정(Anchored) 전부 해제, 모델 속성 **`TrainingDummy = true`**. `DummyRegen` 스크립트에 추가: 서버가 물리 담당(SetNetworkOwner(nil)), 원래 자리에서 벗어난 채 4초 동안 맞지도 움직이지도 기절하지도 않으면 0.6초에 걸쳐 원래 자리·방향으로 돌아감. (피해 기록·2초 뒤 회복·죽으면 3초 뒤 다시 생김은 그대로)
+  - `Services.Skill`: 갈고리 끌기(`hookPull`)·창 휘두르기 날림(`spinFling`)이 적 폴더 안 적뿐 아니라 `TrainingDummy` 속성 모델도 옮김. 기절은 원래 StatusEffect 가 아무 Humanoid 에나 걸어서 그대로.
+  - 플레이 확인: 갈고리 18 → 4.5 끌려옴 + Stunned·기절 아이콘(1.5초), 창 휘두르기 17.4 날아감, 약 6.8초 뒤 원래 자리 0.0·똑바로 섬, 오류 없음.
+  - ⚠ Studio MCP: `multi_edit` 의 `replace_all` 편집이 "적용됨"이라고 나왔는데 Source 에 안 들어간 일이 있었음 → 같은 줄이 여러 개면 앞뒤 문맥을 넣어 따로 편집하고, 편집 뒤 Source 에서 바뀐 것을 확인할 것.
+  - 게시할 패키지: Services(Skill). + **마을 place 저장**(더미).
 - 다음: 창 휘두르기 → 신의 창 → 관통 돌격 강화 (하나씩).
