@@ -840,5 +840,9 @@
   - ID: `exports/texture_ids.json` → `SpearIcons`. 확인: 플레이 스킬 바 R F G V X 에 새 아이콘 표시. 성유물 아이콘은 인벤토리에서 직접 확인 필요.
   - 게시: Shared(Skills·PolearmRelics).
 - ✔ **신의 창도 더미에 피해 안 들어가던 버그 (2026-11-24, 사용자)**: 창 휘두르기와 같은 원인 — `skyfallHits` 의 벽 검사가 terrainParams(적 폴더·플레이어만 뺌)라 적 폴더 밖 훈련용 더미가 자기 몸에 막힘. `Services.Skill` 에 공용 **`wallBetween(from, to, target)`**(대상 모델 빼고, 맞은 게 Humanoid 모델이면 건너뛰며 최대 4번) 추가 → 창 휘두르기(`spinHits`)·신의 창(`skyfallHits`) 둘 다 이걸 씀. 플레이: 신의 창 더미에 12·12·22 + pin, 창 휘두르기 26, 오류 없음. 게시: Services(Skill).
-  - 참고: 다른 스킬의 벽 검사(terrainParams 그대로 쓰는 곳)도 더미에 같은 문제가 있을 수 있음 — 발견되면 wallBetween 으로 바꿀 것.
+  - ✔ **전체 점검 (사용자: "점검해 줘")**: `Services` 의 모든 레이캐스트를 훑음.
+    - 피해 판정 함수 중 시야(벽) 검사가 있던 건 창 휘두르기·신의 창뿐(→ wallBetween 으로 고침). 진동·삼연격·난무·광륜·처형·폭발·파도 판정은 벽 검사가 없어 더미에 원래 들어감. 투사체(castPath)·파도(wavePath)·사슬 갈고리 경로·도약 보정은 이미 Humanoid 몸을 벽으로 안 봄.
+    - **문제였던 것: 돌진 경로**(`lungePath` = 관통 돌격·섬광 베기, `chargeHits` = 어깨 돌진)가 terrainParams 로 앞을 훑어 **더미 몸 앞에서 멈춤**, 신의 창 보정(skyfallPlan)도 더미에 안 붙음 → `terrainParams()` 가 적 폴더처럼 **태그 `TrainingDummy`** 모델도 뺌(CollectionService). 더미 `DummyRegen` 이 시작할 때 태그를 달고 부품 CollisionGroup 을 **"Enemies"**(적과 같은 그룹 → 돌진 중 passThroughEnemies 로 통과)로.
+    - 플레이 확인(더미): 관통 돌격 26(47 지나감) / 사슬 갈고리 19 / 도약 찌르기 29 / 창 휘두르기 26 / 신의 창 12·12·22, 오류 없음. 다른 무기 스킬은 무기를 바꿔야 해서 실제로는 안 쏴 봄(코드로만 확인).
+    - 게시: Services(Skill) + 마을 place 저장(더미 스크립트).
 - 다음: 창 휘두르기 → 신의 창 → 관통 돌격 강화 (하나씩).
