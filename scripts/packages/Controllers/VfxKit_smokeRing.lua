@@ -5,7 +5,7 @@
 -- radius = 다 퍼졌을 때 고리 반지름(스터드). opts: duration(고리 재생 초), count(가닥 수), color, light(주변 빛 영향)
 VfxKit.SMOKE = {
 	ring = "rbxassetid://124521428851491",
-	wisp = "rbxassetid://72064605285438",
+	wisp = "rbxassetid://89179403504248", -- v2: 아래가 부드럽게 옅어짐 (v1 72064605285438 은 바닥에서 뚝 끊겨 보였음)
 }
 function VfxKit.smokeRing(ctx: Ctx, ground: Vector3, radius: number, opts: { duration: number?, count: number?, color: Color3?, light: number? }?)
 	local o = opts or {}
@@ -43,12 +43,14 @@ function VfxKit.smokeRing(ctx: Ctx, ground: Vector3, radius: number, opts: { dur
 	end)
 	-- 2. 테두리 가닥: 원 둘레 count 곳에서 바깥으로 낮게. 빠르게 나갔다 느려짐(Drag) → 이동 거리 ≈ Speed / Drag ≈ radius
 	-- 시트 칸 아래쪽이 바닥이라 파티클 중심을 크기의 0.42 위에 둠
-	local count = o.count or 14
+	-- 개수·간격·크기·나오는 시각을 들쭉날쭉하게 (똑같은 가닥이 고른 간격으로 동시에 나오면 기계적이라고 해서, 2026-11-24)
+	local count = math.max(3, (o.count or 14) + math.random(-2, 2))
 	local wispSize = math.max(radius * 0.55, 3)
 	for k = 1, count do
-		local ang = (k + math.random() * 0.6) / count * math.pi * 2
+		local ang = (k + (math.random() - 0.5) * 0.9) / count * math.pi * 2
 		local dir = Vector3.new(math.cos(ang), 0, math.sin(ang))
-		local from = ground + dir * radius * 0.15 + Vector3.new(0, wispSize * 0.42, 0)
+		local ws = wispSize * (0.7 + math.random() * 0.6)
+		local from = ground + dir * radius * (0.1 + math.random() * 0.12) + Vector3.new(0, ws * 0.36, 0) -- 가닥 아래가 부드럽게 옅어져 조금 낮춤 (0.42 → 0.36)
 		local holder = VfxKit.holder(ctx, CFrame.lookAt(from, from + dir), "SmokeWisp")
 		local e = VfxKit.emitter(ctx, holder, {
 			Texture = VfxKit.SMOKE.wisp,
@@ -57,7 +59,7 @@ function VfxKit.smokeRing(ctx: Ctx, ground: Vector3, radius: number, opts: { dur
 			Color = ColorSequence.new(color),
 			LightEmission = 0,
 			LightInfluence = light,
-			Size = VfxKit.seq({ { 0, wispSize * 0.7 }, { 1, wispSize * 1.15 } }),
+			Size = VfxKit.seq({ { 0, ws * 0.7 }, { 1, ws * 1.15 } }),
 			Transparency = VfxKit.seq({ { 0, 0.15 }, { 0.6, 0.35 }, { 1, 1 } }),
 			Lifetime = NumberRange.new(duration * 0.9, duration * 1.1),
 			Speed = NumberRange.new(radius * 2.2, radius * 2.8),
@@ -70,6 +72,10 @@ function VfxKit.smokeRing(ctx: Ctx, ground: Vector3, radius: number, opts: { dur
 		pcall(function()
 			(e :: any).FlipbookStartRandom = false
 		end)
-		e:Emit(1)
+		task.delay(math.random() * 0.08 / ctx.scale, function()
+			if e.Parent then
+				e:Emit(1)
+			end
+		end)
 	end
 end

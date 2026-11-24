@@ -117,7 +117,7 @@ def build_wisp():
     L(wadd.outputs[0], grad.inputs["Vector"])
     sep = N("ShaderNodeSeparateXYZ")
     L(tc.outputs["Object"], sep.inputs[0])
-    floor = _maprange(N, -1.0, -0.82, 0.0, 1.0)  # 바닥 면에서 살짝 위부터
+    floor = _maprange(N, -1.0, -0.4, 0.0, 1.0)  # 아래로 갈수록 서서히 옅어짐 (사용자 2026-11-24: 바닥에서 뚝 끊겨 어색 → -0.82 에서 -0.4)
     top = _maprange(N, 0.1, 0.95, 1.0, 0.0)  # 위로 갈수록 옅어짐
     L(sep.outputs["Z"], floor.inputs["Value"])
     L(sep.outputs["Z"], top.inputs["Value"])

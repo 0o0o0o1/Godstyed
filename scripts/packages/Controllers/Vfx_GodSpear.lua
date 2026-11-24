@@ -32,6 +32,7 @@ local GLASS = Color3.fromRGB(225, 255, 238)
 local IMG = {
 	auroraCurtain = "rbxassetid://128896189725887", -- 가로 반복, 아래 가장자리 밝은 띠 → 위로 청록·보라 빛살
 	auroraFlow = "rbxassetid://115207308874249", -- 가로 반복, 가운데 흰빛 → 바깥 초록·청록
+	lightning = { "rbxassetid://99501452920501", "rbxassetid://83874513440546", "rbxassetid://103476098391061", "rbxassetid://75288832809005" }, -- scripts/vfx_lightning.py
 	shock = "rbxassetid://139231006156621",
 	crack = "rbxassetid://110852548933346",
 }
@@ -48,6 +49,17 @@ local BOLT_AFTER = 0.22 -- 꽂힌 뒤 빛 줄기가 남는 시간
 local CURTAIN_SPIN = 1.1 -- 오로라 커튼 도는 속도 (라디안/초)
 local SHAKE_RANGE = 70
 
+-- AI티 줄이기 (사용자 2026-11-24): 값마다 ±k 비율로 흔들어 매번 조금씩 다르게
+local function jitter(v: number, k: number): number
+	return v * (1 + (math.random() * 2 - 1) * k)
+end
+-- 소리 높낮이를 매번 조금씩 다르게 (같은 소리가 세 번 반복돼 기계적으로 들리지 않게)
+local function vary(def: any, k: number?): any
+	local d = table.clone(def)
+	d.speed = (def.speed or 1) * jitter(1, k or 0.06)
+	return d
+end
+
 local SOUNDS = {
 	call = { id = "rbxassetid://9113450910", volume = 0.55, speed = 0.75 },
 	whoosh = { id = "rbxassetid://9114159112", volume = 0.7, speed = 1.3, fadeAfter = 0.35, range = 200 },
@@ -61,9 +73,11 @@ Kit.preloadSounds(SOUNDS)
 task.spawn(function()
 	local list = {}
 	for _, id in IMG do
-		local d = Instance.new("Decal")
-		d.Texture = id
-		table.insert(list, d)
+		for _, one in (if type(id) == "table" then id else { id }) do
+			local d = Instance.new("Decal")
+			d.Texture = one
+			table.insert(list, d)
+		end
 	end
 	pcall(function()
 		game:GetService("ContentProvider"):PreloadAsync(list)
@@ -256,7 +270,7 @@ local function makeSpear(ctx: Kit.Ctx, size: number): Spear?
 		Lifetime = NumberRange.new(0.3, 0.6),
 		Speed = NumberRange.new(1, 4),
 		SpreadAngle = Vector2.new(180, 180),
-		Rate = 30,
+		Rate = 0, -- 창끝 반짝이 분수는 뺌 (반짝이 남발이 AI티)
 	})
 	local motesAt = att(16)
 	local motes = Kit.emitter(ctx, motesAt, {
@@ -293,93 +307,51 @@ local function makeSpear(ctx: Kit.Ctx, size: number): Spear?
 	return { model = model, rig = rig, size = size, light = light, motes = motes, update = update, fade = fade }
 end
 
--- 번개 같은 빛 줄기: 하늘(top) → 창 꼬리. 꺾인 선(가운데 밀어내기 3번 = 9점) + 가지 2, Neon 막대로. 0.05초마다 다시 그림
-local function boltPoints(a: Vector3, b: Vector3, depth: number, jitter: number): { Vector3 }
-	local pts = { a, b }
-	for _ = 1, depth do
-		local nxt = { pts[1] }
-		for i = 1, #pts - 1 do
-			local p, q = pts[i], pts[i + 1]
-			local d = q - p
-			local side = d:Cross(Vector3.new(math.random() - 0.5, math.random() - 0.5, math.random() - 0.5))
-			side = if side.Magnitude > 1e-4 then side.Unit else Vector3.xAxis
-			table.insert(nxt, (p + q) / 2 + side * (math.random() - 0.5) * jitter * d.Magnitude)
-			table.insert(nxt, q)
-		end
-		pts = nxt
-	end
-	return pts
-end
-
+-- 번개 빛 줄기: 하늘(top) → 창 꼬리. Blender 번개 그림 4장(scripts/vfx_lightning.py, 가로 = 길이, 왼쪽 = 하늘)을
+-- 카메라를 보는 넓은 Beam 두 겹에 씌우고 0.05초마다 그림을 바꿔 번쩍임 (사용자 2026-11-24: Neon 막대 번개는 "퀄리티가 떨어지고 너무 가늘다")
 local function bolt(ctx: Kit.Ctx, top: Vector3, getBottom: () -> Vector3, startAt: number, endAt: number, width: number)
-	local pool: { BasePart } = {}
-	local function seg(i: number): BasePart
-		local p = pool[i]
-		if not p then
-			p = Instance.new("Part")
-			p.Name = "Bolt"
-			p.Material = Enum.Material.Neon
-			p.Color = if i % 3 == 0 then TEAL else MINT
-			Kit.decor(p)
-			p.Parent = ctx.folder
-			pool[i] = p
-		end
-		return p
+	local a0 = Instance.new("Attachment")
+	local a1 = Instance.new("Attachment")
+	local holder = Kit.holder(ctx, CFrame.new(), "Bolt")
+	a0.Parent, a1.Parent = holder, holder
+	local function layer(w: number, bright: number, alpha: number): Beam
+		return beam(a0, a1, {
+			Texture = IMG.lightning[1],
+			TextureMode = Enum.TextureMode.Stretch,
+			FaceCamera = true,
+			Brightness = bright,
+			Width0 = w,
+			Width1 = w * 0.85,
+			Segments = 2,
+			Color = ColorSequence.new(WHITE),
+			Transparency = seq({ { 0, 1 }, { 0.12, alpha }, { 1, alpha } }),
+			Enabled = false,
+		})
 	end
-	local glowA = Instance.new("Attachment")
-	local glowB = Instance.new("Attachment")
-	local holder = Kit.holder(ctx, CFrame.new(), "BoltGlow")
-	glowA.Parent, glowB.Parent = holder, holder
-	local glow = beam(glowA, glowB, {
-		Texture = IMG.auroraFlow,
-		TextureMode = Enum.TextureMode.Stretch,
-		FaceCamera = true,
-		Brightness = 2.5,
-		Width0 = width * 7,
-		Width1 = width * 5,
-		Color = ColorSequence.new(WHITE),
-		Transparency = seq({ { 0, 1 }, { 0.3, 0.3 }, { 1, 0.1 } }),
-	})
-	local nextRedraw = -1
-	local hidden = CFrame.new(0, -1e4, 0)
+	local main = layer(width, 3, 0)
+	local back = layer(width * 1.35, 1.6, 0.45) -- 다른 그림을 한 겹 더 (가지가 많아 보이게)
+	local nextSwap = -1
+	local last = 1
 	ctx:step(endAt, function(t)
 		if t < startAt then
 			return
 		end
 		if t >= endAt - 0.01 then
-			for _, p in pool do
-				p.CFrame = hidden
-			end
-			glow.Enabled = false
+			main.Enabled, back.Enabled = false, false
 			return
 		end
-		if t < nextRedraw then
+		a0.WorldPosition, a1.WorldPosition = top, getBottom()
+		if t < nextSwap then
 			return
 		end
-		nextRedraw = t + 0.05
-		local bottom = getBottom()
-		local pts = boltPoints(top, bottom, 3, 0.35)
-		local n = 0
-		local function draw(list: { Vector3 }, w: number)
-			for i = 1, #list - 1 do
-				n += 1
-				local p = seg(n)
-				local a, b = list[i], list[i + 1]
-				p.Size = Vector3.new(w, w, (b - a).Magnitude + w)
-				p.CFrame = CFrame.lookAt((a + b) / 2, b)
-			end
-		end
-		draw(pts, width)
-		for _ = 1, 2 do
-			local from = pts[math.random(3, #pts - 2)]
-			local dir = ((bottom - top).Unit + Vector3.new(math.random() - 0.5, 0, math.random() - 0.5) * 1.6).Unit
-			draw(boltPoints(from, from + dir * (bottom - top).Magnitude * 0.18, 2, 0.4), width * 0.5)
-		end
-		for i = n + 1, #pool do
-			pool[i].CFrame = hidden
-		end
-		glowA.WorldPosition, glowB.WorldPosition = top, bottom
-		glow.Brightness = 1.8 + math.random() * 1.4 -- 깜빡임
+		nextSwap = t + 0.05
+		local i = (last + math.random(0, 2)) % #IMG.lightning + 1
+		last = i
+		main.Texture = IMG.lightning[i]
+		back.Texture = IMG.lightning[(i + 1) % #IMG.lightning + 1]
+		main.Enabled, back.Enabled = true, true
+		main.Brightness = 2.4 + math.random() * 1.2 -- 깜빡임
+		back.Brightness = 1.2 + math.random() * 0.8
 	end)
 end
 
@@ -442,7 +414,8 @@ end
 -- 꽂힘 충격 (big = 가운데 큰 창)
 local function impactFx(ctx: Kit.Ctx, ground: Vector3, radius: number, big: boolean)
 	local flashHolder = Kit.holder(ctx, CFrame.new(ground + Vector3.new(0, 3, 0)), "ImpactFlash")
-	local board = Kit.billboard(flashHolder, radius * 2.6, 3)
+	-- 주인공 = 큰 창. 작은 창은 섬광·충격파·불뛰·돌을 줄이고 균열은 뺌, 큰 창은 요소마다 시간차(0.02~0.06초)
+	local board = Kit.billboard(flashHolder, radius * (if big then 2.6 else 1.6), 3)
 	local flash = Kit.image(board, T.HolyFlare, 0.3, 1)
 	flash.ImageColor3 = GREEN
 	ctx:tween(flash, 0.04, { Size = UDim2.fromScale(1, 1) })
@@ -452,9 +425,10 @@ local function impactFx(ctx: Kit.Ctx, ground: Vector3, radius: number, big: bool
 	light.Parent = flashHolder
 	ctx:tween(light, 0.3, { Brightness = 0 })
 	-- 충격파 시트
-	local _, shockGui = groundGui(ctx, ground, radius * 2.6, "ImpactShock", 0, 2.5, math.random() * math.pi * 2)
+	local _, shockGui = groundGui(ctx, ground, radius * (if big then 2.6 else 2.0), "ImpactShock", 0, 2.5, math.random() * math.pi * 2)
 	playSheet(ctx, shockGui, IMG.shock, if big then 0.8 else 0.55)
-	-- 빛 균열: 어두운 선 + 청록 → 초록 빛 (그림 1 의 빛나는 균열)
+	-- 빛 균열: 큰 창에만 (같은 균열 그림이 세 자리에 반복돼 보였음), 0.03초 뒤 / 어두운 선 + 청록 빛
+	if big then ctx:at(0.03, function()
 	local yaw = math.random() * math.pi * 2
 	local _, lineGui = groundGui(ctx, ground, radius * 2.2, "ImpactCrack", 1, 1, yaw)
 	local lines = Instance.new("ImageLabel")
@@ -476,9 +450,12 @@ local function impactFx(ctx: Kit.Ctx, ground: Vector3, radius: number, big: bool
 		ctx:tween(l, 0.12, { Size = UDim2.fromScale(1, 1), Position = UDim2.fromScale(0, 0) }, Enum.EasingStyle.Quart, Enum.EasingDirection.Out)
 	end
 	ctx:tween(glow, 1.2, { ImageTransparency = 1 }, Enum.EasingStyle.Quad, Enum.EasingDirection.In, if big then 1.4 else 0.5)
-	ctx:tween(lines, 0.9, { ImageTransparency = 1 }, Enum.EasingStyle.Quad, Enum.EasingDirection.In, if big then 2.6 else 1.4)
+	ctx:tween(lines, 0.9, { ImageTransparency = 1 }, Enum.EasingStyle.Quad, Enum.EasingDirection.In, 2.6)
+	end) end
 	-- 연기 고리 (바닥에 낮게 깔려 바깥으로)
-	Kit.smokeRing(ctx, ground, radius * 1.1, { duration = if big then 1.5 else 1.0, count = if big then 18 else 10 })
+	ctx:at(0.06, function()
+		Kit.smokeRing(ctx, ground, radius * jitter(1.1, 0.1), { duration = if big then 1.5 else 1.0, count = if big then 14 else 7 })
+	end)
 	-- 불뛰
 	local at = Kit.holder(ctx, CFrame.new(ground + Vector3.new(0, 1, 0)), "ImpactSparks")
 	at.Size = Vector3.new(radius * 0.3, 0.2, radius * 0.3)
@@ -494,13 +471,17 @@ local function impactFx(ctx: Kit.Ctx, ground: Vector3, radius: number, big: bool
 		Acceleration = Vector3.new(0, -60, 0),
 		Drag = 2.5,
 		Shape = Enum.ParticleEmitterShape.Box,
-	}):Emit(if big then 60 else 25)
-	rocks(ctx, ground, if big then 14 else 6, if big then 1 else 0.7)
+	}):Emit(if big then 40 else 12)
+	ctx:at(0.02, function()
+		rocks(ctx, ground, if big then 12 else 4, if big then 1 else 0.7)
+	end)
 	if big then
-		slabs(ctx, ground, radius / 9)
+		ctx:at(0.04, function()
+			slabs(ctx, ground, radius / 9)
+		end)
 	end
-	Kit.sound(if big then SOUNDS.landBig else SOUNDS.land, ground)
-	Kit.sound(SOUNDS.stab, ground)
+	Kit.sound(vary(if big then SOUNDS.landBig else SOUNDS.land), ground)
+	Kit.sound(vary(SOUNDS.stab, 0.1), ground)
 	local me = Players.LocalPlayer.Character
 	local myRoot = me and me:FindFirstChild("HumanoidRootPart")
 	if myRoot and myRoot:IsA("BasePart") then
@@ -514,7 +495,7 @@ end
 
 -- 창 하나: hitAt 에 ground 에 꽂힘, removeAt 에 흩어짐 (시각은 연출 시작 기준)
 local function strike(ctx: Kit.Ctx, ground: Vector3, radius: number, size: number, hitAt: number, removeAt: number, big: boolean)
-	local startAt = math.max(hitAt - FALL_TIME, 0)
+	local startAt = math.max(hitAt - jitter(FALL_TIME, 0.15), 0)
 	-- 예고: 꽂힐 자리에 빛 고리가 번쩍하며 조여듦
 	ctx:at(math.max(startAt - 0.05, 0), function()
 		local ring = Kit.holder(ctx, CFrame.new(ground + Vector3.new(0, 0.1, 0)), "StrikeMark")
@@ -531,11 +512,11 @@ local function strike(ctx: Kit.Ctx, ground: Vector3, radius: number, size: numbe
 			return
 		end
 		local s = spear :: Spear
-		local tilt = CFrame.Angles(0, math.random() * math.pi * 2, 0) * CFrame.Angles(math.rad(SPEAR_TILT), 0, 0)
+		local tilt = CFrame.Angles(0, math.random() * math.pi * 2, 0) * CFrame.Angles(math.rad(jitter(SPEAR_TILT, 0.6)), 0, 0)
 		local rest = CFrame.new(ground - Vector3.new(0, SPEAR_SINK * size, 0)) * tilt
-		local sky = rest + Vector3.new(0, (SKY_HEIGHT + SPEAR_SINK) * size, 0)
+		local sky = rest + Vector3.new(0, (jitter(SKY_HEIGHT, 0.15) + SPEAR_SINK) * size, 0)
 		s.model:PivotTo(sky)
-		Kit.sound(SOUNDS.whoosh, ground + Vector3.new(0, 20, 0))
+		Kit.sound(vary(SOUNDS.whoosh, 0.1), ground + Vector3.new(0, 20, 0))
 		local t0 = ctx:clock()
 		local fall = hitAt - startAt
 		-- 낙하(가속) + 오로라 커튼 회전
@@ -548,10 +529,10 @@ local function strike(ctx: Kit.Ctx, ground: Vector3, radius: number, size: numbe
 		local topPoint = ground + Vector3.new(math.random(-6, 6), BOLT_TOP, math.random(-6, 6))
 		bolt(ctx, topPoint, function()
 			return s.model:GetPivot() * Vector3.new(0, 40 * size, 0)
-		end, t0, t0 + fall + BOLT_AFTER, if big then 0.45 else 0.3)
+		end, t0, t0 + fall + BOLT_AFTER, if big then 8 else 5)
 		ctx:at(fall, function()
 			s.light.Brightness = if big then 3 else 2
-			s.motes.Rate = if big then 45 else 25
+			s.motes.Rate = if big then 10 else 0 -- 박혀 있는 동안 주인공은 오로라 흐름, 반짝이는 조금만
 			impactFx(ctx, ground, radius, big)
 		end)
 		-- 흩어짐: 창 길이를 따라 오로라 빛 알갱이로
@@ -559,7 +540,7 @@ local function strike(ctx: Kit.Ctx, ground: Vector3, radius: number, size: numbe
 			if not s.model.Parent then
 				return
 			end
-			Kit.sound(SOUNDS.shatter, ground + Vector3.new(0, 8, 0))
+			Kit.sound(vary(SOUNDS.shatter, 0.1), ground + Vector3.new(0, 8, 0))
 			s.fade()
 			local burst = Kit.holder(ctx, rest * CFrame.new(0, (SPEAR_SINK + 16) * size, 0), "SpearBurst")
 			burst.Size = Vector3.new(2 * size, 32 * size, 2 * size)
@@ -574,7 +555,7 @@ local function strike(ctx: Kit.Ctx, ground: Vector3, radius: number, size: numbe
 				SpreadAngle = Vector2.new(180, 180),
 				Drag = 3,
 				Shape = Enum.ParticleEmitterShape.Box,
-			}):Emit(if big then 110 else 50)
+			}):Emit(if big then 45 else 18)
 			Debris:AddItem(s.model, 0.6)
 		end)
 	end)

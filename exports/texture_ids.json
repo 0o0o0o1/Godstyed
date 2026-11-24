@@ -182,14 +182,24 @@
     "SmokeRing": {
       "_note": "착지 연기 고리 (scripts/vfx_smoke_ring.py, 8x8 칸 128). VfxKit.smokeRing 이 씀 (신의 창·도약 찌르기). Ring = 위에서 본 고리(바닥 SurfaceGui), Wisp = 옆에서 본 낮은 가닥(파티클). 이미지 ID (Decal 업로드 childOperations)",
       "Ring": "rbxassetid://124521428851491",
-      "Wisp": "rbxassetid://72064605285438",
-      "_decals": "Ring 111866890036829, Wisp 90259494841180"
+      "Wisp": "rbxassetid://89179403504248",
+      "_decals": "Ring 111866890036829, Wisp 90259494841180",
+      "_wisp_v1": "72064605285438 (아래가 평평하게 잘려 폐기)"
     },
     "GodSpearAurora": {
       "_note": "신의 창 오로라 (scripts/vfx_aurora.py). 가로 반복 → Beam Wrap + TextureSpeed. Curtain 1024x256 창을 감는 띠, Flow 1024x128 날 속 빛",
       "Curtain": "rbxassetid://128896189725887",
       "Flow": "rbxassetid://115207308874249",
       "_decals": "Curtain 119081342051569, Flow 106231963820349"
+    },
+    "GodSpearLightning": {
+      "_note": "scripts/vfx_lightning.py, 1024x256 가로 = 길이(왼쪽 하늘). Beam Stretch 두 겹, 0.05초마다 교체",
+      "Images": [
+        "rbxassetid://99501452920501",
+        "rbxassetid://83874513440546",
+        "rbxassetid://103476098391061",
+        "rbxassetid://75288832809005"
+      ]
     }
   }
 }
