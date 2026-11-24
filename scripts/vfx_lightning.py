@@ -164,5 +164,69 @@ def bolt(index, seed):
     print("rendered", path)
 
 
-for i, seed in enumerate((11, 29, 47, 83), start=1):
-    bolt(i, seed)
+if not globals().get("ONLY_BLADES"):
+    for i, seed in enumerate((11, 29, 47, 83), start=1):
+        bolt(i, seed)
+
+
+# ---- 옆으로 튀는 번개 날 (2026-11-24, 박힐 때 연출: 참고 그림의 굵고 각진 번개 모양) ----
+# 512x256, 왼쪽 = 꽂힌 자리 쪽(뿌리, 굵음), 오른쪽 = 바깥 끝(가늘어지며 끝남). 3~5번 크게 꺾인 지그재그 + 끝에 작은 갈고리
+def blade(index, seed):
+    import numpy as np
+    global W, H, ASPECT
+    W, H = 512, 256
+    ASPECT = H / W
+    sc = scene()
+    rng = random.Random(seed)
+    m_core = glow_mat("BCore%d" % index, WHITE, 6.0, 1.0)
+    m_in = glow_mat("BIn%d" % index, MINT, 3.0, 0.85)
+    # 고르지 않은 꺾임 (v1 은 같은 간격 지그재그라 "W" 글자처럼 규칙적이었음):
+    # 구간 길이를 무작위 비율로 나누고, 꺾임 높이도 방향만 번갈아 크기는 제각각, 한 구간은 길게
+    n = rng.randint(3, 4)
+    weights = [rng.uniform(0.6, 1.6) for _ in range(n)]
+    weights[rng.randrange(n)] *= 1.8
+    total = sum(weights)
+    pts = [(-0.95, rng.uniform(-0.05, 0.05))]
+    x = -0.95
+    sign = 1 if rng.random() < 0.5 else -1
+    for k in range(n):
+        x += 1.75 * weights[k] / total
+        sign = -sign
+        y = sign * rng.uniform(0.25, 0.8) * ASPECT * 0.75
+        pts.append((x, y))
+    # 끝 갈고리 (짧게 되꺾임)
+    hx, hy = pts[-1]
+    pts.append((hx - rng.uniform(0.1, 0.2), hy - (1 if hy > 0 else -1) * rng.uniform(0.15, 0.3) * ASPECT))
+    # 구간마다 잔 꺾임 (작게)
+    fine = [pts[0]]
+    for i in range(len(pts) - 1):
+        seg = jag(pts[i], pts[i + 1], 2, 0.18, rng)
+        fine.extend(seg[1:])
+    pts = [(x, max(-ASPECT * 0.85, min(ASPECT * 0.85, y))) for x, y in fine]
+    curve(sc, "BladeIn", pts, 0.05, m_in, taper_end=0.15)
+    curve(sc, "BladeCore", pts, 0.022, m_core, taper_end=0.1)
+    tmp = os.path.join(OUT, "_blade_tmp.png")
+    sc.render.filepath = tmp
+    bpy.ops.render.render(write_still=True, scene=sc.name)
+    img = bpy.data.images.load(tmp, check_existing=False)
+    px = np.array(img.pixels[:], np.float32).reshape(H, W, 4)
+    bpy.data.images.remove(img)
+    os.remove(tmp)
+    base = px[:, :, :3] * px[:, :, 3:4]
+    lum = base.max(axis=2, keepdims=True)
+    rgb = base + blur(lum, 3.0) * np.array(TEAL) * 2.0 + blur(lum, 10.0) * np.array((0.3, 1.0, 0.65)) * 2.2 + blur(lum, 22.0) * np.array((0.55, 0.6, 1.0)) * 1.6
+    a = np.clip(rgb.max(axis=2, keepdims=True), 0, 1)
+    col = np.clip(rgb / np.maximum(a, 1e-4), 0, 1)
+    o = bpy.data.images.new("Blade%d" % index, W, H, alpha=True)
+    o.pixels[:] = np.concatenate([col, a], axis=2).ravel()
+    path = os.path.join(OUT, "LightningBlade%d.png" % index)
+    o.filepath_raw = path
+    o.file_format = "PNG"
+    o.save()
+    bpy.data.images.remove(o)
+    print("rendered", path)
+
+
+if globals().get("ONLY_BLADES"):
+    for i, seed in enumerate((5, 17, 33), start=1):
+        blade(i, seed)

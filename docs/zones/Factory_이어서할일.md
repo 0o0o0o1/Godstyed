@@ -792,6 +792,11 @@
     - 번개 v2: `vfx_lightning.py` 1024x128 (8:1), 잔 꺾임 더(DECAY 0.82, 6단계), 심 가늘게 → 띠 **한 장**(마디 없음)에 씌움. **길이 고정**(큰 창 140·폭 16 / 작은 창 96·11 = 그림 비율) — 아래 끝(창끝→땅)에서 위로, 하늘 쪽 끝 30% 투명. 두 겹 0.05초마다 그림 교체. ID → `VFX.GodSpearLightning`.
     - 플레이 확인: 바닥에 고정한 훈련용 적 4(가운데·8·10·12 거리) → 0.25/0.40/0.61초 세 번 모두 4마리 피해 + 속박. 오류 없음.
     - ⚠ 테스트 함정: 풀어 둔 훈련용 적이 내 캐릭터 위·옆으로 몰려오면 조준이 위로 꺾여(±55°) 엉뚱한 곳에 꽂힘 → 적을 Anchored 로 바닥에 고정하고 바닥 점을 조준할 것.
+  - ✔ **박힐 때 연출 추가 (2026-11-24, 사용자 참고 그림: 번개가 꽂힌 자리 꽃잎 날개·옆 번개·빛 돔)**. 결정(사용자): 꽃잎 날개(어두운 색 말고 **밝은 빛**, v1 둥근 꽃잎 → "더 길고 날카롭게") / 옆으로 튀는 번개 날 / 바닥 빛 돔 / 타격감(떨림·줌·번쩍) / **돌은 범위 전체로 넓게 + 바깥에서 솟구치는 돌 하나 더**.
+    - 메시 `scripts/vfx_god_spear_impact.py` → Model **115679458568936** → `Assets.Vfx.GodSpearImpact` (Petal 길이 8.5 칼날형·Ring 토러스·Dome 반구·Shard1~4 뾰족 돌, Neon, 피벗 = 뿌리). ⚠ 이 FBX 는 Blender (x, y, z) → Roblox 로컬 (−x, z, y) 로 들어옴 → 꽃잎은 로컬 **+Z** 쪽으로 휨. ⚠ MeshPart 는 Size 를 바꿔도 PivotOffset 이 그대로 → `scalePart()` 로 같이 늘림.
+    - 옆 번개 날 그림: `vfx_lightning.py` `blade()` (ONLY_BLADES=True), 512x256, 구간 길이·꺾임 높이 무작위 + 끝 갈고리 (v1 은 같은 간격 "W" 라 규칙적). ID → `VFX.GodSpearImpact.Blades`.
+    - 연출 `Vfx.GodSpear`: `impactBloom()` — 빛 돔(0.08초 부풀어 0.35초에 커지며 사라짐, 연초록→청록) + 엷은 보라 고리(퍼짐) + 꽃잎 날개 큰 창 12·작은 창 7(뿌리 둘레, 0.12초에 솟으며 5~13° → 28~44° 바깥으로 펼쳐지고 사라짐) + 옆 번개 날 큰 창 6·작은 창 3(0.07초에 뻗고 0.25초에 사라짐). `rocks()` = 판정 반경 원판 전체에 큰 창 22·작은 창 8, 먼 돌일수록 0.08초까지 늦게. `outerShards()` = 큰 창에만 테두리(반경 ×0.82~1)에서 뾰족 돌 9개가 바깥으로 기울어 솟았다(0.09초) 버티고 가라앉음 + 작은 돌·불뛰. `hitFeel()` = 70 안이면 줌(FOV −7/−3) + ColorCorrection 짧은 밝아짐. 창은 박히는 순간 0.18초 부르르 떨림.
+    - 확인: 플레이 느린 재생 캡처(확인용)로 돔·고리·꽃잎·옆 번개·돌판·번개가 같이 나옴, 스크립트 오류 없음. 새 그림은 올린 직후라 "being generated" — 잠시 뒤 보임. **실제 속도 느낌은 사용자 확인 필요**.
   - 다음: 사용자 피드백 → 시전 모션(선택)(예고 원·하늘에서 내리꽂힘·충격·속박 사슬/빛 조각, phase "pin" 의 targets 에 붙임) → 시전 모션. 지금은 연출 모듈이 없어 눈에 보이는 게 없음.
-  - 게시할 패키지(지금까지): Shared(Skills·PolearmRelics·StatusEffects), Services(StatusEffect·Skill), Controllers(MovementController·SkillController·VfxKit·Vfx.LeapStrike·**Vfx.GodSpear 새 모듈**), **Assets(Vfx.GodSpear 메시, 패키지 v15)**.
+  - 게시할 패키지(지금까지): Shared(Skills·PolearmRelics·StatusEffects), Services(StatusEffect·Skill), Controllers(MovementController·SkillController·VfxKit·Vfx.LeapStrike·**Vfx.GodSpear 새 모듈**), **Assets(Vfx.GodSpear·Vfx.GodSpearImpact 메시, 패키지 v15)**.
 - 다음: 창 휘두르기 → 신의 창 → 관통 돌격 강화 (하나씩).

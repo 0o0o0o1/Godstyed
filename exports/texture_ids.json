@@ -206,6 +206,15 @@
         "103476098391061",
         "75288832809005"
       ]
+    },
+    "GodSpearImpact": {
+      "_note": "신의 창 박힐 때. 메시 scripts/vfx_god_spear_impact.py → Model 115679458568936 → Assets.Vfx.GodSpearImpact (Petal·Ring·Dome·Shard1~4, 피벗 = 뿌리). 옆 번개 날 그림 vfx_lightning.py blade (512x256)",
+      "Model": "115679458568936",
+      "Blades": [
+        "rbxassetid://122257731149287",
+        "rbxassetid://138857019741172",
+        "rbxassetid://112634341954437"
+      ]
     }
   }
 }

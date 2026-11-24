@@ -35,6 +35,7 @@ local IMG = {
 	lightning = { "rbxassetid://77421751359118", "rbxassetid://121014956046177", "rbxassetid://84844745264959", "rbxassetid://130450657168303" }, -- scripts/vfx_lightning.py v2 (8:1, 1024x128)
 	shock = "rbxassetid://139231006156621",
 	crack = "rbxassetid://110852548933346",
+	blades = { "rbxassetid://122257731149287", "rbxassetid://138857019741172", "rbxassetid://112634341954437" }, -- 옆으로 튀는 번개 날 (vfx_lightning.py blade)
 }
 local SHEET_GRID, SHEET_CELL = 8, 128
 
@@ -425,26 +426,237 @@ local function groundArcs(ctx: Kit.Ctx, center: Vector3, reach: number, count: n
 	end)
 end
 
-local function rocks(ctx: Kit.Ctx, ground: Vector3, count: number, speed: number)
+-- 돌 파편: 범위 전체(반지름 spread 원판)에 흩어져 튀어 오름. 가운데에서 먼 돌일수록 조금 늦게(충격이 퍼져 나가는 느낌)
+-- (사용자 2026-11-24: 가운데만 좁게 튀어서 범위만큼 넓게)
+local function rocks(ctx: Kit.Ctx, ground: Vector3, spread: number, count: number, speed: number)
 	local src = assets("LeapStrike")
 	local folder = src and src:FindFirstChild("Rocks")
 	local list = folder and folder:GetChildren() or {}
 	if #list == 0 then
 		return
 	end
-	for i = 1, count do
-		local r = (list[math.random(1, #list)] :: BasePart):Clone()
-		r.Size *= math.random(70, 170) / 100
-		local ang = (i / count) * math.pi * 2 + math.random() * 0.5
+	for _ = 1, count do
+		local ang = math.random() * math.pi * 2
+		local r = spread * 0.9 * math.sqrt(math.random())
 		local dir = Vector3.new(math.cos(ang), 0, math.sin(ang))
-		r.CFrame = CFrame.new(ground + dir * 1.5 + Vector3.new(0, 0.8, 0)) * CFrame.Angles(math.random() * 6, math.random() * 6, math.random() * 6)
-		r.Anchored = false
-		r.CanCollide = true
+		ctx:at(0.08 * r / spread, function()
+			local rock = (list[math.random(1, #list)] :: BasePart):Clone()
+			rock.Size *= math.random(70, 170) / 100
+			rock.CFrame = CFrame.new(ground + dir * r + Vector3.new(0, 0.6, 0)) * CFrame.Angles(math.random() * 6, math.random() * 6, math.random() * 6)
+			rock.Anchored = false
+			rock.CanCollide = true
+			rock.Parent = ctx.folder
+			local up = (1 - 0.45 * r / spread)
+			rock.AssemblyLinearVelocity = dir * math.random(6, 18) * speed + Vector3.new(0, math.random(16, 32) * speed * up, 0)
+			rock.AssemblyAngularVelocity = Vector3.new(math.random(-15, 15), math.random(-15, 15), math.random(-15, 15))
+			ctx:tween(rock, 0.4, { Transparency = 1 }, Enum.EasingStyle.Quad, Enum.EasingDirection.In, 1.1)
+			Debris:AddItem(rock, 1.7)
+		end)
+	end
+end
+
+-- 크기를 바꿀 때 피벗(뿌리)도 같이 늘림 (MeshPart 는 Size 를 바꿔도 PivotOffset 이 그대로라 뿌리가 어긋남)
+local function scalePart(p: BasePart, base: Vector3, baseOff: Vector3, s: number)
+	p.Size = base * s
+	p.PivotOffset = CFrame.new(-baseOff * s)
+end
+
+local function impactPart(name: string): (BasePart?, Vector3, Vector3)
+	local src = assets("GodSpearImpact")
+	local tpl = src and src:FindFirstChild(name)
+	if not (tpl and tpl:IsA("BasePart")) then
+		return nil, Vector3.zero, Vector3.zero
+	end
+	local p = tpl:Clone()
+	Kit.decor(p)
+	return p, tpl.Size, -tpl.PivotOffset.Position
+end
+
+-- 바깥 테두리에서 땅을 뚫고 솟구치는 뾰족 돌 (사용자 2026-11-24: 돌 이펙트 하나 더, 바깥에서 튀게)
+-- 충격이 테두리에 닿는 순간(0.05~0.11초) 바깥으로 기울어 솟았다가, 잠깐 버티고 가라앉으며 사라짐. 솟을 때 작은 돌·불뛰
+local function outerShards(ctx: Kit.Ctx, ground: Vector3, radius: number, count: number)
+	for k = 1, count do
+		local ang = (k + (math.random() - 0.5) * 0.7) / count * math.pi * 2
+		local dir = Vector3.new(math.cos(ang), 0, math.sin(ang))
+		local pos = ground + dir * radius * (0.82 + math.random() * 0.18)
+		ctx:at(0.05 + math.random() * 0.06, function()
+			local p, base, off = impactPart("Shard" .. math.random(1, 4))
+			if not p then
+				return
+			end
+			local shard = p :: BasePart
+			local s = 0.9 + math.random() * 0.7
+			scalePart(shard, base, off, s)
+			shard.Material = Enum.Material.Slate
+			shard.Color = Color3.fromRGB(88, 94, 100):Lerp(Color3.fromRGB(120, 150, 140), math.random() * 0.3)
+			local axis = Vector3.yAxis:Cross(dir)
+			local up = CFrame.new(pos) * CFrame.fromAxisAngle(axis, -math.rad(18 + math.random() * 18)) * CFrame.Angles(0, math.random() * 6.28, 0)
+			local h = base.Y * s
+			local down = up - Vector3.new(0, h + 0.4, 0)
+			shard:PivotTo(down)
+			shard.Parent = ctx.folder
+			local t0 = ctx:clock()
+			local hold = 0.45 + math.random() * 0.25
+			ctx:step(t0 + 0.09 + hold + 0.45, function(t)
+				local e = t - t0
+				local cf
+				if e < 0.09 then
+					local k2 = e / 0.09
+					local back = 1 + 2.2 * (k2 - 1) ^ 3 + 1.2 * (k2 - 1) ^ 2 -- 살짝 넘쳤다 제자리 (Back)
+					cf = down:Lerp(up, math.clamp(back, 0, 1.08))
+				elseif e < 0.09 + hold then
+					cf = up
+				else
+					local k3 = math.clamp((e - 0.09 - hold) / 0.45, 0, 1)
+					cf = up:Lerp(down, k3 * k3)
+					shard.Transparency = k3
+				end
+				shard:PivotTo(cf)
+			end)
+			-- 솟을 때 작은 돌 두어 개 + 불뛰
+			rocks(ctx, pos, 1.5, 2, 0.6)
+			local at = Kit.holder(ctx, CFrame.new(pos + Vector3.new(0, 0.5, 0)), "ShardSparks")
+			Kit.emitter(ctx, at, {
+				Texture = "rbxasset://textures/particles/sparkles_main.dds",
+				Color = ColorSequence.new(WHITE, TEAL),
+				LightEmission = 1,
+				Size = seq({ { 0, 0.3 }, { 1, 0 } }),
+				Lifetime = NumberRange.new(0.2, 0.45),
+				Speed = NumberRange.new(10, 22),
+				SpreadAngle = Vector2.new(50, 50),
+				EmissionDirection = Enum.NormalId.Top,
+				Acceleration = Vector3.new(0, -50, 0),
+			}):Emit(6)
+			Debris:AddItem(shard, 0.09 + hold + 0.5)
+		end)
+	end
+end
+
+-- 박힐 때 빛 (사용자 2026-11-24 참고 그림: 꽂힌 자리의 빛 돔 + 보랏빛 테두리 고리 + 꽃잎처럼 솟는 날개(밝은 빛) + 옆으로 튀는 번개 날)
+local function impactBloom(ctx: Kit.Ctx, ground: Vector3, radius: number, big: boolean)
+	local k = radius / 18
+	local t0 = ctx:clock()
+	-- 빛 돔: 0.08초에 부풀고(살짝 넘침) 0.35초 동안 더 커지며 사라짐
+	local dome, dBase, dOff = impactPart("Dome")
+	if dome then
+		local d = dome :: BasePart
+		d.Color = Color3.fromRGB(215, 255, 235)
+		d.Transparency = 0.1
+		d.Parent = ctx.folder
+		local dmax = 5.5 * k
+		ctx:step(t0 + 0.45, function(t)
+			local e = t - t0
+			local grow = if e < 0.08 then (e / 0.08) * 1.15 else 1.15 - 0.15 * math.min((e - 0.08) / 0.05, 1) + 0.3 * math.max(e - 0.13, 0) / 0.32
+			scalePart(d, dBase, dOff, math.max(dmax * grow, 0.05))
+			d:PivotTo(CFrame.new(ground))
+			d.Transparency = 0.1 + 0.9 * math.clamp((e - 0.1) / 0.35, 0, 1)
+			d.Color = Color3.fromRGB(215, 255, 235):Lerp(TEAL, math.clamp(e / 0.3, 0, 1))
+		end)
+	end
+	-- 테두리 고리 (엷은 보라): 돔 둘레에서 바깥으로 퍼지며 사라짐
+	local ring, rBase, rOff = impactPart("Ring")
+	if ring then
+		local r = ring :: BasePart
+		r.Color = VIOLET
+		r.Transparency = 0.1
 		r.Parent = ctx.folder
-		r.AssemblyLinearVelocity = dir * math.random(14, 30) * speed + Vector3.new(0, math.random(18, 36) * speed, 0)
-		r.AssemblyAngularVelocity = Vector3.new(math.random(-15, 15), math.random(-15, 15), math.random(-15, 15))
-		ctx:tween(r, 0.4, { Transparency = 1 }, Enum.EasingStyle.Quad, Enum.EasingDirection.In, 1.1)
-		Debris:AddItem(r, 1.6)
+		ctx:step(t0 + 0.4, function(t)
+			local e = math.clamp((t - t0) / 0.4, 0, 1)
+			scalePart(r, rBase, rOff, (0.9 + 1.6 * (1 - (1 - e) ^ 3)) * 5.5 * k)
+			r:PivotTo(CFrame.new(ground + Vector3.new(0, 0.25, 0)))
+			r.Transparency = 0.1 + 0.9 * e * e
+		end)
+	end
+	-- 꽃잎 날개: 뿌리가 둘레에 있고 바깥으로 기울어 솟으며 펼쳐졌다 사라짐 (밝은 빛, 줄기마다 조금씩 다르게)
+	local n = if big then 12 else 7
+	local len = if big then 1 else 0.6
+	for i = 1, n do
+		local p, pBase, pOff = impactPart("Petal")
+		if not p then
+			break
+		end
+		local petal = p :: BasePart
+		petal.Color = Color3.fromRGB(200, 255, 225):Lerp(TEAL, math.random() * 0.6)
+		petal.Transparency = 0.2
+		petal.Parent = ctx.folder
+		local ang = (i + (math.random() - 0.5) * 0.6) / n * math.pi * 2
+		local dir = Vector3.new(math.cos(ang), 0, math.sin(ang))
+		local rootPos = ground + dir * 1.2 * k
+		-- 로컬 +Z(휘어 넘어가는 쪽) = 바깥
+		local face = CFrame.lookAt(rootPos, rootPos - dir)
+		local sc = len * k * (0.8 + math.random() * 0.4)
+		local tilt0, tilt1 = 5 + math.random() * 8, 28 + math.random() * 16
+		local delay = math.random() * 0.03
+		ctx:step(t0 + delay + 0.5, function(t)
+			local e = t - t0 - delay
+			if e < 0 then
+				scalePart(petal, pBase, pOff, 0.01)
+				petal:PivotTo(face)
+				return
+			end
+			local g = math.clamp(e / 0.12, 0, 1)
+			g = 1 - (1 - g) ^ 3
+			local tl = tilt0 + (tilt1 - tilt0) * math.clamp(e / 0.3, 0, 1)
+			scalePart(petal, pBase, pOff, math.max(sc * g, 0.01))
+			petal:PivotTo(face * CFrame.Angles(math.rad(tl), 0, 0))
+			petal.Transparency = 0.2 + 0.8 * math.clamp((e - 0.14) / 0.3, 0, 1)
+		end)
+	end
+	-- 옆으로 튀는 번개 날: 가운데에서 바깥으로 0.07초에 뻗고 0.25초에 사라짐, 그림을 0.05초마다 바꿈
+	local m = if big then 6 else 3
+	for i = 1, m do
+		local ang = (i + (math.random() - 0.5) * 0.8) / m * math.pi * 2
+		local dir = (Vector3.new(math.cos(ang), 0, math.sin(ang)) + Vector3.new(0, 0.12 + math.random() * 0.2, 0)).Unit
+		local L = (if big then 13 else 8) * (0.8 + math.random() * 0.4)
+		local holder = Kit.holder(ctx, CFrame.new(ground + Vector3.new(0, 1.2, 0)), "SideBlade")
+		local a0 = Instance.new("Attachment")
+		local a1 = Instance.new("Attachment")
+		a0.Parent, a1.Parent = holder, holder
+		local b = beam(a0, a1, {
+			Texture = IMG.blades[math.random(1, #IMG.blades)],
+			TextureMode = Enum.TextureMode.Stretch,
+			FaceCamera = true,
+			Brightness = 3,
+			Width0 = L * 0.5,
+			Width1 = L * 0.5,
+			Segments = 1,
+			Color = ColorSequence.new(WHITE),
+		})
+		local nextSwap = -1
+		local start = 1.2 * k
+		ctx:step(t0 + 0.32, function(t)
+			local e = t - t0
+			local g = math.clamp(e / 0.07, 0, 1)
+			a0.Position = dir * start
+			a1.Position = dir * (start + L * g)
+			b.Width0, b.Width1 = L * 0.5 * g, L * 0.5 * g
+			b.Transparency = seq({ { 0, math.clamp((e - 0.07) / 0.25, 0, 1) }, { 1, math.clamp((e - 0.07) / 0.25, 0, 1) } })
+			if e >= nextSwap then
+				nextSwap = e + 0.05
+				b.Texture = IMG.blades[math.random(1, #IMG.blades)]
+			end
+		end)
+	end
+end
+
+-- 타격감: 가까이 있는 내 화면만 — 순간 당겨지는 줌 + 짧게 밝아짐 (큰 창은 세게)
+local function hitFeel(ctx: Kit.Ctx, ground: Vector3, big: boolean)
+	local me = Players.LocalPlayer.Character
+	local myRoot = me and me:FindFirstChild("HumanoidRootPart")
+	if not (myRoot and myRoot:IsA("BasePart")) or (myRoot.Position - ground).Magnitude > SHAKE_RANGE then
+		return
+	end
+	Kit.fovKick(if big then -7 else -3, 0.03 / ctx.scale, 0.03 / ctx.scale, 0.22 / ctx.scale)
+	local cam = workspace.CurrentCamera
+	if cam then
+		local cc = Instance.new("ColorCorrectionEffect")
+		cc.Name = "GodSpearFlash"
+		cc.Brightness = if big then 0.12 else 0.05
+		cc.Contrast = if big then 0.12 else 0.05
+		cc.TintColor = Color3.fromRGB(225, 255, 240)
+		cc.Parent = cam
+		ctx:tween(cc, 0.18, { Brightness = 0, Contrast = 0, TintColor = WHITE })
+		Debris:AddItem(cc, 0.3 / ctx.scale)
 	end
 end
 
@@ -482,7 +694,8 @@ local function slabs(ctx: Kit.Ctx, ground: Vector3, scale: number)
 end
 
 -- 꽂힘 충격 (big = 가운데 큰 창)
-local function impactFx(ctx: Kit.Ctx, ground: Vector3, radius: number, big: boolean)
+-- radius = 연출 크기 (작은 창은 판정 반경 × 0.6), fullRadius = 판정 반경 (돌 퍼지는 범위·바깥 돌)
+local function impactFx(ctx: Kit.Ctx, ground: Vector3, radius: number, big: boolean, fullRadius: number)
 	local flashHolder = Kit.holder(ctx, CFrame.new(ground + Vector3.new(0, 3, 0)), "ImpactFlash")
 	-- 주인공 = 큰 창. 작은 창은 섬광·충격파·불뛰·돌을 줄이고 균열은 뺌, 큰 창은 요소마다 시간차(0.02~0.06초)
 	local board = Kit.billboard(flashHolder, radius * (if big then 2.6 else 1.6), 3)
@@ -541,13 +754,16 @@ local function impactFx(ctx: Kit.Ctx, ground: Vector3, radius: number, big: bool
 		Shape = Enum.ParticleEmitterShape.Box,
 	}):Emit(if big then 40 else 12)
 	ctx:at(0.02, function()
-		rocks(ctx, ground, if big then 12 else 4, if big then 1 else 0.7)
+		rocks(ctx, ground, fullRadius, if big then 22 else 8, if big then 1 else 0.7)
 	end)
 	if big then
 		ctx:at(0.04, function()
 			slabs(ctx, ground, radius / 9)
 		end)
+		outerShards(ctx, ground, fullRadius, 9)
 	end
+	impactBloom(ctx, ground, radius, big)
+	hitFeel(ctx, ground, big)
 	Kit.sound(vary(if big then SOUNDS.landBig else SOUNDS.land), ground)
 	Kit.sound(vary(SOUNDS.stab, 0.1), ground)
 	local me = Players.LocalPlayer.Character
@@ -586,7 +802,14 @@ local function strike(ctx: Kit.Ctx, ground: Vector3, radius: number, size: numbe
 		-- 낙하(가속) + 오로라 커튼 회전
 		ctx:step(t0 + (removeAt - startAt) + 0.5, function(t)
 			local k = math.clamp((t - t0) / fall, 0, 1)
-			s.model:PivotTo(sky:Lerp(rest, k * k * k))
+			-- 타격감: 박히는 순간 0.18초 동안 창이 부르르 떨림 (점점 잦아듦)
+			local shakeT = t - t0 - fall
+			local off = Vector3.zero
+			if shakeT > 0 and shakeT < 0.18 then
+				local amp = (1 - shakeT / 0.18) * 0.35 * size
+				off = Vector3.new(math.random() - 0.5, 0, math.random() - 0.5) * 2 * amp
+			end
+			s.model:PivotTo(sky:Lerp(rest, k * k * k) + off)
 			s.update(t - t0)
 		end)
 		-- 빛 줄기: 창끝(꽂힌 뒤에는 땅)에서 위로 고정 길이, 꽂힌 뒤 BOLT_AFTER 지나 BOLT_FADE 동안 옅어짐 (창이 번개를 타고 내려옴)
@@ -597,7 +820,7 @@ local function strike(ctx: Kit.Ctx, ground: Vector3, radius: number, size: numbe
 		ctx:at(fall, function()
 			s.light.Brightness = if big then 3 else 2
 			s.motes.Rate = if big then 10 else 0 -- 박혀 있는 동안 주인공은 오로라 흐름, 반짝이는 조금만
-			impactFx(ctx, ground, vr, big)
+			impactFx(ctx, ground, vr, big, radius)
 		end)
 		-- 흩어짐: 창 길이를 따라 오로라 빛 알갱이로
 		ctx:at(removeAt - startAt, function()
