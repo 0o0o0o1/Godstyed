@@ -8,7 +8,10 @@
 #   GodSpear_Shaft  자루 (8각 결정 기둥, 끝으로 갈수록 가늘게)
 #   GodSpear_Butt   꼬리 끝 (짧은 결정 촉)
 # 실행: exec(open(r"D:\god\scripts\vfx_god_spear.py", encoding="utf-8").read())
-import bpy, bmesh, math
+import bpy, bmesh, math, random
+
+# AI티 줄이기 ⑥ (2026-11-24): 결정 면 위치·폭·좌우를 조금씩 불규칙하게, 날에 작은 이 빠짐, 자루·마디 꼭짓점 흔들기 (같은 결과가 나오게 시드 고정)
+RNG = random.Random(7)
 
 P = dict(
     length=40.0,
@@ -118,24 +121,31 @@ def build():
     # 날: 결정 면 나눔 (사용자). 길이 방향은 띠 몇 개(FACET_T)로만 끊어 면이 평평한 결정 판이 되게,
     # 단면 꺾임은 띠마다 번갈아 조금씩 옮겨서 면이 삼각 결정면으로 갈라지게
     FACET_T = [0.07, 0.17, 0.29, 0.42, 0.54, 0.64, 0.75, 0.87, 1.0]
+    FACET_T = [t if t in (0.07, 1.0) else t + RNG.uniform(-0.025, 0.025) for t in FACET_T]
+    nicks = {3: 0.9, 6: 0.93}  # 이 빠진 자리 (띠 번호: 그쪽 날 폭 비율)
     rings, edge_rings = [], []
     for k, t in enumerate(FACET_T):
         hw = blade_half_width(t)
         th = max(hw * P["blade_th"], 0.05)
-        a, b = (0.70, 0.36) if k % 2 == 0 else (0.62, 0.27)
-        ya, yb = 0.58, 0.9
-        sec = [(hw, 0), (a * hw, ya * th), (b * hw, yb * th), (0, th),
-               (-b * hw, yb * th), (-a * hw, ya * th), (-hw, 0),
-               (-a * hw, -ya * th), (-b * hw, -yb * th), (0, -th), (b * hw, -yb * th), (a * hw, -ya * th)]
+        # 꺾임 위치·높이를 띠마다 무작위 (번갈아 반복하던 규칙 대신)
+        a, b = RNG.uniform(0.6, 0.74), RNG.uniform(0.24, 0.4)
+        ya, yb = RNG.uniform(0.52, 0.64), RNG.uniform(0.85, 0.95)
+        # 좌우 날 폭 조금 다르게 + 가끔 이 빠짐, 능선은 살짝 옆으로
+        hr = hw * RNG.uniform(0.96, 1.04) * (nicks.get(k, 1.0) if RNG.random() < 0.5 else 1.0)
+        hl = hw * RNG.uniform(0.96, 1.04) * (nicks.get(k, 1.0))
+        rx = hw * RNG.uniform(-0.05, 0.05)
+        sec = [(hr, 0), (a * hr, ya * th), (rx + b * hr, yb * th), (rx, th),
+               (rx - b * hl, yb * th), (-a * hl, ya * th), (-hl, 0),
+               (-a * hl, -ya * th), (rx - b * hl, -yb * th), (rx, -th), (rx + b * hr, -yb * th), (a * hr, -ya * th)]
+        hw = (hr + hl) / 2
         rings.append((t * BL, sec))
         # 빛나는 날 테두리: 양날 가장자리를 감싸는 얇은 V 띠 (면 위로 0.02 띄움)
-        d = min(0.2, 0.32 * hw)
-        def on_face(x):  # 가장자리(hw,0) ~ 꺾임(a*hw, ya*th) 사이 면의 높이
-            return ya * th * (hw - x) / max(hw - a * hw, 1e-4)
         e = []
-        for s in (1, -1):
-            x = hw - d
-            e.append([(s * x, on_face(x) + 0.025), (s * (hw + 0.03), 0), (s * x, -on_face(x) - 0.025)])
+        for s, hh in ((1, hr), (-1, hl)):
+            d = min(0.2, 0.32 * hh)
+            x = hh - d
+            yf = ya * th * (hh - x) / max(hh - a * hh, 1e-4)  # 가장자리 ~ 첫 꺾임 사이 면의 높이
+            e.append([(s * x, yf + 0.025), (s * (hh + 0.03), 0), (s * x, -yf - 0.025)])
         edge_rings.append((t * BL, e))
     bm = loft(rings, cap_start_point=(0, 0, 0))
     bmesh.ops.triangulate(bm, faces=bm.faces)  # 꺾인 면을 삼각 결정면으로
@@ -170,18 +180,24 @@ def build():
     cl = P["collar_len"]
     cr = P["collar_r"]
     rot = math.pi / 6
+    def jag6(r, z):
+        return [(x * RNG.uniform(0.92, 1.08), y * RNG.uniform(0.92, 1.08)) for x, y in poly(r, 6, rot + RNG.uniform(-0.06, 0.06))]
     collar = [(z0 - 0.2, poly(P["neck_w"] * 0.95, 6, rot)),
-              (z0 + cl * 0.28, poly(cr, 6, rot)),
-              (z0 + cl * 0.42, poly(cr, 6, rot)),
+              (z0 + cl * RNG.uniform(0.25, 0.32), jag6(cr, 0)),
+              (z0 + cl * RNG.uniform(0.4, 0.46), jag6(cr * RNG.uniform(0.94, 1.0), 0)),
               (z0 + cl, poly(P["shaft_r0"] * 1.05, 6, rot))]
     finish(loft(collar), "GodSpear_Collar", coll, m_crystal)
 
     # 자루: 8각, 끝으로 가늘게
     zs, ze = z0 + cl, L - P["butt_len"]
     srings = []
-    for i in range(7):
-        k = i / 6
-        srings.append((zs + (ze - zs) * k, poly(P["shaft_r0"] + (P["shaft_r1"] - P["shaft_r0"]) * k, 8)))
+    for i in range(11):
+        k = i / 10
+        r = P["shaft_r0"] + (P["shaft_r1"] - P["shaft_r0"]) * k
+        # 꼭짓점마다 반지름 ±6%, 띠마다 살짝 비틀림 (완전한 8각 기둥이라 너무 반듯했음)
+        pts = poly(r, 8, k * 0.35 + RNG.uniform(-0.05, 0.05))
+        pts = [(x * RNG.uniform(0.94, 1.06), y * RNG.uniform(0.94, 1.06)) for x, y in pts]
+        srings.append((zs + (ze - zs) * k, pts))
     finish(loft(srings), "GodSpear_Shaft", coll, m_crystal)
 
     # 꼬리 촉

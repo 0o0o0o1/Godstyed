@@ -205,50 +205,57 @@ local function makeSpear(ctx: Kit.Ctx, size: number): Spear?
 	flowBeam(0.6, 14.2, 1.2, 1.0, 9, 3)
 	flowBeam(14, 39.5, 0.75, 0.55, 14, 2)
 	-- 오로라 커튼 두 줄기: 나선 위 점 5개를 이은 Beam 4개. 점의 X축(Axis) = 나선 접선 → CurveSize 로 둥글게 이어짐
+	-- AI티 줄이기 ⑤ (2026-11-24): 줄기마다 감는 수·도는 속도·폭이 다르고, 반지름이 천천히 출렁이고, 위로 갈수록 가늘고 옅어짐
 	local R = 2.6 * size
 	local y0, y1 = 3, 34
-	local turns = 1.15
 	local steps = 5
-	local curtains: { { atts: { Attachment }, phase: number } } = {}
-	local curtainBeams: { Beam } = {}
+	local curtains: { { atts: { Attachment }, phase: number, turns: number, spin: number, wob: number, rise: number } } = {}
 	for c = 1, 2 do
+		local turns = 0.95 + math.random() * 0.4
 		local atts = {}
 		for i = 0, steps - 1 do
 			table.insert(atts, att(y0 + (y1 - y0) * i / (steps - 1)))
 		end
+		local w = (3.4 + math.random() * 1.4) * size
 		for i = 1, steps - 1 do
-			table.insert(curtainBeams, beam(atts[i], atts[i + 1], {
+			local k0, k1 = (i - 1) / (steps - 1), i / (steps - 1)
+			local b = beam(atts[i], atts[i + 1], {
 				Texture = IMG.auroraCurtain,
 				TextureMode = Enum.TextureMode.Wrap,
-				TextureLength = 16 * size,
-				TextureSpeed = 0.35,
+				TextureLength = (14 + math.random() * 5) * size,
+				TextureSpeed = 0.25 + math.random() * 0.25,
 				FaceCamera = false, -- 나선을 따라 감기는 세로 띠 (true 면 카메라 쪽으로 펴져 톱니 조각처럼 보였음)
-				Brightness = 2.2,
+				Brightness = 1.8 + math.random() * 0.8,
 				Color = ColorSequence.new(WHITE),
-				Width0 = 4 * size,
-				Width1 = 4 * size,
+				Width0 = w * (1 - 0.45 * k0),
+				Width1 = w * (1 - 0.45 * k1),
 				Transparency = seq({
-					{ 0, if i == 1 then 1 else 0.25 },
-					{ 0.5, 0.25 },
-					{ 1, if i == steps - 1 then 1 else 0.25 },
+					{ 0, if i == 1 then 1 else 0.2 + 0.5 * k0 },
+					{ 0.5, 0.2 + 0.5 * (k0 + k1) / 2 },
+					{ 1, if i == steps - 1 then 1 else 0.2 + 0.5 * k1 },
 				}),
-			}))
+			})
+			local chord = 2 * R * math.sin(math.pi * turns / (steps - 1))
+			b.CurveSize0 = chord * 0.36
+			b.CurveSize1 = -chord * 0.36
 		end
-		table.insert(curtains, { atts = atts, phase = (c - 1) * math.pi })
+		table.insert(curtains, {
+			atts = atts,
+			phase = (c - 1) * math.pi + (math.random() - 0.5) * 0.8,
+			turns = turns,
+			spin = CURTAIN_SPIN * (0.6 + math.random() * 0.8) * (if c == 2 and math.random() < 0.5 then -1 else 1),
+			wob = math.random() * 10,
+			rise = (y1 - y0) * size / (turns * 2 * math.pi * R),
+		})
 	end
-	local chord = 2 * R * math.sin(math.pi * turns / (steps - 1))
-	for _, b in curtainBeams do
-		b.CurveSize0 = chord * 0.36
-		b.CurveSize1 = -chord * 0.36
-	end
-	local rise = (y1 - y0) * size / (turns * 2 * math.pi * R)
 	local function update(t: number)
 		for _, cur in curtains do
 			for i, a in cur.atts do
 				local k = (i - 1) / (steps - 1)
-				local ang = cur.phase + k * turns * math.pi * 2 + t * CURTAIN_SPIN
-				local p = Vector3.new(math.cos(ang) * R, (y0 + (y1 - y0) * k) * size, math.sin(ang) * R)
-				local tangent = Vector3.new(-math.sin(ang), rise, math.cos(ang)).Unit
+				local ang = cur.phase + k * cur.turns * math.pi * 2 + t * cur.spin
+				local r = R * (1 + 0.18 * math.sin(t * 1.7 + k * 3 + cur.wob))
+				local p = Vector3.new(math.cos(ang) * r, (y0 + (y1 - y0) * k) * size, math.sin(ang) * r)
+				local tangent = Vector3.new(-math.sin(ang), cur.rise, math.cos(ang)).Unit
 				-- Attachment.Axis(= X축)가 접선을 보게
 				a.CFrame = CFrame.fromMatrix(p, tangent, Vector3.yAxis:Cross(tangent).Unit:Cross(tangent))
 			end
@@ -307,51 +314,131 @@ local function makeSpear(ctx: Kit.Ctx, size: number): Spear?
 	return { model = model, rig = rig, size = size, light = light, motes = motes, update = update, fade = fade }
 end
 
--- 번개 빛 줄기: 하늘(top) → 창 꼬리. Blender 번개 그림 4장(scripts/vfx_lightning.py, 가로 = 길이, 왼쪽 = 하늘)을
--- 카메라를 보는 넓은 Beam 두 겹에 씌우고 0.05초마다 그림을 바꿔 번쩍임 (사용자 2026-11-24: Neon 막대 번개는 "퀄리티가 떨어지고 너무 가늘다")
+-- 번개 빛 줄기: 하늘(top) → 아래(bottom: 떨어지는 동안 창끝, 꽂힌 뒤 땅). Blender 번개 그림 4장(scripts/vfx_lightning.py, 가로 = 길이)
+-- 사용자 2026-11-24: 그림 한 장을 140 길이로 늘리니 "바람 같다", 끝에서 "뚝 끊긴다"
+-- → 꺾인 길을 BOLT_SEGS 마디(각 ~30)로 나눠 마디마다 그림을 씌움(그림 비율이 살아 번개 모양이 보임), 0.05초마다 길·그림을 바꿈
+-- 위 마디는 하늘에서 서서히 나타나고, 아래 끝은 창끝·땅에 닿음. 사라질 때는 BOLT_FADE 동안 옅어지며 가늘어짐
+local BOLT_SEGS = 5
+local BOLT_FADE = 0.18
 local function bolt(ctx: Kit.Ctx, top: Vector3, getBottom: () -> Vector3, startAt: number, endAt: number, width: number)
-	local a0 = Instance.new("Attachment")
-	local a1 = Instance.new("Attachment")
 	local holder = Kit.holder(ctx, CFrame.new(), "Bolt")
-	a0.Parent, a1.Parent = holder, holder
-	local function layer(w: number, bright: number, alpha: number): Beam
-		return beam(a0, a1, {
+	local atts: { Attachment } = {}
+	for i = 0, BOLT_SEGS do
+		local a = Instance.new("Attachment")
+		a.Parent = holder
+		atts[i] = a
+	end
+	local segs: { Beam } = {}
+	for i = 1, BOLT_SEGS do
+		segs[i] = beam(atts[i - 1], atts[i], {
 			Texture = IMG.lightning[1],
 			TextureMode = Enum.TextureMode.Stretch,
 			FaceCamera = true,
-			Brightness = bright,
-			Width0 = w,
-			Width1 = w * 0.85,
-			Segments = 2,
+			Brightness = 3,
+			Width0 = width,
+			Width1 = width,
+			Segments = 1,
 			Color = ColorSequence.new(WHITE),
-			Transparency = seq({ { 0, 1 }, { 0.12, alpha }, { 1, alpha } }),
 			Enabled = false,
 		})
 	end
-	local main = layer(width, 3, 0)
-	local back = layer(width * 1.35, 1.6, 0.45) -- 다른 그림을 한 겹 더 (가지가 많아 보이게)
+	local offsets: { Vector3 } = {}
 	local nextSwap = -1
-	local last = 1
 	ctx:step(endAt, function(t)
 		if t < startAt then
 			return
 		end
-		if t >= endAt - 0.01 then
-			main.Enabled, back.Enabled = false, false
+		local fadeK = math.clamp((endAt - t) / BOLT_FADE, 0, 1) -- 1 → 0 (끝날 때)
+		local inK = math.clamp((t - startAt) / 0.04, 0, 1)
+		if fadeK <= 0 then
+			for _, b in segs do
+				b.Enabled = false
+			end
 			return
 		end
-		a0.WorldPosition, a1.WorldPosition = top, getBottom()
-		if t < nextSwap then
+		local bottom = getBottom()
+		local axis = bottom - top
+		local len = axis.Magnitude
+		if t >= nextSwap then
+			nextSwap = t + 0.05
+			-- 꺾인 길: 마디 끝점마다 옆으로 무작위 (끝점 두 개는 고정)
+			local side = axis:Cross(Vector3.new(math.random() - 0.5, 0, math.random() - 0.5))
+			for i = 0, BOLT_SEGS do
+				local s = axis:Cross(Vector3.new(math.random() - 0.5, math.random() - 0.5, math.random() - 0.5))
+				s = if s.Magnitude > 1e-4 then s.Unit else (if side.Magnitude > 1e-4 then side.Unit else Vector3.xAxis)
+				offsets[i] = if i == 0 or i == BOLT_SEGS then Vector3.zero else s * (math.random() - 0.5) * len / BOLT_SEGS * 0.55
+			end
+			for i, b in segs do
+				b.Texture = IMG.lightning[math.random(1, #IMG.lightning)]
+				b.Brightness = 2.2 + math.random() * 1.4
+			end
+		end
+		for i = 0, BOLT_SEGS do
+			atts[i].WorldPosition = top + axis * (i / BOLT_SEGS) + (offsets[i] or Vector3.zero)
+		end
+		local w = width * (0.35 + 0.65 * fadeK)
+		for i, b in segs do
+			b.Enabled = true
+			-- 위 첫 마디는 하늘 쪽 끝을 투명하게, 전체는 끝날 때 옅어짐
+			local base = 1 - inK * fadeK
+			local topAlpha = if i == 1 then 1 else base
+			b.Transparency = seq({ { 0, math.max(topAlpha, base) }, { 1, base } })
+			b.Width0, b.Width1 = w, w * (if i == BOLT_SEGS then 0.75 else 1)
+		end
+	end)
+end
+
+-- 땅을 긁는 번개 (예고·속박 발밑, ⑦: 금색 마법진 텍스처를 물들인 고리 대신): 중심에서 바깥으로 짧은 번개 count 줄,
+-- 바닥에 눕혀(FaceCamera false, 폭 = 수평) 0.06초마다 그림·각도를 바꿔 지직거림. startAt~endAt (연출 시각)
+local function groundArcs(ctx: Kit.Ctx, center: Vector3, reach: number, count: number, startAt: number, endAt: number, width: number, bright: number)
+	local holder = Kit.holder(ctx, CFrame.new(center + Vector3.new(0, 0.15, 0)), "GroundArcs")
+	local arcs = {}
+	for k = 1, count do
+		local a0 = Instance.new("Attachment")
+		local a1 = Instance.new("Attachment")
+		a0.Parent, a1.Parent = holder, holder
+		local b = beam(a0, a1, {
+			Texture = IMG.lightning[1],
+			TextureMode = Enum.TextureMode.Stretch,
+			FaceCamera = false,
+			Brightness = bright,
+			Width0 = width,
+			Width1 = width * 0.5,
+			Segments = 1,
+			Color = ColorSequence.new(WHITE),
+			Enabled = false,
+		})
+		arcs[k] = { a0 = a0, a1 = a1, b = b, base = (k + (math.random() - 0.5) * 0.7) / count * math.pi * 2 }
+	end
+	local nextSwap = -1
+	ctx:step(endAt, function(t)
+		if t < startAt then
 			return
 		end
-		nextSwap = t + 0.05
-		local i = (last + math.random(0, 2)) % #IMG.lightning + 1
-		last = i
-		main.Texture = IMG.lightning[i]
-		back.Texture = IMG.lightning[(i + 1) % #IMG.lightning + 1]
-		main.Enabled, back.Enabled = true, true
-		main.Brightness = 2.4 + math.random() * 1.2 -- 깜빡임
-		back.Brightness = 1.2 + math.random() * 0.8
+		local fadeK = math.clamp((endAt - t) / 0.12, 0, 1)
+		if t >= nextSwap then
+			nextSwap = t + 0.06
+			for _, a in arcs do
+				local ang = a.base + (math.random() - 0.5) * 0.5
+				local dir = Vector3.new(math.cos(ang), 0, math.sin(ang))
+				local perp = Vector3.yAxis:Cross(dir)
+				local r0 = reach * (0.05 + math.random() * 0.15)
+				local r1 = reach * (0.55 + math.random() * 0.45)
+				-- X축 = 진행 방향, Y축(폭 방향) = 수평 옆 → 바닥에 눕는 띠
+				a.a0.CFrame = CFrame.fromMatrix(dir * r0, dir, perp)
+				a.a1.CFrame = CFrame.fromMatrix(dir * r1, dir, perp)
+				a.b.Texture = IMG.lightning[math.random(1, #IMG.lightning)]
+				a.b.Enabled = math.random() < 0.85 -- 가끔 한 줄씩 꺼져 지직거림
+			end
+		end
+		for _, a in arcs do
+			a.b.Transparency = seq({ { 0, 1 - fadeK }, { 1, 1 } })
+		end
+		if fadeK <= 0 then
+			for _, a in arcs do
+				a.b.Enabled = false
+			end
+		end
 	end)
 end
 
@@ -453,9 +540,7 @@ local function impactFx(ctx: Kit.Ctx, ground: Vector3, radius: number, big: bool
 	ctx:tween(lines, 0.9, { ImageTransparency = 1 }, Enum.EasingStyle.Quad, Enum.EasingDirection.In, 2.6)
 	end) end
 	-- 연기 고리 (바닥에 낮게 깔려 바깥으로)
-	ctx:at(0.06, function()
-		Kit.smokeRing(ctx, ground, radius * jitter(1.1, 0.1), { duration = if big then 1.5 else 1.0, count = if big then 14 else 7 })
-	end)
+	-- 연기 고리는 뺌 (사용자 2026-11-24: 신의 창에는 뭉게 연기가 안 어울림. 도약 찌르기는 그대로 씀)
 	-- 불뛰
 	local at = Kit.holder(ctx, CFrame.new(ground + Vector3.new(0, 1, 0)), "ImpactSparks")
 	at.Size = Vector3.new(radius * 0.3, 0.2, radius * 0.3)
@@ -496,16 +581,8 @@ end
 -- 창 하나: hitAt 에 ground 에 꽂힘, removeAt 에 흩어짐 (시각은 연출 시작 기준)
 local function strike(ctx: Kit.Ctx, ground: Vector3, radius: number, size: number, hitAt: number, removeAt: number, big: boolean)
 	local startAt = math.max(hitAt - jitter(FALL_TIME, 0.15), 0)
-	-- 예고: 꽂힐 자리에 빛 고리가 번쩍하며 조여듦
-	ctx:at(math.max(startAt - 0.05, 0), function()
-		local ring = Kit.holder(ctx, CFrame.new(ground + Vector3.new(0, 0.1, 0)), "StrikeMark")
-		ring.Size = Vector3.new(radius * 2.4, 0.05, radius * 2.4)
-		local img = Kit.surface(ring, { T.HaloRing }, 3, { Enum.NormalId.Top })[1][1]
-		img.ImageColor3 = GREEN
-		img.ImageTransparency = 0.1
-		ctx:tween(ring, FALL_TIME + 0.05, { Size = Vector3.new(radius * 2, 0.05, radius * 2) }, Enum.EasingStyle.Quad, Enum.EasingDirection.In)
-		ctx:tween(img, 0.25, { ImageTransparency = 1 }, Enum.EasingStyle.Quad, Enum.EasingDirection.In, FALL_TIME + 0.05)
-	end)
+	-- 예고: 꽂힐 자리 땅을 번개가 긁음 (떨어지기 직전 ~ 꽂힌 뒤 0.1초)
+	groundArcs(ctx, ground, radius * 0.9, if big then 6 else 4, math.max(startAt - 0.05, 0), hitAt + 0.12, if big then 2.2 else 1.5, 2.5)
 	ctx:at(startAt, function()
 		local spear = makeSpear(ctx, size)
 		if not spear then
@@ -525,11 +602,12 @@ local function strike(ctx: Kit.Ctx, ground: Vector3, radius: number, size: numbe
 			s.model:PivotTo(sky:Lerp(rest, k * k * k))
 			s.update(t - t0)
 		end)
-		-- 빛 줄기: 하늘에서 창 꼬리까지 (떨어지는 동안 + 꽂힌 뒤 잠깐)
+		-- 빛 줄기: 하늘에서 창끝(꽂힌 뒤에는 땅)까지, 꽂힌 뒤 BOLT_AFTER 지나 BOLT_FADE 동안 옅어짐 (창이 번개를 타고 내려옴)
 		local topPoint = ground + Vector3.new(math.random(-6, 6), BOLT_TOP, math.random(-6, 6))
 		bolt(ctx, topPoint, function()
-			return s.model:GetPivot() * Vector3.new(0, 40 * size, 0)
-		end, t0, t0 + fall + BOLT_AFTER, if big then 8 else 5)
+			local p = s.model:GetPivot().Position
+			return Vector3.new(p.X, math.max(p.Y, ground.Y + 0.3), p.Z)
+		end, t0, t0 + fall + BOLT_AFTER + BOLT_FADE, if big then 6 else 4)
 		ctx:at(fall, function()
 			s.light.Brightness = if big then 3 else 2
 			s.motes.Rate = if big then 10 else 0 -- 박혀 있는 동안 주인공은 오로라 흐름, 반짝이는 조금만
@@ -572,31 +650,28 @@ local function pinTarget(ctx: Kit.Ctx, center: Vector3, model: Model, duration: 
 		local hip = humanoid.HipHeight + root.Size.Y / 2
 		return root.Position - Vector3.new(0, hip - 0.3, 0)
 	end
-	local foot = Kit.holder(ctx, CFrame.new(footPos()), "PinRing")
+	-- 발밑: 지직이는 짧은 번개 (⑦ 금색 고리 대신)
 	local ringSize = math.max(root.Size.X * 2.2, 4.5)
-	foot.Size = Vector3.new(ringSize * 1.8, 0.05, ringSize * 1.8)
-	local ringLayers = Kit.surface(foot, { T.HaloRing, T.HolyCircle_Core }, 2.6, { Enum.NormalId.Top })
-	local ringImg, coreImg = ringLayers[1][1], ringLayers[2][1]
-	ringImg.ImageColor3, coreImg.ImageColor3 = GREEN, GREEN
-	ringImg.ImageTransparency, coreImg.ImageTransparency = 1, 1
-	ctx:tween(foot, 0.15, { Size = Vector3.new(ringSize, 0.05, ringSize) }, Enum.EasingStyle.Back)
-	ctx:tween(ringImg, 0.15, { ImageTransparency = 0.05 })
-	ctx:tween(coreImg, 0.15, { ImageTransparency = 0.5 })
+	groundArcs(ctx, footPos(), ringSize * 0.6, 4, 0, duration, 0.9, 1.8)
 	local from = center + Vector3.new(0, 2, 0)
 	local links: { BasePart } = {}
+	local twists: { number } = {}
 	local maxLinks = 30
 	local LINK_LEN = 1.1
 	for i = 1, maxLinks do
 		local link = Instance.new("Part")
 		link.Name = "LightLink"
-		link.Size = Vector3.new(0.14, 0.5, LINK_LEN * 1.2)
+		-- ⑧ 고리마다 크기·비틀림을 조금씩 다르게 (똑같은 고리가 같은 간격으로 반복되면 기계적)
+		local s = 0.85 + math.random() * 0.3
+		link.Size = Vector3.new(0.14 * s, 0.5 * s, LINK_LEN * 1.2 * s)
 		link.Material = Enum.Material.Neon
-		link.Color = if i % 2 == 0 then MINT else TEAL
-		link.Transparency = 0.1
+		link.Color = MINT:Lerp(TEAL, math.random())
+		link.Transparency = 0.05 + math.random() * 0.15
 		Kit.decor(link)
 		link.CFrame = CFrame.new(from)
 		link.Parent = ctx.folder
 		links[i] = link
+		twists[i] = (if i % 2 == 0 then math.pi / 2 else 0) + (math.random() - 0.5) * 0.5
 	end
 	local a0 = Instance.new("Attachment")
 	local a1 = Instance.new("Attachment")
@@ -622,7 +697,6 @@ local function pinTarget(ctx: Kit.Ctx, center: Vector3, model: Model, duration: 
 			return
 		end
 		local to = footPos()
-		foot.CFrame = CFrame.new(to + Vector3.new(0, 0.1, 0))
 		local grow = math.clamp((t - started) / 0.12, 0, 1)
 		local v = to - from
 		local length = v.Magnitude * grow
@@ -633,8 +707,10 @@ local function pinTarget(ctx: Kit.Ctx, center: Vector3, model: Model, duration: 
 			table.insert(parts, links[i])
 			if i <= count then
 				local k0 = (i - 0.5) * LINK_LEN / math.max(v.Magnitude, 1e-3)
-				local p = from + v * k0 - Vector3.new(0, 0.6 * 4 * k0 * (1 - k0), 0)
-				table.insert(frames, CFrame.lookAt(p, p + dir) * CFrame.Angles(0, 0, if i % 2 == 0 then math.pi / 2 else 0))
+				-- ⑧ 꽂히는 순간 팽팽(처짐 0) → 0.4초에 걸쳐 늘어지며(최대 0.9) 살짝 출렁임
+				local slack = 0.9 * math.clamp((t - started - 0.1) / 0.3, 0, 1) * (1 + 0.12 * math.sin((t - started) * 9))
+				local p = from + v * k0 - Vector3.new(0, slack * 4 * k0 * (1 - k0), 0)
+				table.insert(frames, CFrame.lookAt(p, p + dir) * CFrame.Angles(0, 0, twists[i]))
 			else
 				table.insert(frames, hidden)
 			end
@@ -643,7 +719,6 @@ local function pinTarget(ctx: Kit.Ctx, center: Vector3, model: Model, duration: 
 		a0.WorldPosition = from
 		a1.WorldPosition = from + dir * length
 		shown = count
-		ringImg.Rotation = t * 90
 	end)
 	ctx:at(0.02 * index, function()
 		Kit.sound(SOUNDS.chain, footPos())
@@ -667,8 +742,6 @@ local function pinTarget(ctx: Kit.Ctx, center: Vector3, model: Model, duration: 
 			ctx:tween(l, 0.15, { Transparency = 1 })
 		end
 		ctx:tween(glow, 0.15, { Width0 = 0, Width1 = 0 })
-		ctx:tween(ringImg, 0.25, { ImageTransparency = 1 })
-		ctx:tween(coreImg, 0.25, { ImageTransparency = 1 })
 	end)
 end
 
