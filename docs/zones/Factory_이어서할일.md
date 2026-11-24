@@ -831,4 +831,5 @@
   - 플레이 확인: 갈고리 18 → 4.5 끌려옴 + Stunned·기절 아이콘(1.5초), 창 휘두르기 17.4 날아감, 약 6.8초 뒤 원래 자리 0.0·똑바로 섬, 오류 없음.
   - ⚠ Studio MCP: `multi_edit` 의 `replace_all` 편집이 "적용됨"이라고 나왔는데 Source 에 안 들어간 일이 있었음 → 같은 줄이 여러 개면 앞뒤 문맥을 넣어 따로 편집하고, 편집 뒤 Source 에서 바뀐 것을 확인할 것.
   - 게시할 패키지: Services(Skill). + **마을 place 저장**(더미).
+- ✔ **관통 돌격(창 대시) 색 → 흰+초록 (2026-11-24, 사용자: "창 대시 스킬 초록색으로")** — `Controllers.SkillController.Vfx.PiercingLunge`(piercing_lunge 만 씀): 금빛(255,220,170)·주황 불꽃 → 도약 찌르기·창 휘두르기와 같은 GREEN(70,255,110)/GREEN_SOFT(170,255,185)/GREEN_DEEP(20,150,55). 잔상·멈춤 원판·빛(LIGHT, STREAK_COLOR = GREEN_SOFT), 모임 반짝이 흰→초록, 꼬리 Trail 흰→초록, 관통 섬광 HolyFlare 연두→초록, 관통 불꽃 연두→짙은 초록, 바닥 충격 고리·창끝 반짝 연두. 플레이: 잔상·원판·빛·이미지·꼬리 모두 초록 계열, 오류 없음. 게시: Controllers(Vfx.PiercingLunge).
 - 다음: 창 휘두르기 → 신의 창 → 관통 돌격 강화 (하나씩).
