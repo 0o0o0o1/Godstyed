@@ -171,9 +171,11 @@
       "MeshesModel": "114243306439321 (Open Cloud Model, 넣은 뒤 ReplicatedStorage.Assets.Vfx.LeapStrike 로 정리)"
     },
     "SpearSweep": {
-      "Arc": "rbxassetid://70714911497187",
-      "_decal": "71426770544323",
-      "_note": "scripts/vfx_sweep_arc.py, 8x8 칸 128, 0.6초(회전 0~37칸), 그림 위 = 정면, 반시계. 눕힌 SurfaceGui 는 그림 오른쪽이 판 앞이라 판을 -90° 돌려 씀. 위아래 뒤집은 v2 130739621951445 는 잘못된 보정이라 폐기"
+      "Arc": "rbxassetid://79647901942562",
+      "_arc_decal": "85299104343894",
+      "Ground": "rbxassetid://124073006315493",
+      "_ground_decal": "74240308583751",
+      "_note": "v3 (2026-11-24, 사용자 참고 이미지 스타일): scripts/vfx_sweep_arc.py(굵은 초승달·붓질 결·침식, 회전 ease-out) / vfx_sweep_ground.py(바닥 물결 고리 3개 + 연무). 8x8 칸 128. Arc 0.6초 그림 위=정면 반시계(눕힌 SurfaceGui 는 판을 -90° 돌림), Ground 0.7초. 폐기: arc v1 70714911497187, v2 130739621951445"
     },
     "GodSpear": {
       "_note": "신의 창 빛의 창 메시 (scripts/vfx_god_spear.py → exports/vfx/GodSpear.fbx). 넣은 뒤 ReplicatedStorage.Assets.Vfx.GodSpear 로 정리: 피벗 = 창끝, +Y = 꼬리, 길이 40. Blade·Collar·Shaft·Butt = Glass (205,255,220) 투명 0.3, Core = Neon (120,255,150), Edge = Neon (225,255,232)",
