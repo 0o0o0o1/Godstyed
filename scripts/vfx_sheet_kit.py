@@ -14,7 +14,8 @@ def vfx_scene(name, ortho_scale=2.4, cam_dir=(0.0, -1.0, 0.0), cam_dist=10.0, ca
     if name in bpy.data.scenes:
         bpy.data.scenes.remove(bpy.data.scenes[name])
     sc = bpy.data.scenes.new(name)
-    bpy.context.window.scene = sc
+    if bpy.context.window:
+        bpy.context.window.scene = sc
     try:
         sc.render.engine = "CYCLES"
     except TypeError as e:

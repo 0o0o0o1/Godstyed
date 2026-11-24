@@ -178,6 +178,18 @@
     "GodSpear": {
       "_note": "신의 창 빛의 창 메시 (scripts/vfx_god_spear.py → exports/vfx/GodSpear.fbx). 넣은 뒤 ReplicatedStorage.Assets.Vfx.GodSpear 로 정리: 피벗 = 창끝, +Y = 꼬리, 길이 40. Blade·Collar·Shaft·Butt = Glass (205,255,220) 투명 0.3, Core = Neon (120,255,150), Edge = Neon (225,255,232)",
       "Model": "128999563181818"
+    },
+    "SmokeRing": {
+      "_note": "착지 연기 고리 (scripts/vfx_smoke_ring.py, 8x8 칸 128). VfxKit.smokeRing 이 씀 (신의 창·도약 찌르기). Ring = 위에서 본 고리(바닥 SurfaceGui), Wisp = 옆에서 본 낮은 가닥(파티클). 이미지 ID (Decal 업로드 childOperations)",
+      "Ring": "rbxassetid://124521428851491",
+      "Wisp": "rbxassetid://72064605285438",
+      "_decals": "Ring 111866890036829, Wisp 90259494841180"
+    },
+    "GodSpearAurora": {
+      "_note": "신의 창 오로라 (scripts/vfx_aurora.py). 가로 반복 → Beam Wrap + TextureSpeed. Curtain 1024x256 창을 감는 띠, Flow 1024x128 날 속 빛",
+      "Curtain": "rbxassetid://128896189725887",
+      "Flow": "rbxassetid://115207308874249",
+      "_decals": "Curtain 119081342051569, Flow 106231963820349"
     }
   }
 }

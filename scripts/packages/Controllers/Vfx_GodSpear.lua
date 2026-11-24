@@ -1,13 +1,15 @@
 --!strict
--- Spear of God 연출 (창 무기 스킬 신의 창, 흰 + 초록). 서버(Skill 서비스 kind "skyfall")가 정한 꽂히는 자리·시각에 맞춘다.
---   예고  0 ~ castDelay + warnTime   바닥 빛의 원(반경 radius) + 바깥에서 조여드는 고리, 하늘에서 내려오며 굵어지는 빛 기둥,
---                                    castDelay 부터 하늘 높이(SKY_HEIGHT)에 거대한 빛의 창이 빛 알갱이에서 맞춰지며 나타나 떠 있음
---   꽂힘  castDelay + warnTime       창이 내리꽂힘(DROP_TIME) → 섬광·충격파 시트·균열·흰 먼지 폭발·초록 불뛰·돌 파편·돌판·화면 흔들림·묵직한 소리
---   박힘  꽂힌 뒤 skill.root 초       창이 땅에 박혀 빛남 → 아래부터 투명해지며 빛 조각으로 흩어짐
---   속박  phase "pin" (서버, 꽂힌 순간)  맞은 대상마다 창 → 발밑까지 빛의 사슬 + 발밑 빛 고리 (root 초, 끝에 부서짐). 보스(pinned = false)는 반짝임만
--- 에셋: 창 메시 ReplicatedStorage.Assets.Vfx.GodSpear (scripts/vfx_god_spear.py, 피벗 = 창끝, +Y = 꼬리, 길이 40)
---   충격파·먼지·균열 시트는 도약 찌르기와 같은 Blender 시트 (exports/texture_ids.json VFX.LeapStrike), 돌판·돌은 Assets.Vfx.LeapStrike
--- 원본: 저장소 scripts/packages/Controllers/Vfx_GodSpear.lua (마을 place 에서 고친 뒤 이 파일도 같이)
+-- Spear of God 연출 v2 (창 무기 스킬 신의 창, 흰·초록 + 청록·엷은 보라 오로라). 2026-11-24 사용자 피드백으로 새로 씀:
+--   "밋밋함, 검이 몰아치듯 빠르게 떨어지게, 3번에 나눠서, 단색이 아니라 오로라치는 영롱하고 화려하지만 깔끔한 창"
+-- 서버(Skill 서비스 kind "skyfall")가 정한 세 자리·시각(payload.strikes)에 맞춘다:
+--   창마다  꽂히기 FALL_TIME 전  꽂힐 자리에 작은 빛 고리가 번쩍(예고) + 하늘에서 번개 같은 빛 줄기와 함께 창이 내리꽂힘
+--           꽂힘                섬광·충격파 시트·빛 균열·연기 고리(Kit.smokeRing)·불뛰·돌 파편·화면 흔들림·소리 (마지막 큰 창은 더 크게 + 돌판)
+--           박힘                창 속을 오로라 빛이 흐르고(AuroraFlow) 오로라 커튼 두 줄기가 창을 감아 돎(AuroraCurtain) → 빛 조각으로 흩어짐
+--   속박  phase "pin" (서버, 큰 창이 꽂힌 순간)  맞은 대상마다 창 → 발밑 빛의 사슬 + 발밑 빛 고리 (root 초)
+-- 에셋: 창 메시 ReplicatedStorage.Assets.Vfx.GodSpear (피벗 = 창끝, +Y = 꼬리, 길이 40) — 작은 창은 Model:ScaleTo
+--   오로라 그림 scripts/vfx_aurora.py, 충격파·균열 시트는 도약 찌르기 것 (exports/texture_ids.json)
+-- ⚠ HolyCircle·HaloRing·PillarCore·HolyFlare 텍스처는 금색 → GREEN 으로 물들일 것 (WHITE·연초록이면 금빛·노란빛)
+-- 원본: 저장소 scripts/packages/Controllers/Vfx_GodSpear.lua
 
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -22,46 +24,43 @@ local SKILL = Skills.god_spear
 local seq = Kit.seq
 local WHITE = Color3.new(1, 1, 1)
 local GREEN = Color3.fromRGB(70, 255, 110)
-local GREEN_SOFT = Color3.fromRGB(170, 255, 185)
-local GREEN_DEEP = Color3.fromRGB(20, 150, 55)
+local MINT = Color3.fromRGB(190, 255, 215) -- 연초록 (금색이 아닌 텍스처·Neon 용)
+local TEAL = Color3.fromRGB(90, 255, 215)
+local VIOLET = Color3.fromRGB(190, 160, 255)
+local GLASS = Color3.fromRGB(225, 255, 238)
 
-local SHEET = {
-	dust = "rbxassetid://138956275728767",
+local IMG = {
+	auroraCurtain = "rbxassetid://128896189725887", -- 가로 반복, 아래 가장자리 밝은 띠 → 위로 청록·보라 빛살
+	auroraFlow = "rbxassetid://115207308874249", -- 가로 반복, 가운데 흰빛 → 바깥 초록·청록
 	shock = "rbxassetid://139231006156621",
 	crack = "rbxassetid://110852548933346",
 }
 local SHEET_GRID, SHEET_CELL = 8, 128
 
 -- 조정용 상수
-local SKY_HEIGHT = 70 -- 떠 있는 창의 창끝 높이 (꽂히는 바닥 기준)
-local APPEAR_TIME = 0.35 -- 창이 맞춰지며 나타나는 시간
-local DROP_TIME = 0.14 -- 내리꽂히는 시간 (꽂히는 시각에 끝남)
-local SPEAR_SINK = 5 -- 창끝이 땅에 박히는 깊이
-local SPEAR_TILT = 4 -- 박힐 때 기울기 (도, 방향은 무작위)
-local PILLAR_TOP = 160 -- 빛 기둥이 시작되는 높이
-local SHAKE_TIME, SHAKE_AMOUNT = 0.4, 0.9
-local SHAKE_RANGE = 70 -- 내 캐릭터가 이 거리 안이면 (남이 써도) 화면 흔들림
-local SHOCK_TIME = 0.85
-local DUST_COUNT = 18
-local ROCK_COUNT = 16
-local CRACK_HOLD, CRACK_FADE = 2.6, 0.9
-local SLAB_RISE, SLAB_HOLD, SLAB_SINK = 0.12, 1.6, 0.7
-local LINK_LEN = 1.1 -- 빛의 사슬 고리 하나 길이
-local DUST_COLOR = Color3.fromRGB(255, 255, 255)
-local DUST_LIGHT_INFLUENCE = 0.1 -- 창·섬광의 초록 불빛에 먼지가 초록으로 물들지 않게 (0.35 에서 낮춤)
+local FALL_TIME = 0.12 -- 하늘에서 꽂히기까지 (번개처럼 빠르게)
+local SKY_HEIGHT = 75 -- 떨어지기 시작하는 창끝 높이 (큰 창 기준, 작은 창은 크기 비율)
+local SPEAR_SINK = 5 -- 창끝이 박히는 깊이 (큰 창 기준)
+local SPEAR_TILT = 5 -- 박힐 때 기울기 (도)
+local SMALL_LINGER = 0.7 -- 작은 창이 마지막 창 뒤 남아 있는 시간
+local BOLT_TOP = 140 -- 빛 줄기 시작 높이
+local BOLT_AFTER = 0.22 -- 꽂힌 뒤 빛 줄기가 남는 시간
+local CURTAIN_SPIN = 1.1 -- 오로라 커튼 도는 속도 (라디안/초)
+local SHAKE_RANGE = 70
 
 local SOUNDS = {
-	call = { id = "rbxassetid://9113450910", volume = 0.6, speed = 0.75 }, -- 창을 치켜들며 부르는 쇠·유리 울림 (낮게)
-	descend = { id = "rbxassetid://9114159112", volume = 0.9, speed = 0.65, fadeAfter = 1.1, range = 220 }, -- 하늘에서 내려오는 바람
-	land = { id = "rbxassetid://9118617342", volume = 1, speed = 0.6, range = 260 }, -- 땅을 깨는 묵직한 충격 (낮게)
-	stab = { id = "rbxassetid://9113567601", volume = 1, speed = 0.7, range = 220 }, -- 꽂히는 타격음
-	chain = { id = "rbxassetid://9113450910", volume = 0.45, speed = 1.35 }, -- 사슬이 감기는 맑은 소리
-	shatter = { id = "rbxassetid://9113450910", volume = 0.7, speed = 1.7 }, -- 결정이 부서지는 소리
+	call = { id = "rbxassetid://9113450910", volume = 0.55, speed = 0.75 },
+	whoosh = { id = "rbxassetid://9114159112", volume = 0.7, speed = 1.3, fadeAfter = 0.35, range = 200 },
+	land = { id = "rbxassetid://9118617342", volume = 0.9, speed = 0.75, range = 240 },
+	landBig = { id = "rbxassetid://9118617342", volume = 1, speed = 0.55, range = 280 },
+	stab = { id = "rbxassetid://9113567601", volume = 0.9, speed = 0.8, range = 220 },
+	chain = { id = "rbxassetid://9113450910", volume = 0.45, speed = 1.35 },
+	shatter = { id = "rbxassetid://9113450910", volume = 0.6, speed = 1.7 },
 }
 Kit.preloadSounds(SOUNDS)
 task.spawn(function()
 	local list = {}
-	for _, id in SHEET do
+	for _, id in IMG do
 		local d = Instance.new("Decal")
 		d.Texture = id
 		table.insert(list, d)
@@ -79,7 +78,6 @@ local function assets(name: string): Instance?
 	return v and v:FindFirstChild(name)
 end
 
--- 바닥에 눕힌 판 + SurfaceGui (위를 봄)
 local function groundGui(ctx: Kit.Ctx, at: Vector3, size: number, name: string, light: number, brightness: number, yaw: number): (BasePart, SurfaceGui)
 	local part = Kit.holder(ctx, CFrame.new(at + Vector3.new(0, 0.06, 0)) * CFrame.Angles(0, yaw, 0), name)
 	part.Size = Vector3.new(size, 0.05, size)
@@ -95,312 +93,319 @@ local function groundGui(ctx: Kit.Ctx, at: Vector3, size: number, name: string, 
 	return part, gui
 end
 
-local function sheetLabel(gui: SurfaceGui, image: string): ImageLabel
+local function playSheet(ctx: Kit.Ctx, gui: SurfaceGui, image: string, duration: number)
 	local label = Instance.new("ImageLabel")
 	label.BackgroundTransparency = 1
 	label.Size = UDim2.fromScale(1, 1)
 	label.Image = image
 	label.ImageRectSize = Vector2.new(SHEET_CELL, SHEET_CELL)
-	label.ImageRectOffset = Vector2.zero
 	label.Parent = gui
-	return label
-end
-
-local function playSheet(ctx: Kit.Ctx, label: ImageLabel, start: number, duration: number)
-	label.Visible = false
+	local start = ctx:clock()
 	local frames = SHEET_GRID * SHEET_GRID
 	ctx:step(start + duration + 0.05, function(t)
-		if t < start then
-			return
-		end
 		local i = math.floor((t - start) / duration * frames)
 		if i >= frames then
 			label.Visible = false
 			return
 		end
-		label.Visible = true
 		label.ImageRectOffset = Vector2.new((i % SHEET_GRID) * SHEET_CELL, math.floor(i / SHEET_GRID) * SHEET_CELL)
 	end)
 end
 
-local function dustEmitter(ctx: Kit.Ctx, parent: Instance, life: number, size: NumberRange, speed: NumberRange): ParticleEmitter
-	local e = Kit.emitter(ctx, parent, {
-		Texture = SHEET.dust,
-		FlipbookLayout = Enum.ParticleFlipbookLayout.Grid8x8,
-		FlipbookMode = Enum.ParticleFlipbookMode.OneShot,
-		Color = ColorSequence.new(DUST_COLOR),
-		LightEmission = 0,
-		LightInfluence = DUST_LIGHT_INFLUENCE,
-		Size = seq({ { 0, size.Min }, { 1, size.Max } }),
-		Transparency = seq({ { 0, 0.2 }, { 0.7, 0.4 }, { 1, 1 } }),
-		Lifetime = NumberRange.new(life * 0.85, life * 1.15),
-		Speed = speed,
-		SpreadAngle = Vector2.new(85, 85),
-		EmissionDirection = Enum.NormalId.Top,
-		Acceleration = Vector3.new(0, 1.5, 0),
-		Drag = 3,
-		Rotation = NumberRange.new(0, 360),
-		RotSpeed = NumberRange.new(-25, 25),
-		ZOffset = 3,
-	})
-	pcall(function()
-		(e :: any).FlipbookStartRandom = false
-	end)
-	return e
+local function beam(a0: Attachment, a1: Attachment, props: { [string]: any }): Beam
+	local b = Instance.new("Beam")
+	b.Attachment0, b.Attachment1 = a0, a1
+	b.LightInfluence = 0
+	b.LightEmission = 1
+	b.Segments = 12
+	for k, v in props do
+		(b :: any)[k] = v
+	end
+	b.Parent = a0.Parent
+	return b
 end
 
--- 창 모델의 부품과 원래 투명도 (나타남·사라짐 트윈용)
-local function spearParts(model: Instance): { { part: BasePart, base: number } }
-	local list = {}
-	for _, d in model:GetDescendants() do
-		if d:IsA("BasePart") then
-			table.insert(list, { part = d, base = d.Transparency })
-		end
-	end
-	return list
-end
-
--- 1. 예고: 바닥 빛의 원 + 조여드는 고리 + 하늘 빛 기둥
-local function warning(ctx: Kit.Ctx, ground: Vector3, radius: number, impactAt: number)
-	-- 빛의 원 (마법진 층 3장, 천천히 돎)
-	local disc = Kit.holder(ctx, CFrame.new(ground + Vector3.new(0, 0.08, 0)), "WarnCircle")
-	disc.Size = Vector3.new(radius * 2, 0.05, radius * 2)
-	local layers = Kit.surface(disc, { T.HolyCircle_Outer, T.HolyCircle_Inner, T.HolyCircle_Core }, 2.2, { Enum.NormalId.Top })
-	local labels: { ImageLabel } = {}
-	for i, layer in layers do
-		local l = layer[1]
-		-- HolyCircle·HaloRing·PillarCore·HolyFlare 텍스처는 금색이라 WHITE 로 두면 금빛 → 초록으로 물들임
-		l.ImageColor3 = GREEN
-		l.ImageTransparency = 1
-		l.Size = UDim2.fromScale(0.6, 0.6)
-		ctx:tween(l, 0.18, { ImageTransparency = if i == 1 then 0.15 else 0.45, Size = UDim2.fromScale(1, 1) }, Enum.EasingStyle.Back)
-		table.insert(labels, l)
-	end
-	-- 조여드는 고리: 반경 1.7배 → 반경, 꽂히는 순간 딱 맞음
-	local ring = Kit.holder(ctx, CFrame.new(ground + Vector3.new(0, 0.12, 0)), "WarnRing")
-	ring.Size = Vector3.new(radius * 2 * 1.7, 0.05, radius * 2 * 1.7)
-	local ringImg = Kit.surface(ring, { T.HaloRing }, 3, { Enum.NormalId.Top })[1][1]
-	ringImg.ImageColor3 = GREEN -- GREEN_SOFT 는 금색 텍스처와 섞여 노랗게 보였음
-	ringImg.ImageTransparency = 1
-	ctx:tween(ringImg, 0.15, { ImageTransparency = 0.1 })
-	ctx:tween(ring, impactAt, { Size = Vector3.new(radius * 2.05, 0.05, radius * 2.05) }, Enum.EasingStyle.Quad, Enum.EasingDirection.In)
-	ctx:step(impactAt, function(t)
-		local k = t / impactAt
-		disc.CFrame = CFrame.new(disc.Position) * CFrame.Angles(0, t * 0.6, 0)
-		labels[2].Rotation = -t * 40
-		labels[3].ImageTransparency = 0.45 - 0.35 * k + 0.1 * math.sin(t * 25)
-	end)
-	-- 꽂히면 원이 크게 번쩍하고 사라짐
-	ctx:at(impactAt, function()
-		for _, l in labels do
-			ctx:tween(l, 0.08, { ImageTransparency = 0, Size = UDim2.fromScale(1.15, 1.15) })
-			ctx:tween(l, 0.5, { ImageTransparency = 1 }, Enum.EasingStyle.Quad, Enum.EasingDirection.In, 0.1)
-		end
-		ctx:tween(ringImg, 0.2, { ImageTransparency = 1 })
-	end)
-
-	-- 하늘 빛 기둥: 위에서 내려오며(아랫끝이 내려옴) 굵어지고, 꽂히면 확 굵어졌다 사라짐
-	local top = Instance.new("Attachment")
-	local bottom = Instance.new("Attachment")
-	local anchor = Kit.holder(ctx, CFrame.new(ground), "SkyPillar")
-	top.Position = Vector3.new(0, PILLAR_TOP, 0)
-	bottom.Position = Vector3.new(0, PILLAR_TOP - 1, 0)
-	top.Parent, bottom.Parent = anchor, anchor
-	local function beam(texture: string, width: number, color: Color3, brightness: number): Beam
-		local b = Instance.new("Beam")
-		b.Attachment0, b.Attachment1 = top, bottom
-		b.Texture, b.TextureMode = texture, Enum.TextureMode.Stretch
-		b.FaceCamera = true
-		b.LightEmission, b.LightInfluence, b.Brightness = 1, 0, brightness
-		b.Color = ColorSequence.new(color)
-		b.Width0, b.Width1 = width, width
-		b.Transparency = seq({ { 0, 1 }, { 0.15, 0.35 }, { 0.9, 0.2 }, { 1, 0.6 } })
-		b.Segments = 1
-		b.Parent = anchor
-		return b
-	end
-	local core = beam(T.PillarCore, 0.6, GREEN_SOFT, 3)
-	local halo = beam(T.PillarCore, 2, GREEN, 2)
-	local descend = 0.35 -- 기둥 아랫끝이 바닥까지 내려오는 시간
-	ctx:step(impactAt + 0.6, function(t)
-		local k = math.clamp(t / descend, 0, 1)
-		bottom.Position = Vector3.new(0, PILLAR_TOP * (1 - k * k), 0)
-		if t < impactAt then
-			local w = t / impactAt
-			core.Width0, core.Width1 = 0.4 + 1.4 * w, 0.4 + 1.4 * w
-			halo.Width0, halo.Width1 = 1.5 + 5 * w, 1.5 + 5 * w
-		else
-			local f = math.clamp((t - impactAt) / 0.6, 0, 1)
-			local burst = (1 - f) * (1 - f)
-			core.Width0, core.Width1 = 6 * burst, 6 * burst
-			halo.Width0, halo.Width1 = 16 * burst, 16 * burst
-		end
-	end)
-end
-
--- 2. 하늘 높이 나타나는 거대한 창 → 내리꽂힘 → 박혀 빛남 → 빛 조각으로 흩어짐
--- 반환 없음. 시각: appearAt(창이 나타나기 시작), impactAt(꽂힘), holdTime(박힌 채 있는 시간)
-local function spear(ctx: Kit.Ctx, ground: Vector3, appearAt: number, impactAt: number, holdTime: number)
+-- 오로라 창 하나: 메시 복제(크기 size) + 맑은 유리 + 날·자루 속 흐르는 오로라 + 감아 도는 커튼 두 줄기 + 끝 빛
+-- rig = 모델 피벗에 놓인 투명 파트(모델 안이라 PivotTo 로 같이 움직임), 모든 효과의 Attachment 가 여기 달림
+type Spear = {
+	model: Model,
+	rig: BasePart,
+	size: number,
+	light: PointLight,
+	motes: ParticleEmitter,
+	update: (t: number) -> (),
+	fade: () -> (),
+}
+local function makeSpear(ctx: Kit.Ctx, size: number): Spear?
 	local template = assets("GodSpear")
-	if not template then
-		return
+	if not (template and template:IsA("Model")) then
+		return nil
 	end
 	local model = template:Clone()
-	local parts = spearParts(model)
-	for _, e in parts do
-		Kit.decor(e.part)
-		e.part.Transparency = 1
+	pcall(function()
+		model:ScaleTo(size)
+	end)
+	local parts: { BasePart } = {}
+	for _, d in model:GetDescendants() do
+		if d:IsA("BasePart") then
+			Kit.decor(d)
+			if d.Name == "Core" then
+				d.Transparency = 1 -- 심은 오로라 빛(Beam)이 대신함
+			elseif d.Name == "Edge" then
+				d.Color = MINT
+			else
+				d.Color = GLASS
+				d.Transparency = 0.45 -- 더 맑게 (속 빛이 비침)
+			end
+			table.insert(parts, d)
+		end
 	end
-	-- 박힌 자리: 창끝이 땅 속 SPEAR_SINK, 무작위 쪽으로 살짝 기울어짐
-	local tiltDir = math.random() * math.pi * 2
-	local rest = CFrame.new(ground - Vector3.new(0, SPEAR_SINK, 0)) * CFrame.Angles(0, tiltDir, 0) * CFrame.Angles(math.rad(SPEAR_TILT), 0, 0)
-	local sky = CFrame.new(ground + Vector3.new(0, SKY_HEIGHT, 0)) * rest.Rotation
-	model:PivotTo(sky)
-	model.Parent = ctx.folder
-	local blade = model:FindFirstChild("Blade") :: BasePart?
-
-	-- 빛: 날 가운데 불빛 + 후광, 맞춰지는 동안 빛 알갱이가 안으로 모임
-	local glowAt = Instance.new("Attachment")
-	glowAt.Position = Vector3.new(0, 0, 0)
-	glowAt.Parent = blade
-	local light = Instance.new("PointLight")
-	light.Color, light.Range, light.Brightness, light.Shadows = GREEN, 24, 0, false
-	light.Parent = glowAt
-	local board = Kit.billboard(glowAt, 26, 2)
-	local flare = Kit.image(board, T.HolyFlare, 0.2, 1)
-	flare.ImageColor3 = GREEN_SOFT
-	flare.ImageTransparency = 1
-	local gather = blade and Kit.emitter(ctx, blade, {
+	local rig = Instance.new("Part")
+	rig.Name = "AuroraRig"
+	rig.Size = Vector3.new(0.2, 0.2, 0.2)
+	rig.Transparency = 1
+	Kit.decor(rig)
+	rig.CFrame = model:GetPivot()
+	rig.Parent = model
+	local function att(y: number): Attachment
+		local a = Instance.new("Attachment")
+		a.Position = Vector3.new(0, y * size, 0)
+		a.Parent = rig
+		return a
+	end
+	-- 날 속 흐르는 빛 (창끝 → 날 뿌리) + 자루 속 가는 빛
+	local function flowBeam(a: number, b: number, w0: number, w1: number, len: number, bright: number)
+		beam(att(a), att(b), {
+			Texture = IMG.auroraFlow,
+			TextureMode = Enum.TextureMode.Wrap,
+			TextureLength = len * size,
+			TextureSpeed = 0.9,
+			FaceCamera = true,
+			Brightness = bright,
+			Color = ColorSequence.new(WHITE),
+			Width0 = w0 * size,
+			Width1 = w1 * size,
+			Transparency = seq({ { 0, 1 }, { 0.08, 0.05 }, { 0.9, 0.1 }, { 1, 1 } }),
+		})
+	end
+	flowBeam(0.6, 14.2, 1.2, 1.0, 9, 3)
+	flowBeam(14, 39.5, 0.75, 0.55, 14, 2)
+	-- 오로라 커튼 두 줄기: 나선 위 점 5개를 이은 Beam 4개. 점의 X축(Axis) = 나선 접선 → CurveSize 로 둥글게 이어짐
+	local R = 2.6 * size
+	local y0, y1 = 3, 34
+	local turns = 1.15
+	local steps = 5
+	local curtains: { { atts: { Attachment }, phase: number } } = {}
+	local curtainBeams: { Beam } = {}
+	for c = 1, 2 do
+		local atts = {}
+		for i = 0, steps - 1 do
+			table.insert(atts, att(y0 + (y1 - y0) * i / (steps - 1)))
+		end
+		for i = 1, steps - 1 do
+			table.insert(curtainBeams, beam(atts[i], atts[i + 1], {
+				Texture = IMG.auroraCurtain,
+				TextureMode = Enum.TextureMode.Wrap,
+				TextureLength = 16 * size,
+				TextureSpeed = 0.35,
+				FaceCamera = false, -- 나선을 따라 감기는 세로 띠 (true 면 카메라 쪽으로 펴져 톱니 조각처럼 보였음)
+				Brightness = 2.2,
+				Color = ColorSequence.new(WHITE),
+				Width0 = 4 * size,
+				Width1 = 4 * size,
+				Transparency = seq({
+					{ 0, if i == 1 then 1 else 0.25 },
+					{ 0.5, 0.25 },
+					{ 1, if i == steps - 1 then 1 else 0.25 },
+				}),
+			}))
+		end
+		table.insert(curtains, { atts = atts, phase = (c - 1) * math.pi })
+	end
+	local chord = 2 * R * math.sin(math.pi * turns / (steps - 1))
+	for _, b in curtainBeams do
+		b.CurveSize0 = chord * 0.36
+		b.CurveSize1 = -chord * 0.36
+	end
+	local rise = (y1 - y0) * size / (turns * 2 * math.pi * R)
+	local function update(t: number)
+		for _, cur in curtains do
+			for i, a in cur.atts do
+				local k = (i - 1) / (steps - 1)
+				local ang = cur.phase + k * turns * math.pi * 2 + t * CURTAIN_SPIN
+				local p = Vector3.new(math.cos(ang) * R, (y0 + (y1 - y0) * k) * size, math.sin(ang) * R)
+				local tangent = Vector3.new(-math.sin(ang), rise, math.cos(ang)).Unit
+				-- Attachment.Axis(= X축)가 접선을 보게
+				a.CFrame = CFrame.fromMatrix(p, tangent, Vector3.yAxis:Cross(tangent).Unit:Cross(tangent))
+			end
+		end
+	end
+	update(0)
+	-- 창끝 흰빛 + 반짝임, 창 둘레 청록 불빛, 박힌 뒤 흘러나오는 오로라 알갱이
+	local tip = att(0.8)
+	local tipBoard = Kit.billboard(tip, 7 * size, 3)
+	local tipImg = Kit.image(tipBoard, T.HolyFlare, 1, 1)
+	tipImg.ImageColor3 = GREEN
+	tipImg.ImageTransparency = 0.2
+	local tipSparks = Kit.emitter(ctx, tip, {
 		Texture = T.HolySparkle,
-		Color = ColorSequence.new(WHITE, GREEN),
+		Color = ColorSequence.new(WHITE, TEAL),
 		LightEmission = 1,
 		Brightness = 3,
-		Shape = Enum.ParticleEmitterShape.Sphere,
-		ShapeStyle = Enum.ParticleEmitterShapeStyle.Surface,
-		ShapeInOut = Enum.ParticleEmitterShapeInOut.Inward,
-		Size = seq({ { 0, 0.3 }, { 0.6, 0.9 }, { 1, 0 } }),
-		Lifetime = NumberRange.new(0.25, 0.35),
-		Speed = NumberRange.new(14, 20),
-		Rate = 0,
-	})
-	ctx:at(appearAt, function()
-		Kit.sound(SOUNDS.descend, ground + Vector3.new(0, 30, 0))
-		for _, e in parts do
-			ctx:tween(e.part, APPEAR_TIME, { Transparency = e.base }, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
-		end
-		if gather then
-			gather.Rate = 160
-		end
-		ctx:tween(flare, APPEAR_TIME, { ImageTransparency = 0.35, Size = UDim2.fromScale(1, 1) })
-		ctx:tween(light, APPEAR_TIME, { Brightness = 2 })
-	end)
-	ctx:at(appearAt + APPEAR_TIME, function()
-		if gather then
-			gather.Rate = 0
-		end
-	end)
-	-- 떠 있는 동안 살짝 떨림, 꽂히기 DROP_TIME 전부터 가속하며 내리꽂힘
-	local dropStart = impactAt - DROP_TIME
-	ctx:step(impactAt, function(t)
-		if t < appearAt then
-			return
-		end
-		if t < dropStart then
-			local bob = math.sin((t - appearAt) * 9) * 0.25
-			model:PivotTo(sky + Vector3.new(0, bob, 0))
-		else
-			local k = math.clamp((t - dropStart) / DROP_TIME, 0, 1)
-			model:PivotTo(sky:Lerp(rest, k * k))
-		end
-	end)
-	ctx:at(impactAt, function()
-		model:PivotTo(rest)
-	end)
-	-- 박힌 채 빛남: 알갱이가 흘러나오고 불빛이 숨쉬듯
-	local motes = blade and Kit.emitter(ctx, blade, {
-		Texture = T.HolySparkle,
-		Color = ColorSequence.new(GREEN_SOFT, GREEN),
-		LightEmission = 1,
-		Brightness = 2,
-		Size = seq({ { 0, 0.4 }, { 1, 0 } }),
-		Lifetime = NumberRange.new(0.6, 1.1),
-		Speed = NumberRange.new(0.5, 2),
+		Size = seq({ { 0, 0.5 * size }, { 1, 0 } }),
+		Lifetime = NumberRange.new(0.3, 0.6),
+		Speed = NumberRange.new(1, 4),
 		SpreadAngle = Vector2.new(180, 180),
-		Acceleration = Vector3.new(0, 3, 0),
-		Rate = 0,
-		Shape = Enum.ParticleEmitterShape.Box,
+		Rate = 30,
 	})
-	ctx:at(impactAt, function()
-		if motes then
-			motes.Rate = 40
+	local motesAt = att(16)
+	local motes = Kit.emitter(ctx, motesAt, {
+		Texture = T.HolySparkle,
+		Color = ColorSequence.new({ ColorSequenceKeypoint.new(0, MINT), ColorSequenceKeypoint.new(0.6, TEAL), ColorSequenceKeypoint.new(1, VIOLET) }),
+		LightEmission = 1,
+		Brightness = 2.5,
+		Size = seq({ { 0, 0.35 * size + 0.15 }, { 1, 0 } }),
+		Lifetime = NumberRange.new(0.6, 1.2),
+		Speed = NumberRange.new(1, 4),
+		SpreadAngle = Vector2.new(180, 180),
+		Acceleration = Vector3.new(0, 4, 0),
+		Rate = 0,
+	})
+	local mid = att(8)
+	local light = Instance.new("PointLight")
+	light.Color, light.Range, light.Brightness, light.Shadows = TEAL, 22 * size + 6, 0, false
+	light.Parent = mid
+	local function fade()
+		motes.Rate = 0
+		tipSparks.Enabled = false
+		for _, p in parts do
+			ctx:tween(p, 0.35, { Transparency = 1 }, Enum.EasingStyle.Quad, Enum.EasingDirection.In, math.random() * 0.1)
 		end
-		ctx:tween(flare, 0.06, { ImageTransparency = 0, Size = UDim2.fromScale(1.6, 1.6) })
-		ctx:tween(flare, 0.4, { ImageTransparency = 0.55, Size = UDim2.fromScale(0.8, 0.8) }, Enum.EasingStyle.Quad, Enum.EasingDirection.Out, 0.06)
-	end)
-	ctx:step(impactAt + holdTime, function(t)
-		if t < impactAt + 0.3 then
-			return
-		end
-		light.Brightness = 1.6 + 0.6 * math.sin((t - impactAt) * 6)
-	end)
-	-- 흩어짐: 아래(박힌 쪽)부터 투명해지며 빛 조각·알갱이로
-	ctx:at(impactAt + holdTime, function()
-		if not model.Parent then
-			return
-		end
-		if motes then
-			motes.Rate = 0
-		end
-		Kit.sound(SOUNDS.shatter, ground + Vector3.new(0, 8, 0))
-		for _, e in parts do
-			local y = (e.part.Position - ground).Y
-			ctx:tween(e.part, 0.35, { Transparency = 1 }, Enum.EasingStyle.Quad, Enum.EasingDirection.In, math.clamp(y / 40, 0, 1) * 0.3)
-		end
-		ctx:tween(flare, 0.25, { ImageTransparency = 1, Size = UDim2.fromScale(2, 2) })
-		ctx:tween(light, 0.5, { Brightness = 0 })
-		-- 창 길이를 따라 빛 알갱이가 터짐
-		local burst = Kit.holder(ctx, rest * CFrame.new(0, SPEAR_SINK + 16, 0), "SpearBurst")
-		burst.Size = Vector3.new(2, 32, 2)
-		Kit.emitter(ctx, burst, {
-			Texture = T.HolySparkle,
-			Color = ColorSequence.new(WHITE, GREEN),
-			LightEmission = 1,
-			Brightness = 3,
-			Size = seq({ { 0, 0.7 }, { 1, 0 } }),
-			Lifetime = NumberRange.new(0.4, 0.8),
-			Speed = NumberRange.new(6, 18),
-			SpreadAngle = Vector2.new(180, 180),
-			Drag = 3,
-			Shape = Enum.ParticleEmitterShape.Box,
-		}):Emit(120)
-		-- 결정 조각: 창 부품을 작게 복제해 튀김 (이 화면에서만 물리)
-		local pieces = { model:FindFirstChild("Blade"), model:FindFirstChild("Collar"), model:FindFirstChild("Butt") }
-		for _ = 1, 14 do
-			local tpl = pieces[math.random(1, #pieces)]
-			if not (tpl and tpl:IsA("BasePart")) then
-				continue
+		for _, d in rig:GetDescendants() do
+			if d:IsA("Beam") then
+				ctx:tween(d, 0.3, { Width0 = 0, Width1 = 0 })
 			end
-			local p = tpl:Clone()
-			p:ClearAllChildren()
-			p.Size *= math.random(12, 24) / 100
-			p.Material = Enum.Material.Neon
-			p.Color = GREEN_SOFT
-			p.Transparency = 0.15
-			local along = SPEAR_SINK + math.random() * 30
-			p.CFrame = rest * CFrame.new(0, along, 0) * CFrame.Angles(math.random() * 6, math.random() * 6, math.random() * 6)
-			p.Anchored = false
-			p.Parent = ctx.folder
-			local ang = math.random() * math.pi * 2
-			p.AssemblyLinearVelocity = Vector3.new(math.cos(ang), 0, math.sin(ang)) * math.random(8, 20) + Vector3.new(0, math.random(4, 14), 0)
-			p.AssemblyAngularVelocity = Vector3.new(math.random(-10, 10), math.random(-10, 10), math.random(-10, 10))
-			ctx:tween(p, 0.6, { Transparency = 1 }, Enum.EasingStyle.Quad, Enum.EasingDirection.In, 0.15)
-			Debris:AddItem(p, 1)
 		end
-		Debris:AddItem(model, 0.8)
+		ctx:tween(tipImg, 0.2, { ImageTransparency = 1, Size = UDim2.fromScale(2, 2) })
+		ctx:tween(light, 0.4, { Brightness = 0 })
+	end
+	model.Parent = ctx.folder
+	return { model = model, rig = rig, size = size, light = light, motes = motes, update = update, fade = fade }
+end
+
+-- 번개 같은 빛 줄기: 하늘(top) → 창 꼬리. 꺾인 선(가운데 밀어내기 3번 = 9점) + 가지 2, Neon 막대로. 0.05초마다 다시 그림
+local function boltPoints(a: Vector3, b: Vector3, depth: number, jitter: number): { Vector3 }
+	local pts = { a, b }
+	for _ = 1, depth do
+		local nxt = { pts[1] }
+		for i = 1, #pts - 1 do
+			local p, q = pts[i], pts[i + 1]
+			local d = q - p
+			local side = d:Cross(Vector3.new(math.random() - 0.5, math.random() - 0.5, math.random() - 0.5))
+			side = if side.Magnitude > 1e-4 then side.Unit else Vector3.xAxis
+			table.insert(nxt, (p + q) / 2 + side * (math.random() - 0.5) * jitter * d.Magnitude)
+			table.insert(nxt, q)
+		end
+		pts = nxt
+	end
+	return pts
+end
+
+local function bolt(ctx: Kit.Ctx, top: Vector3, getBottom: () -> Vector3, startAt: number, endAt: number, width: number)
+	local pool: { BasePart } = {}
+	local function seg(i: number): BasePart
+		local p = pool[i]
+		if not p then
+			p = Instance.new("Part")
+			p.Name = "Bolt"
+			p.Material = Enum.Material.Neon
+			p.Color = if i % 3 == 0 then TEAL else MINT
+			Kit.decor(p)
+			p.Parent = ctx.folder
+			pool[i] = p
+		end
+		return p
+	end
+	local glowA = Instance.new("Attachment")
+	local glowB = Instance.new("Attachment")
+	local holder = Kit.holder(ctx, CFrame.new(), "BoltGlow")
+	glowA.Parent, glowB.Parent = holder, holder
+	local glow = beam(glowA, glowB, {
+		Texture = IMG.auroraFlow,
+		TextureMode = Enum.TextureMode.Stretch,
+		FaceCamera = true,
+		Brightness = 2.5,
+		Width0 = width * 7,
+		Width1 = width * 5,
+		Color = ColorSequence.new(WHITE),
+		Transparency = seq({ { 0, 1 }, { 0.3, 0.3 }, { 1, 0.1 } }),
+	})
+	local nextRedraw = -1
+	local hidden = CFrame.new(0, -1e4, 0)
+	ctx:step(endAt, function(t)
+		if t < startAt then
+			return
+		end
+		if t >= endAt - 0.01 then
+			for _, p in pool do
+				p.CFrame = hidden
+			end
+			glow.Enabled = false
+			return
+		end
+		if t < nextRedraw then
+			return
+		end
+		nextRedraw = t + 0.05
+		local bottom = getBottom()
+		local pts = boltPoints(top, bottom, 3, 0.35)
+		local n = 0
+		local function draw(list: { Vector3 }, w: number)
+			for i = 1, #list - 1 do
+				n += 1
+				local p = seg(n)
+				local a, b = list[i], list[i + 1]
+				p.Size = Vector3.new(w, w, (b - a).Magnitude + w)
+				p.CFrame = CFrame.lookAt((a + b) / 2, b)
+			end
+		end
+		draw(pts, width)
+		for _ = 1, 2 do
+			local from = pts[math.random(3, #pts - 2)]
+			local dir = ((bottom - top).Unit + Vector3.new(math.random() - 0.5, 0, math.random() - 0.5) * 1.6).Unit
+			draw(boltPoints(from, from + dir * (bottom - top).Magnitude * 0.18, 2, 0.4), width * 0.5)
+		end
+		for i = n + 1, #pool do
+			pool[i].CFrame = hidden
+		end
+		glowA.WorldPosition, glowB.WorldPosition = top, bottom
+		glow.Brightness = 1.8 + math.random() * 1.4 -- 깜빡임
 	end)
 end
 
--- 들린 돌판 (도약 찌르기 돌판 고리를 크게)
+local function rocks(ctx: Kit.Ctx, ground: Vector3, count: number, speed: number)
+	local src = assets("LeapStrike")
+	local folder = src and src:FindFirstChild("Rocks")
+	local list = folder and folder:GetChildren() or {}
+	if #list == 0 then
+		return
+	end
+	for i = 1, count do
+		local r = (list[math.random(1, #list)] :: BasePart):Clone()
+		r.Size *= math.random(70, 170) / 100
+		local ang = (i / count) * math.pi * 2 + math.random() * 0.5
+		local dir = Vector3.new(math.cos(ang), 0, math.sin(ang))
+		r.CFrame = CFrame.new(ground + dir * 1.5 + Vector3.new(0, 0.8, 0)) * CFrame.Angles(math.random() * 6, math.random() * 6, math.random() * 6)
+		r.Anchored = false
+		r.CanCollide = true
+		r.Parent = ctx.folder
+		r.AssemblyLinearVelocity = dir * math.random(14, 30) * speed + Vector3.new(0, math.random(18, 36) * speed, 0)
+		r.AssemblyAngularVelocity = Vector3.new(math.random(-15, 15), math.random(-15, 15), math.random(-15, 15))
+		ctx:tween(r, 0.4, { Transparency = 1 }, Enum.EasingStyle.Quad, Enum.EasingDirection.In, 1.1)
+		Debris:AddItem(r, 1.6)
+	end
+end
+
 local function slabs(ctx: Kit.Ctx, ground: Vector3, scale: number)
 	local src = assets("LeapStrike")
 	local template = src and src:FindFirstChild("Slabs")
@@ -421,138 +426,161 @@ local function slabs(ctx: Kit.Ctx, ground: Vector3, scale: number)
 		local outward = (rest.Position - ground) * Vector3.new(1, 0, 1)
 		local dir = if outward.Magnitude > 0.1 then outward.Unit else Vector3.xAxis
 		local axis = dir:Cross(Vector3.yAxis)
-		local tilt = math.rad(math.random(20, 36))
-		local up = CFrame.new(rest.Position + Vector3.new(0, math.random(30, 70) / 100 * scale, 0)) * CFrame.fromAxisAngle(axis, -tilt) * rest.Rotation
+		local up = CFrame.new(rest.Position + Vector3.new(0, math.random(30, 70) / 100 * scale, 0)) * CFrame.fromAxisAngle(axis, -math.rad(math.random(20, 36))) * rest.Rotation
 		local sunk = rest - Vector3.new(0, p.Size.Y + 0.3, 0)
 		p.CFrame = sunk
-		ctx:tween(p, SLAB_RISE + math.random() * 0.05, { CFrame = up }, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
-		ctx:at(SLAB_RISE + 0.06 + SLAB_HOLD + math.random() * 0.2, function()
+		ctx:tween(p, 0.12 + math.random() * 0.05, { CFrame = up }, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
+		ctx:at(1.8 + math.random() * 0.2, function()
 			if p.Parent then
-				ctx:tween(p, SLAB_SINK, { CFrame = sunk }, Enum.EasingStyle.Quad, Enum.EasingDirection.In)
+				ctx:tween(p, 0.7, { CFrame = sunk }, Enum.EasingStyle.Quad, Enum.EasingDirection.In)
 			end
 		end)
 	end
-	Debris:AddItem(ring, SLAB_RISE + SLAB_HOLD + SLAB_SINK + 0.5)
+	Debris:AddItem(ring, 3)
 end
 
-local function rocks(ctx: Kit.Ctx, ground: Vector3)
-	local src = assets("LeapStrike")
-	local folder = src and src:FindFirstChild("Rocks")
-	local list = folder and folder:GetChildren() or {}
-	if #list == 0 then
-		return
-	end
-	for i = 1, ROCK_COUNT do
-		local r = (list[math.random(1, #list)] :: BasePart):Clone()
-		r.Size *= math.random(90, 200) / 100
-		local ang = (i / ROCK_COUNT) * math.pi * 2 + math.random() * 0.4
-		local dir = Vector3.new(math.cos(ang), 0, math.sin(ang))
-		r.CFrame = CFrame.new(ground + dir * 2 + Vector3.new(0, 0.8, 0)) * CFrame.Angles(math.random() * 6, math.random() * 6, math.random() * 6)
-		r.Anchored = false
-		r.CanCollide = true
-		r.Parent = ctx.folder
-		r.AssemblyLinearVelocity = dir * math.random(18, 40) + Vector3.new(0, math.random(22, 42), 0)
-		r.AssemblyAngularVelocity = Vector3.new(math.random(-15, 15), math.random(-15, 15), math.random(-15, 15))
-		ctx:tween(r, 0.4, { Transparency = 1 }, Enum.EasingStyle.Quad, Enum.EasingDirection.In, 1.3)
-		Debris:AddItem(r, 1.8)
-	end
-end
-
--- 3. 꽂힘 충격 (크고 화려하게)
-local function impactFx(ctx: Kit.Ctx, ground: Vector3, radius: number)
-	-- 섬광
+-- 꽂힘 충격 (big = 가운데 큰 창)
+local function impactFx(ctx: Kit.Ctx, ground: Vector3, radius: number, big: boolean)
 	local flashHolder = Kit.holder(ctx, CFrame.new(ground + Vector3.new(0, 3, 0)), "ImpactFlash")
-	local board = Kit.billboard(flashHolder, radius * 2.4, 3)
+	local board = Kit.billboard(flashHolder, radius * 2.6, 3)
 	local flash = Kit.image(board, T.HolyFlare, 0.3, 1)
-	flash.ImageColor3 = GREEN_SOFT
-	ctx:tween(flash, 0.05, { Size = UDim2.fromScale(1, 1) })
-	ctx:tween(flash, 0.45, { ImageTransparency = 1, ImageColor3 = GREEN }, Enum.EasingStyle.Quad, Enum.EasingDirection.In, 0.05)
+	flash.ImageColor3 = GREEN
+	ctx:tween(flash, 0.04, { Size = UDim2.fromScale(1, 1) })
+	ctx:tween(flash, 0.35, { ImageTransparency = 1 }, Enum.EasingStyle.Quad, Enum.EasingDirection.In, 0.04)
 	local light = Instance.new("PointLight")
-	light.Color, light.Range, light.Brightness, light.Shadows = GREEN_SOFT, radius * 2, 3, false
+	light.Color, light.Range, light.Brightness, light.Shadows = TEAL, radius * 2, 3, false
 	light.Parent = flashHolder
-	ctx:tween(light, 0.35, { Brightness = 0 })
-
-	-- 바닥 충격파 시트 (두 겹: 큰 것 + 빠른 작은 것)
+	ctx:tween(light, 0.3, { Brightness = 0 })
+	-- 충격파 시트
 	local _, shockGui = groundGui(ctx, ground, radius * 2.6, "ImpactShock", 0, 2.5, math.random() * math.pi * 2)
-	playSheet(ctx, sheetLabel(shockGui, SHEET.shock), ctx:clock(), SHOCK_TIME)
-	local _, shockGui2 = groundGui(ctx, ground + Vector3.new(0, 0.03, 0), radius * 1.4, "ImpactShock2", 0, 3, math.random() * math.pi * 2)
-	playSheet(ctx, sheetLabel(shockGui2, SHEET.shock), ctx:clock(), SHOCK_TIME * 0.6)
-	-- 공중으로 퍼지는 빛 고리
-	local ringPart = Kit.holder(ctx, CFrame.new(ground + Vector3.new(0, 1.5, 0)), "ImpactRing")
-	ringPart.Size = Vector3.new(4, 0.05, 4)
-	local ringImgs = Kit.surface(ringPart, { T.HolyShockRing }, 3, { Enum.NormalId.Top, Enum.NormalId.Bottom })[1]
-	for _, l in ringImgs do
-		l.ImageColor3 = GREEN_SOFT
-	end
-	ctx:tween(ringPart, 0.4, { Size = Vector3.new(radius * 3, 0.05, radius * 3) }, Enum.EasingStyle.Quart, Enum.EasingDirection.Out)
-	for _, l in ringImgs do
-		ctx:tween(l, 0.4, { ImageTransparency = 1 }, Enum.EasingStyle.Quad, Enum.EasingDirection.In)
-	end
-
-	-- 균열: 어두운 선 + 초록 빛
+	playSheet(ctx, shockGui, IMG.shock, if big then 0.8 else 0.55)
+	-- 빛 균열: 어두운 선 + 청록 → 초록 빛 (그림 1 의 빛나는 균열)
 	local yaw = math.random() * math.pi * 2
 	local _, lineGui = groundGui(ctx, ground, radius * 2.2, "ImpactCrack", 1, 1, yaw)
 	local lines = Instance.new("ImageLabel")
 	lines.BackgroundTransparency = 1
-	lines.Image = SHEET.crack
-	lines.ImageRectOffset = Vector2.zero
+	lines.Image = IMG.crack
 	lines.ImageRectSize = Vector2.new(512, 512)
 	lines.ImageColor3 = Color3.fromRGB(28, 24, 20)
 	lines.ImageTransparency = 0.1
 	lines.Size = UDim2.fromScale(0.35, 0.35)
 	lines.Position = UDim2.fromScale(0.325, 0.325)
 	lines.Parent = lineGui
-	local _, glowGui = groundGui(ctx, ground + Vector3.new(0, 0.02, 0), radius * 2.2, "ImpactCrackGlow", 0, 3, yaw)
+	local _, glowGui = groundGui(ctx, ground + Vector3.new(0, 0.02, 0), radius * 2.2, "ImpactCrackGlow", 0, 3.5, yaw)
 	local glow = lines:Clone()
 	glow.ImageRectOffset = Vector2.new(512, 0)
-	glow.ImageColor3 = GREEN
+	glow.ImageColor3 = TEAL
 	glow.ImageTransparency = 0
 	glow.Parent = glowGui
 	for _, l in { lines, glow } do
-		ctx:tween(l, 0.14, { Size = UDim2.fromScale(1, 1), Position = UDim2.fromScale(0, 0) }, Enum.EasingStyle.Quart, Enum.EasingDirection.Out)
+		ctx:tween(l, 0.12, { Size = UDim2.fromScale(1, 1), Position = UDim2.fromScale(0, 0) }, Enum.EasingStyle.Quart, Enum.EasingDirection.Out)
 	end
-	ctx:tween(glow, 1.2, { ImageTransparency = 1 }, Enum.EasingStyle.Quad, Enum.EasingDirection.In, 0.4)
-	ctx:tween(lines, CRACK_FADE, { ImageTransparency = 1 }, Enum.EasingStyle.Quad, Enum.EasingDirection.In, CRACK_HOLD)
-
-	-- 흰 먼지 폭발: 낮게 사방으로 + 창 둘레로 솟는 기둥
-	local dustAt = Kit.holder(ctx, CFrame.new(ground + Vector3.new(0, 1.6, 0)), "ImpactDust")
-	dustAt.Size = Vector3.new(radius * 0.45, 0.2, radius * 0.45)
-	local ring = dustEmitter(ctx, dustAt, 1.5, NumberRange.new(4, 10), NumberRange.new(30, 46))
-	ring.Shape = Enum.ParticleEmitterShape.Box
-	ring.SpreadAngle = Vector2.new(82, 82)
-	ring.Acceleration = Vector3.new(0, -5, 0)
-	ring:Emit(DUST_COUNT)
-	local column = dustEmitter(ctx, dustAt, 1.7, NumberRange.new(5, 11), NumberRange.new(5, 10))
-	column.SpreadAngle = Vector2.new(35, 35)
-	column:Emit(4)
-
-	-- 초록 불뛰
-	Kit.emitter(ctx, dustAt, {
+	ctx:tween(glow, 1.2, { ImageTransparency = 1 }, Enum.EasingStyle.Quad, Enum.EasingDirection.In, if big then 1.4 else 0.5)
+	ctx:tween(lines, 0.9, { ImageTransparency = 1 }, Enum.EasingStyle.Quad, Enum.EasingDirection.In, if big then 2.6 else 1.4)
+	-- 연기 고리 (바닥에 낮게 깔려 바깥으로)
+	Kit.smokeRing(ctx, ground, radius * 1.1, { duration = if big then 1.5 else 1.0, count = if big then 18 else 10 })
+	-- 불뛰
+	local at = Kit.holder(ctx, CFrame.new(ground + Vector3.new(0, 1, 0)), "ImpactSparks")
+	at.Size = Vector3.new(radius * 0.3, 0.2, radius * 0.3)
+	Kit.emitter(ctx, at, {
 		Texture = "rbxasset://textures/particles/sparkles_main.dds",
-		Color = ColorSequence.new(GREEN_SOFT, GREEN_DEEP),
+		Color = ColorSequence.new({ ColorSequenceKeypoint.new(0, WHITE), ColorSequenceKeypoint.new(0.5, TEAL), ColorSequenceKeypoint.new(1, VIOLET) }),
 		LightEmission = 1,
-		Size = seq({ { 0, 0.5 }, { 1, 0 } }),
-		Lifetime = NumberRange.new(0.4, 0.9),
-		Speed = NumberRange.new(35, 70),
+		Size = seq({ { 0, 0.45 }, { 1, 0 } }),
+		Lifetime = NumberRange.new(0.3, 0.8),
+		Speed = NumberRange.new(30, 60),
 		SpreadAngle = Vector2.new(70, 70),
 		EmissionDirection = Enum.NormalId.Top,
 		Acceleration = Vector3.new(0, -60, 0),
 		Drag = 2.5,
-	}):Emit(60)
-
-	rocks(ctx, ground)
-	slabs(ctx, ground, radius / 9)
-	Kit.sound(SOUNDS.land, ground)
+		Shape = Enum.ParticleEmitterShape.Box,
+	}):Emit(if big then 60 else 25)
+	rocks(ctx, ground, if big then 14 else 6, if big then 1 else 0.7)
+	if big then
+		slabs(ctx, ground, radius / 9)
+	end
+	Kit.sound(if big then SOUNDS.landBig else SOUNDS.land, ground)
 	Kit.sound(SOUNDS.stab, ground)
 	local me = Players.LocalPlayer.Character
 	local myRoot = me and me:FindFirstChild("HumanoidRootPart")
-	if myRoot and myRoot:IsA("BasePart") and (myRoot.Position - ground).Magnitude <= SHAKE_RANGE then
-		local near = 1 - math.clamp((myRoot.Position - ground).Magnitude / SHAKE_RANGE, 0, 1)
-		PiercingLunge.shakeCamera(SHAKE_TIME, SHAKE_AMOUNT * (0.4 + 0.6 * near))
+	if myRoot and myRoot:IsA("BasePart") then
+		local d = (myRoot.Position - ground).Magnitude
+		if d <= SHAKE_RANGE then
+			local near = 1 - math.clamp(d / SHAKE_RANGE, 0, 1)
+			PiercingLunge.shakeCamera(if big then 0.4 else 0.2, (if big then 1.0 else 0.45) * (0.4 + 0.6 * near))
+		end
 	end
 end
 
--- 4. 속박: 창 아래쪽 → 대상 발밑 빛의 사슬 + 발밑 빛 고리 (root 초 동안, 끝에 부서짐)
+-- 창 하나: hitAt 에 ground 에 꽂힘, removeAt 에 흩어짐 (시각은 연출 시작 기준)
+local function strike(ctx: Kit.Ctx, ground: Vector3, radius: number, size: number, hitAt: number, removeAt: number, big: boolean)
+	local startAt = math.max(hitAt - FALL_TIME, 0)
+	-- 예고: 꽂힐 자리에 빛 고리가 번쩍하며 조여듦
+	ctx:at(math.max(startAt - 0.05, 0), function()
+		local ring = Kit.holder(ctx, CFrame.new(ground + Vector3.new(0, 0.1, 0)), "StrikeMark")
+		ring.Size = Vector3.new(radius * 2.4, 0.05, radius * 2.4)
+		local img = Kit.surface(ring, { T.HaloRing }, 3, { Enum.NormalId.Top })[1][1]
+		img.ImageColor3 = GREEN
+		img.ImageTransparency = 0.1
+		ctx:tween(ring, FALL_TIME + 0.05, { Size = Vector3.new(radius * 2, 0.05, radius * 2) }, Enum.EasingStyle.Quad, Enum.EasingDirection.In)
+		ctx:tween(img, 0.25, { ImageTransparency = 1 }, Enum.EasingStyle.Quad, Enum.EasingDirection.In, FALL_TIME + 0.05)
+	end)
+	ctx:at(startAt, function()
+		local spear = makeSpear(ctx, size)
+		if not spear then
+			return
+		end
+		local s = spear :: Spear
+		local tilt = CFrame.Angles(0, math.random() * math.pi * 2, 0) * CFrame.Angles(math.rad(SPEAR_TILT), 0, 0)
+		local rest = CFrame.new(ground - Vector3.new(0, SPEAR_SINK * size, 0)) * tilt
+		local sky = rest + Vector3.new(0, (SKY_HEIGHT + SPEAR_SINK) * size, 0)
+		s.model:PivotTo(sky)
+		Kit.sound(SOUNDS.whoosh, ground + Vector3.new(0, 20, 0))
+		local t0 = ctx:clock()
+		local fall = hitAt - startAt
+		-- 낙하(가속) + 오로라 커튼 회전
+		ctx:step(t0 + (removeAt - startAt) + 0.5, function(t)
+			local k = math.clamp((t - t0) / fall, 0, 1)
+			s.model:PivotTo(sky:Lerp(rest, k * k * k))
+			s.update(t - t0)
+		end)
+		-- 빛 줄기: 하늘에서 창 꼬리까지 (떨어지는 동안 + 꽂힌 뒤 잠깐)
+		local topPoint = ground + Vector3.new(math.random(-6, 6), BOLT_TOP, math.random(-6, 6))
+		bolt(ctx, topPoint, function()
+			return s.model:GetPivot() * Vector3.new(0, 40 * size, 0)
+		end, t0, t0 + fall + BOLT_AFTER, if big then 0.45 else 0.3)
+		ctx:at(fall, function()
+			s.light.Brightness = if big then 3 else 2
+			s.motes.Rate = if big then 45 else 25
+			impactFx(ctx, ground, radius, big)
+		end)
+		-- 흩어짐: 창 길이를 따라 오로라 빛 알갱이로
+		ctx:at(removeAt - startAt, function()
+			if not s.model.Parent then
+				return
+			end
+			Kit.sound(SOUNDS.shatter, ground + Vector3.new(0, 8, 0))
+			s.fade()
+			local burst = Kit.holder(ctx, rest * CFrame.new(0, (SPEAR_SINK + 16) * size, 0), "SpearBurst")
+			burst.Size = Vector3.new(2 * size, 32 * size, 2 * size)
+			Kit.emitter(ctx, burst, {
+				Texture = T.HolySparkle,
+				Color = ColorSequence.new({ ColorSequenceKeypoint.new(0, WHITE), ColorSequenceKeypoint.new(0.5, TEAL), ColorSequenceKeypoint.new(1, VIOLET) }),
+				LightEmission = 1,
+				Brightness = 3,
+				Size = seq({ { 0, 0.6 * size + 0.2 }, { 1, 0 } }),
+				Lifetime = NumberRange.new(0.4, 0.8),
+				Speed = NumberRange.new(6, 18),
+				SpreadAngle = Vector2.new(180, 180),
+				Drag = 3,
+				Shape = Enum.ParticleEmitterShape.Box,
+			}):Emit(if big then 110 else 50)
+			Debris:AddItem(s.model, 0.6)
+		end)
+	end)
+end
+
+-- 속박: 큰 창 아래 → 대상 발밑 빛의 사슬 + 발밑 빛 고리 (root 초 동안, 끝에 부서짐)
 local function pinTarget(ctx: Kit.Ctx, center: Vector3, model: Model, duration: number, index: number)
 	local root = model:FindFirstChild("HumanoidRootPart") :: BasePart?
 	local humanoid = model:FindFirstChildOfClass("Humanoid")
@@ -563,48 +591,48 @@ local function pinTarget(ctx: Kit.Ctx, center: Vector3, model: Model, duration: 
 		local hip = humanoid.HipHeight + root.Size.Y / 2
 		return root.Position - Vector3.new(0, hip - 0.3, 0)
 	end
-	-- 발밑 빛 고리
 	local foot = Kit.holder(ctx, CFrame.new(footPos()), "PinRing")
 	local ringSize = math.max(root.Size.X * 2.2, 4.5)
 	foot.Size = Vector3.new(ringSize * 1.8, 0.05, ringSize * 1.8)
 	local ringLayers = Kit.surface(foot, { T.HaloRing, T.HolyCircle_Core }, 2.6, { Enum.NormalId.Top })
 	local ringImg, coreImg = ringLayers[1][1], ringLayers[2][1]
-	ringImg.ImageColor3, coreImg.ImageColor3 = GREEN_SOFT, GREEN
+	ringImg.ImageColor3, coreImg.ImageColor3 = GREEN, GREEN
 	ringImg.ImageTransparency, coreImg.ImageTransparency = 1, 1
 	ctx:tween(foot, 0.15, { Size = Vector3.new(ringSize, 0.05, ringSize) }, Enum.EasingStyle.Back)
 	ctx:tween(ringImg, 0.15, { ImageTransparency = 0.05 })
 	ctx:tween(coreImg, 0.15, { ImageTransparency = 0.5 })
-
-	-- 사슬 고리: 창 아래쪽(바닥 위 2) → 발밑, 0.12초에 뻗어 나감. 고리는 90도씩 교차
 	local from = center + Vector3.new(0, 2, 0)
 	local links: { BasePart } = {}
 	local maxLinks = 30
+	local LINK_LEN = 1.1
 	for i = 1, maxLinks do
 		local link = Instance.new("Part")
 		link.Name = "LightLink"
 		link.Size = Vector3.new(0.14, 0.5, LINK_LEN * 1.2)
 		link.Material = Enum.Material.Neon
-		link.Color = if i % 2 == 0 then GREEN_SOFT else GREEN
+		link.Color = if i % 2 == 0 then MINT else TEAL
 		link.Transparency = 0.1
 		Kit.decor(link)
 		link.CFrame = CFrame.new(from)
 		link.Parent = ctx.folder
 		links[i] = link
 	end
-	-- 사슬을 감싸는 빛 (Beam)
 	local a0 = Instance.new("Attachment")
 	local a1 = Instance.new("Attachment")
 	local beamHolder = Kit.holder(ctx, CFrame.new(), "PinBeam")
 	a0.Parent, a1.Parent = beamHolder, beamHolder
-	local glow = Instance.new("Beam")
-	glow.Attachment0, glow.Attachment1 = a0, a1
-	glow.Texture, glow.TextureMode = T.HolyOrb_Trail, Enum.TextureMode.Stretch
-	glow.FaceCamera = true
-	glow.LightEmission, glow.LightInfluence, glow.Brightness = 1, 0, 2
-	glow.Color = ColorSequence.new(GREEN)
-	glow.Width0, glow.Width1 = 1.2, 1.2
-	glow.Transparency = seq({ { 0, 0.4 }, { 1, 0.4 } })
-	glow.Parent = beamHolder
+	local glow = beam(a0, a1, {
+		Texture = IMG.auroraFlow,
+		TextureMode = Enum.TextureMode.Wrap,
+		TextureLength = 6,
+		TextureSpeed = 1.5,
+		FaceCamera = true,
+		Brightness = 2,
+		Color = ColorSequence.new(WHITE),
+		Width0 = 1.4,
+		Width1 = 1.4,
+		Transparency = seq({ { 0, 0.3 }, { 1, 0.3 } }),
+	})
 	local hidden = CFrame.new(0, -1e4, 0)
 	local started = ctx:clock()
 	local shown = 0
@@ -615,19 +643,17 @@ local function pinTarget(ctx: Kit.Ctx, center: Vector3, model: Model, duration: 
 		local to = footPos()
 		foot.CFrame = CFrame.new(to + Vector3.new(0, 0.1, 0))
 		local grow = math.clamp((t - started) / 0.12, 0, 1)
-		local v = (to - from)
+		local v = to - from
 		local length = v.Magnitude * grow
 		local dir = if v.Magnitude > 1e-3 then v.Unit else Vector3.xAxis
 		local count = math.clamp(math.floor(length / LINK_LEN), 0, maxLinks)
-		-- 사슬이 살짝 처짐 (가운데가 0.6 아래)
 		local parts, frames = {}, {}
 		for i = 1, maxLinks do
 			table.insert(parts, links[i])
 			if i <= count then
 				local k0 = (i - 0.5) * LINK_LEN / math.max(v.Magnitude, 1e-3)
 				local p = from + v * k0 - Vector3.new(0, 0.6 * 4 * k0 * (1 - k0), 0)
-				local twist = if i % 2 == 0 then math.pi / 2 else 0
-				table.insert(frames, CFrame.lookAt(p, p + dir) * CFrame.Angles(0, 0, twist))
+				table.insert(frames, CFrame.lookAt(p, p + dir) * CFrame.Angles(0, 0, if i % 2 == 0 then math.pi / 2 else 0))
 			else
 				table.insert(frames, hidden)
 			end
@@ -641,14 +667,12 @@ local function pinTarget(ctx: Kit.Ctx, center: Vector3, model: Model, duration: 
 	ctx:at(0.02 * index, function()
 		Kit.sound(SOUNDS.chain, footPos())
 	end)
-	-- 끝: 사슬·고리가 빛 조각으로 부서짐
 	ctx:at(duration, function()
-		local mid = Kit.holder(ctx, CFrame.new((from + footPos()) / 2), "PinBreak")
+		local mid = Kit.holder(ctx, CFrame.lookAt((from + footPos()) / 2, footPos()), "PinBreak")
 		mid.Size = Vector3.new(1, 1, math.max((footPos() - from).Magnitude, 1))
-		mid.CFrame = CFrame.lookAt(mid.Position, footPos())
 		Kit.emitter(ctx, mid, {
 			Texture = T.HolySparkle,
-			Color = ColorSequence.new(WHITE, GREEN),
+			Color = ColorSequence.new(WHITE, TEAL),
 			LightEmission = 1,
 			Brightness = 3,
 			Size = seq({ { 0, 0.4 }, { 1, 0 } }),
@@ -664,11 +688,9 @@ local function pinTarget(ctx: Kit.Ctx, center: Vector3, model: Model, duration: 
 		ctx:tween(glow, 0.15, { Width0 = 0, Width1 = 0 })
 		ctx:tween(ringImg, 0.25, { ImageTransparency = 1 })
 		ctx:tween(coreImg, 0.25, { ImageTransparency = 1 })
-		ctx:tween(foot, 0.25, { Size = Vector3.new(ringSize * 1.6, 0.05, ringSize * 1.6) })
 	end)
 end
 
--- 보스 등 속박이 안 걸린 대상: 몸에 반짝임만
 local function hitSpark(ctx: Kit.Ctx, model: Model)
 	local root = model:FindFirstChild("HumanoidRootPart")
 	if not (root and root:IsA("BasePart")) then
@@ -677,7 +699,7 @@ local function hitSpark(ctx: Kit.Ctx, model: Model)
 	local at = Kit.holder(ctx, root.CFrame, "PinSpark")
 	Kit.emitter(ctx, at, {
 		Texture = T.HolySparkle,
-		Color = ColorSequence.new(WHITE, GREEN),
+		Color = ColorSequence.new(WHITE, TEAL),
 		LightEmission = 1,
 		Brightness = 3,
 		Size = seq({ { 0, 0.6 }, { 1, 0 } }),
@@ -688,14 +710,14 @@ local function hitSpark(ctx: Kit.Ctx, model: Model)
 	}):Emit(30)
 end
 
--- 시전: p = { origin: CFrame(시전 root·방향), center: 꽂히는 바닥 점, radius, warnTime, timeScale }
+-- 시전: p = { origin: CFrame, center: 큰 창 자리, strikes = { { pos, time, radius, size } }, timeScale }
 -- 속박: p = { phase = "pin", origin = CFrame.new(center), targets = { { model, pinned } }, root }
 function GodSpear.play(p: any, character: Instance?)
 	if p.phase == "pin" then
 		if type(p.targets) ~= "table" or typeof(p.origin) ~= "CFrame" then
 			return
 		end
-		local duration = if type(p.root) == "number" then p.root else (SKILL.root or 2)
+		local duration = if type(p.root) == "number" then p.root else 2
 		local ctx = Kit.begin("GodSpearPin", duration + 1, p.timeScale)
 		local center = (p.origin :: CFrame).Position
 		for i, t in p.targets do
@@ -710,24 +732,25 @@ function GodSpear.play(p: any, character: Instance?)
 		end
 		return
 	end
-	if typeof(p.center) ~= "Vector3" then
+	if type(p.strikes) ~= "table" or #p.strikes == 0 then
 		return
 	end
-	local center: Vector3 = p.center
-	local radius = if type(p.radius) == "number" then p.radius else (SKILL.radius or 18)
-	local warnTime = if type(p.warnTime) == "number" then p.warnTime else (SKILL.warnTime or 0.9)
-	local castDelay = SKILL.castDelay
-	local impactAt = castDelay + warnTime
-	local hold = SKILL.root or 2
-	local ctx = Kit.begin("GodSpearFx", impactAt + hold + 2, p.timeScale)
-	local origin: CFrame = if typeof(p.origin) == "CFrame" then p.origin else CFrame.new(center)
-
+	local rootTime = SKILL.root or 2
+	local last = 0
+	for _, s in p.strikes do
+		last = math.max(last, s.time)
+	end
+	local ctx = Kit.begin("GodSpearFx", last + rootTime + 2.5, p.timeScale)
+	local origin: CFrame = if typeof(p.origin) == "CFrame" then p.origin else CFrame.new(p.strikes[1].pos)
 	Kit.casterSound(SOUNDS.call, character, origin.Position)
-	warning(ctx, center, radius, impactAt)
-	spear(ctx, center, castDelay, impactAt, hold)
-	ctx:at(impactAt, function()
-		impactFx(ctx, center, radius)
-	end)
+	for _, s in p.strikes do
+		if typeof(s.pos) ~= "Vector3" then
+			continue
+		end
+		local big = (s.size or 1) >= 0.99
+		local removeAt = if big then s.time + rootTime else last + SMALL_LINGER
+		strike(ctx, s.pos, s.radius or 9, s.size or 1, s.time, removeAt, big)
+	end
 end
 
 return GodSpear
