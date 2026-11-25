@@ -241,9 +241,19 @@
     "BladeMesh_meshId": 119094222831278
   },
   "BladeWhirl": {
-    "_note": "칼날 회오리 회전 칼날 메시 (모델 에셋, 그룹 소유). scripts/blade_whirl_arc.py → Vfx.BladeWhirl.WhirlBlade(+Core)",
+    "_note": "(v1, 안 씀) 원형 궤도 칼날. v2 는 BladeWhirlSlashes",
     "model": 138502072838714,
     "WhirlBlade_meshId": 102624018300327,
     "Core_meshId": 76586362218692
+  },
+  "BladeWhirlSlashes": {
+    "_note": "칼날 회오리 v2 초승달 베기 메시 A/B/C (모델 에셋, 그룹 소유). scripts/blade_whirl_slashes.py → Vfx.BladeWhirl.SlashA/B/C (+Core). 폭 넓힌 v2 = 107005971350233 (처음 것 100915407961479 안 씀)",
+    "model": 107005971350233,
+    "SlashA": 117264424193540,
+    "SlashA_Core": 77349094543984,
+    "SlashB": 76872503707920,
+    "SlashB_Core": 76500759494596,
+    "SlashC": 82169133471607,
+    "SlashC_Core": 101560582166857
   }
 }
