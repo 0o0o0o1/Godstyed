@@ -932,3 +932,10 @@
   - 플레이 시험 (로비, office_husk 8마리 제자리 고정, 시험 동안만 단검 5번 소켓에 성유물·무적, 끝나고 되돌림: 5번 소켓 원래 비어 있음): ① 무리 7 + 먼 1 → strike 1~6 → return → execute, 6명 제한으로 1명·먼 적은 안 벰, 피해 들어감, 끝나고 머리 보임·AutoRotate 복구·연출 폴더·표식 남지 않음. ② 첫 대상 체력 3 → 첫 타에 죽고 연쇄 5명 뒤 "finish"(처형 생략). 오류 없음. 첫 시도는 로비 훈련용 더미가 첫 대상이 되어 1명에서 끝남(더미 주변 12 안에 적 없음, 정상 동작).
   - 화면: 몸은 안 보이고 칼자국·궤적만 보임 확인. 임시 연출이라 얇고 작음 → 3단계에서 키움.
   - 게시: Services(Skill), Shared(Skills·DaggerRelics), Controllers(SkillController·Vfx.ShadowChain). `TEST_COOLDOWN = 1` 이 켜져 있어 지금은 쿨 1초.
+- ✔ **3단계: 자체 텍스처 연출 (2026-11-26)** — `scripts/vfx_shadow_chain_tex.py` (Python numpy·Pillow, Blender 안 씀), ID 는 `texture_ids.json` → `VFX.ShadowChain`
+  - 잉크 연기 `ink_puff` 8x8(칸 128): 2D 흐름 계산(두 흐름 함수를 시간에 따라 섞은 회전 흐름 + 처음 바깥으로 터짐, 반-라그랑주 이류) → 말려 퍼지며 옅어짐. 2차에서 터짐 1.6→3.2(칸을 더 채움)·늦게 옅어지게.
+  - 궤적 `streak_body`(잉크 몸통, 출발 쪽 갈라짐) + `streak_edge`(1D 로 끊기는 가는 테두리 두 줄 + 심 — 1차 2D 노이즈 덩어리는 지저분해서 바꿈), 칼자국 `slash` 4x4(그어짐 → 머묾 → 결로 갈라짐), 표식 `mark`(끊긴 고리 + 네 갈래 가시 + 가운데 마름모 — 1차 가로 가시가 끝까지 새던 것 고침).
+  - `Vfx.ShadowChain` 2차: 잉크 연기(검게 + 옅은 보라 기운), 궤적 Beam 두 겹, X = 칼자국 플립북 두 장 ±38°(보라 번짐 + 흰 심), 표식 = 적 몸 BillboardGui(돌다가 처형 때 커지며 터짐), 처형 = 큰 X + 표식 문양 충격 + 잉크 + 연기 고리, 처형 직전 내 화면 ColorCorrection 눌림 → 처형 순간 밝게.
+  - 화면 확인: 실제 시전 X 칼자국 또렷·캐릭터 안 보임, 미리보기 0.08배속으로 궤적·잉크 확인 → 궤적 테두리가 흰 판처럼 넓고 밝아 좁고 어둡게(2.2, 보라→라일락, 밝기 1.6), 몸통은 조금 빛나게(0.45). 실제 무리 시전: 5명 + 처형, 마지막 적에서 15.6 떨어진 1마리는 규칙대로 안 벰, 끝나고 폴더·표식·화면 효과 남지 않음, 오류 없음.
+  - 사용자 데이터: 시험 중 단검 5번 소켓을 다시 원래대로 → 원래 값이 이미 relic_shadow_chain (사용자가 직접 끼운 것으로 보임) 이라 그대로 둠.
+  - 게시: Services(Skill), Shared(Skills·DaggerRelics), Controllers(SkillController·Vfx.ShadowChain). 남은 것: 전용 아이콘, `TEST_COOLDOWN` 끄기.

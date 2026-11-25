@@ -237,6 +237,21 @@
         "13138038111": "flip_thin",
         "12817881196": "flip_trail"
       }
+    },
+    "ShadowChain": {
+      "note": "scripts/vfx_shadow_chain_tex.py (Python numpy·Pillow, 잉크 연기는 2D 흐름 계산). Vfx.ShadowChain 이 씀",
+      "ink_puff": "108787658210747",
+      "streak_body": "139998008469812",
+      "streak_edge": "95405263185689",
+      "slash": "112085606213352",
+      "mark": "125070638939268",
+      "decals": {
+        "ink_puff": "136453855500469",
+        "streak_body": "101677181154586",
+        "streak_edge": "116684781302503",
+        "slash": "111483383685103",
+        "mark": "135691841665308"
+      }
     }
   },
   "SpearIcons": {

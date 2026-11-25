@@ -1,7 +1,8 @@
 --!strict
 -- 그림자 연쇄 연출 (Skills.shadow_chain, kind "chain", vfx = "ShadowChain"). 단검 색 = 흰 + 보라 + 검은 연기.
 -- 원본: 저장소 scripts/packages/Controllers/Vfx_ShadowChain.lua (Controllers 패키지 SkillController.Vfx.ShadowChain)
--- 2026-11-26 1차 (임시 연출, 텍스처는 프로젝트 기존 것). 다음 단계에서 Python 붓질·잉크 연기 텍스처로 바꿀 예정.
+-- 2026-11-26 2차: 자체 텍스처 (저장소 scripts/vfx_shadow_chain_tex.py, Python numpy·Pillow — ID 는 exports/texture_ids.json VFX.ShadowChain)
+--   잉크 연기 8x8 플립북(2D 흐름 계산) / 궤적 몸통·테두리 Beam / 칼자국 4x4 플립북 두 장 엇갈려 X / 표식 문양
 --   사라짐  시전(phase 없음)   출발 자리: 어두운 잔상 + 발밑 검은 연기 고리 + 연기 덩이. 이때부터 끝날 때까지 몸·무기 빛을 모든 화면에서 숨김
 --                              (사용자 결정: 벨 때도 캐릭터는 안 보이고 이펙트만)
 --   벰      phase "strike"     서버가 고른 다음 적 뒤(origin = 도착 자리)로: 지나온 길에 그림자 궤적, 도착 자리 작은 연기,
@@ -31,11 +32,32 @@ local SHADOW = Color3.fromRGB(30, 8, 55)
 local GHOST_COLOR = Color3.fromRGB(45, 10, 80)
 local SMOKE = Color3.fromRGB(16, 10, 24)
 
+-- 자체 텍스처 (흰색 + 알파, 색은 여기서 칠함)
+local TEX = {
+	ink = "rbxassetid://108787658210747", -- 잉크 연기 8x8 (64칸)
+	streakBody = "rbxassetid://139998008469812", -- 궤적 몸통 (가로 0 출발 → 1 도착)
+	streakEdge = "rbxassetid://95405263185689", -- 궤적 테두리 선 + 심
+	slash = "rbxassetid://112085606213352", -- 칼자국 4x4 (16칸: 그어짐 → 머묾 → 갈라져 사라짐)
+	mark = "rbxassetid://125070638939268", -- 표식 (끊긴 고리 + 네 갈래 가시)
+}
+task.spawn(function()
+	local list = {}
+	for _, id in TEX do
+		local d = Instance.new("Decal")
+		d.Texture = id
+		table.insert(list, d)
+	end
+	pcall(function()
+		game:GetService("ContentProvider"):PreloadAsync(list)
+	end)
+end)
+
 local GHOST_LIFE = 0.35
 local STREAK_LIFE = 0.28 -- 그림자 궤적이 남는 시간
-local SLASH_LEN, SLASH_W = 7, 0.7 -- 칼자국 (스터드)
-local SLASH_IN, SLASH_OUT = 0.05, 0.16
-local EXEC_LEN, EXEC_W = 13, 1.4 -- 처형 X (missing 에 따라 최대 1.5배)
+local SLASH_SIZE, SLASH_LIFE = 9, 0.34 -- 칼자국 플립북 크기 (스터드)·재생 시간
+local EXEC_SIZE = 17 -- 처형 X (missing 에 따라 최대 1.5배)
+local MARK_SIZE = 4.2 -- 표식 지름
+local DIM = { brightness = -0.14, saturation = -0.5, contrast = 0.15 } -- 처형 직전 내 화면 눌림
 local REVEAL = 0.12 -- 끝나고 몸이 다시 보이는 시간
 
 local SOUNDS = {
@@ -57,9 +79,10 @@ type State = {
 	setHidden: ((number) -> ())?,
 	unlock: (() -> ())?,
 	pin: CFrame?,
-	marks: { Instance },
+	marks: { BillboardGui },
 	done: boolean,
 	mine: boolean,
+	dim: ColorCorrectionEffect?,
 }
 local active: { [Instance]: State } = {}
 
@@ -149,27 +172,49 @@ local function ghost(ctx: Kit.Ctx, character: Model, away: Vector3)
 	end
 end
 
+-- 잉크 연기 (자체 8x8 플립북, 검게): inward 면 바깥에서 안으로 빨려 들며 작아짐 (도착), 아니면 퍼짐
 local function smokePuff(ctx: Kit.Ctx, at: Vector3, count: number, size: number, inward: boolean)
-	local holder = Kit.holder(ctx, CFrame.new(at), "ChainSmoke")
-	holder.Size = Vector3.new(size, size, size)
-	Kit.emitter(ctx, holder, {
-		Texture = T.FsSmokeDark,
-		FlipbookLayout = Enum.ParticleFlipbookLayout.Grid4x4,
+	local holder = Kit.holder(ctx, CFrame.new(at), "ChainInk")
+	holder.Size = Vector3.new(size * 0.5, size * 0.5, size * 0.5)
+	local e = Kit.emitter(ctx, holder, {
+		Texture = TEX.ink,
+		FlipbookLayout = Enum.ParticleFlipbookLayout.Grid8x8,
 		FlipbookMode = Enum.ParticleFlipbookMode.OneShot,
-		Color = ColorSequence.new(WHITE),
+		Color = ColorSequence.new(SMOKE),
 		LightEmission = 0,
-		LightInfluence = 0.4,
-		Size = if inward then seq({ { 0, size * 0.9 }, { 1, size * 0.3 } }) else seq({ { 0, size * 0.6 }, { 1, size * 1.1 } }),
-		Transparency = seq({ { 0, 0.3 }, { 0.6, 0.5 }, { 1, 1 } }),
-		Lifetime = NumberRange.new(0.3, 0.45),
-		Speed = if inward then NumberRange.new(6, 9) else NumberRange.new(1.5, 3.5),
+		LightInfluence = 0.25,
+		Size = if inward then seq({ { 0, size * 1.1 }, { 1, size * 0.5 } }) else seq({ { 0, size * 0.7 }, { 1, size * 1.3 } }),
+		Transparency = seq({ { 0, 0.05 }, { 0.7, 0.25 }, { 1, 1 } }),
+		Lifetime = NumberRange.new(0.45, 0.65),
+		Speed = if inward then NumberRange.new(4, 7) else NumberRange.new(1, 3),
 		Shape = Enum.ParticleEmitterShape.Sphere,
 		ShapeInOut = if inward then Enum.ParticleEmitterShapeInOut.Inward else Enum.ParticleEmitterShapeInOut.Outward,
 		ShapeStyle = Enum.ParticleEmitterShapeStyle.Surface,
 		Rotation = NumberRange.new(0, 360),
-		RotSpeed = NumberRange.new(-60, 60),
+		RotSpeed = NumberRange.new(-50, 50),
 		Drag = 3,
-	}):Emit(count)
+		ZOffset = 0.5,
+	})
+	pcall(function()
+		(e :: any).FlipbookStartRandom = false
+	end)
+	e:Emit(count)
+	-- 잉크 가장자리에 옅은 보라 기운 (같은 그림, 빛남)
+	Kit.emitter(ctx, holder, {
+		Texture = TEX.ink,
+		FlipbookLayout = Enum.ParticleFlipbookLayout.Grid8x8,
+		FlipbookMode = Enum.ParticleFlipbookMode.OneShot,
+		Color = ColorSequence.new(PURPLE),
+		LightEmission = 0.8,
+		LightInfluence = 0,
+		Brightness = 1.5,
+		Size = seq({ { 0, size * 0.9 }, { 1, size * 1.5 } }),
+		Transparency = seq({ { 0, 0.75 }, { 1, 1 } }),
+		Lifetime = NumberRange.new(0.35, 0.5),
+		Speed = NumberRange.new(1, 2),
+		Rotation = NumberRange.new(0, 360),
+		ZOffset = 0.3,
+	}):Emit(math.max(1, math.floor(count / 2)))
 end
 
 local function sparks(ctx: Kit.Ctx, at: Vector3, dir: Vector3, count: number, speed: number)
@@ -205,140 +250,148 @@ local function sparks(ctx: Kit.Ctx, at: Vector3, dir: Vector3, count: number, sp
 	}):Emit(math.floor(count * 1.4))
 end
 
--- 칼자국 한 줄: center 를 지나 dir 방향으로 길이 len, 가운데 굵고 양 끝 바늘 (바깥 보라 + 흰 심). 순간 그어졌다 가늘어지며 사라짐
-local function slashLine(ctx: Kit.Ctx, center: Vector3, dir: Vector3, len: number, width: number, brightness: number)
+-- X 칼자국 (자체 4x4 플립북, 카메라를 봄): 두 장을 ±38° 로 엇갈려, 0.04초 차이. 바깥 보라 번짐 + 흰 심
+local function slashX(ctx: Kit.Ctx, center: Vector3, size: number, brightness: number)
 	local holder = Kit.holder(ctx, CFrame.new(center), "ChainSlash")
-	local a, m, b = Instance.new("Attachment"), Instance.new("Attachment"), Instance.new("Attachment")
-	a.Parent, m.Parent, b.Parent = holder, holder, holder
-	local beams: { { beam: Beam, w: number, base: number } } = {}
-	local function beam(p0: Attachment, p1: Attachment, w0: number, w1: number, color: Color3, base: number)
-		local bm = Instance.new("Beam")
-		bm.Attachment0, bm.Attachment1 = p0, p1
-		bm.Width0, bm.Width1 = w0, w1
-		bm.Color = ColorSequence.new(color)
-		bm.LightEmission, bm.LightInfluence, bm.Brightness = 1, 0, brightness
-		bm.FaceCamera = true
-		bm.Segments = 1
-		bm.Transparency = NumberSequence.new(1)
-		bm.Parent = holder
-		table.insert(beams, { beam = bm, w = math.max(w0, w1), base = base })
-	end
-	beam(a, m, 0, width, PURPLE, 0.15)
-	beam(m, b, width, 0, PURPLE, 0.15)
-	beam(a, m, 0, width * 0.32, WHITE, 0)
-	beam(m, b, width * 0.32, 0, WHITE, 0)
-	local t0 = ctx:clock()
-	ctx:step(t0 + SLASH_IN + SLASH_OUT, function(t)
-		local k = t - t0
-		local draw = 1 - (1 - math.clamp(k / SLASH_IN, 0, 1)) ^ 3
-		local fade = math.clamp((k - SLASH_IN) / SLASH_OUT, 0, 1)
-		local half = len / 2
-		a.WorldPosition = center - dir * half
-		b.WorldPosition = center - dir * half + dir * len * draw
-		m.WorldPosition = center - dir * half + dir * len * draw * 0.55
-		for _, bb in beams do
-			bb.beam.Transparency = NumberSequence.new(bb.base + (1 - bb.base) * fade)
-			local thin = 1 - 0.7 * fade
-			if bb.beam.Width0 > 0 then
-				bb.beam.Width0 = bb.w * thin
-			end
-			if bb.beam.Width1 > 0 then
-				bb.beam.Width1 = bb.w * thin
-			end
-		end
-	end)
-	ctx:at(SLASH_IN + SLASH_OUT + 0.03, function()
-		holder:Destroy()
-	end)
-end
-
--- X 칼자국: 카메라를 향한 평면에서 두 대각선 (angle ± spread)
-local function slashX(ctx: Kit.Ctx, center: Vector3, len: number, width: number, brightness: number)
-	local cam = workspace.CurrentCamera
-	local right = if cam then cam.CFrame.RightVector else Vector3.xAxis
-	local up = if cam then cam.CFrame.UpVector else Vector3.yAxis
-	local base = math.rad(math.random(-15, 15))
-	for i, ang in { base + math.rad(38), base - math.rad(38) } do
-		local dir = (right * math.cos(ang) + up * math.sin(ang)).Unit
-		if i == 1 then
-			slashLine(ctx, center, dir, len, width, brightness)
-		else
-			ctx:at(0.04, function()
-				slashLine(ctx, center, -dir, len, width, brightness)
+	local base = math.random(-15, 15)
+	local function one(rot: number)
+		for _, layer in { { color = PURPLE, scale = 1.18, tr = 0.15, b = brightness * 0.8, z = 1 }, { color = WHITE, scale = 1, tr = 0, b = brightness, z = 1.2 } } do
+			local e = Kit.emitter(ctx, holder, {
+				Texture = TEX.slash,
+				FlipbookLayout = Enum.ParticleFlipbookLayout.Grid4x4,
+				FlipbookMode = Enum.ParticleFlipbookMode.OneShot,
+				Color = ColorSequence.new(layer.color),
+				LightEmission = 1,
+				LightInfluence = 0,
+				Brightness = layer.b,
+				Size = NumberSequence.new(size * layer.scale),
+				Transparency = NumberSequence.new(layer.tr),
+				Lifetime = NumberRange.new(SLASH_LIFE),
+				Speed = NumberRange.new(0),
+				Rotation = NumberRange.new(rot),
+				ZOffset = layer.z,
+			})
+			pcall(function()
+				(e :: any).FlipbookStartRandom = false
 			end)
+			e:Emit(1)
 		end
 	end
+	one(base + 38)
+	ctx:at(0.04, function()
+		one(base - 38)
+	end)
 end
 
--- 그림자 궤적: from → to 를 잇는 어두운 보라 띠 + 가는 라일락 심, 끝(도착) 쪽부터 사라짐
+-- 그림자 궤적 (자체 텍스처 Beam 두 겹): 잉크 몸통(검은 보라 → 도착 쪽 보라) + 라일락 테두리 선, 출발 쪽부터 걷힘
 local function streak(ctx: Kit.Ctx, from: Vector3, to: Vector3)
 	local holder = Kit.holder(ctx, CFrame.new(from), "ChainStreak")
 	local a0, a1 = Instance.new("Attachment"), Instance.new("Attachment")
 	a0.Parent, a1.Parent = holder, holder
 	a0.WorldPosition, a1.WorldPosition = from, to
-	local function beam(width: number, color: ColorSequence, brightness: number, emission: number, base: number): Beam
+	local function beam(texture: string, width: number, color: ColorSequence, brightness: number, emission: number): Beam
 		local b = Instance.new("Beam")
 		b.Attachment0, b.Attachment1 = a0, a1
-		b.Width0, b.Width1 = width * 0.4, width
+		b.Texture = texture
+		b.TextureMode = Enum.TextureMode.Stretch
+		b.Width0, b.Width1 = width, width
 		b.Color = color
 		b.LightEmission, b.LightInfluence, b.Brightness = emission, 0, brightness
 		b.FaceCamera = true
 		b.Segments = 1
-		b.Transparency = NumberSequence.new(base)
+		b.Transparency = NumberSequence.new(0)
 		b.Parent = holder
 		return b
 	end
-	local body = beam(1.6, ColorSequence.new(SHADOW, PURPLE), 1, 0.3, 0.25)
-	local core = beam(0.25, ColorSequence.new(PURPLE, LILAC), 3, 1, 0)
+	-- 화면 확인 뒤 (2026-11-26): 테두리가 넓고 밝아 흰 판처럼 보여서 좁고 어둡게, 몸통은 어두운 바닥에서 안 보여서 조금 빛나게
+	local body = beam(TEX.streakBody, 3.4, ColorSequence.new(SHADOW, PURPLE), 1.6, 0.45)
+	local edge = beam(TEX.streakEdge, 2.2, ColorSequence.new(PURPLE, LILAC), 1.6, 1)
 	local t0 = ctx:clock()
 	ctx:step(t0 + STREAK_LIFE, function(t)
 		local k = math.clamp((t - t0) / STREAK_LIFE, 0, 1)
-		-- 출발 쪽부터 걷혀 도착 쪽으로 빨려 들어감
-		body.Transparency = seq({ { 0, math.min(1, 0.25 + k * 1.6) }, { 1, 0.25 + 0.75 * k ^ 2 } })
-		core.Transparency = seq({ { 0, math.min(1, k * 2) }, { 1, k ^ 1.5 } })
+		body.Transparency = seq({ { 0, math.min(1, k * 1.8) }, { 1, k ^ 2 } })
+		edge.Transparency = seq({ { 0, math.min(1, k * 2.4) }, { 1, k ^ 1.4 } })
 	end)
 	ctx:at(STREAK_LIFE + 0.03, function()
 		holder:Destroy()
 	end)
 end
 
--- 벤 적 표식: 몸 둘레를 맴도는 보라 알갱이 (처형·끝 때 거둠)
+-- 벤 적 표식 (자체 문양, 몸 가운데 카메라를 봄): 확 커지며 나타나 천천히 돎. 처형 때 커지며 터지고, 끝이면 그냥 사라짐
 local function addMark(st: State, target: Instance?)
 	local root = typeof(target) == "Instance" and target:FindFirstChild("HumanoidRootPart")
 	if not (root and root:IsA("BasePart")) then
 		return
 	end
-	local att = Instance.new("Attachment")
-	att.Name = "ShadowChainMark"
-	att.Parent = root
-	local e = Instance.new("ParticleEmitter")
-	e.Texture = T.HolySparkle
-	e.Color = ColorSequence.new(LILAC, PURPLE)
-	e.LightEmission = 1
-	e.Brightness = 2
-	e.Size = seq({ { 0, 0.35 }, { 1, 0 } })
-	e.Transparency = seq({ { 0, 0.1 }, { 1, 1 } })
-	e.Lifetime = NumberRange.new(0.4, 0.6)
-	e.Speed = NumberRange.new(1, 2)
-	e.SpreadAngle = Vector2.new(180, 180)
-	e.Acceleration = Vector3.new(0, 3, 0)
-	e.Rate = 25 / st.ctx.scale
-	e.TimeScale = st.ctx.scale
-	e.Shape = Enum.ParticleEmitterShape.Sphere
-	e.ShapeStyle = Enum.ParticleEmitterShapeStyle.Surface
-	e.Parent = att
-	table.insert(st.marks, att)
+	local board = Kit.billboard(st.ctx.folder, MARK_SIZE, 3)
+	board.Name = "ShadowChainMark"
+	board.Adornee = root
+	board.AlwaysOnTop = false
+	local image = Kit.image(board, TEX.mark, 0.2, 1)
+	image.ImageColor3 = LILAC
+	image.Rotation = math.random(0, 90)
+	st.ctx:tween(image, 0.08, { Size = UDim2.fromScale(1.15, 1.15) }, Enum.EasingStyle.Quart)
+	st.ctx:tween(image, 0.12, { Size = UDim2.fromScale(1, 1) }, Enum.EasingStyle.Quad, Enum.EasingDirection.Out, 0.08)
+	local t0 = st.ctx:clock()
+	st.ctx:step(t0 + 4, function()
+		if image.Parent then
+			image.Rotation += 1.2
+		end
+	end)
+	table.insert(st.marks, board)
 end
 
 local function clearMarks(st: State, burst: boolean)
-	for _, att in st.marks do
-		if att.Parent and burst then
-			local pos = (att :: Attachment).WorldPosition
-			sparks(st.ctx, pos, Vector3.yAxis, 5, 20)
+	for _, b in st.marks do
+		local image = b:FindFirstChildOfClass("ImageLabel")
+		if burst and image and b.Parent then
+			local adornee = b.Adornee
+			if adornee and adornee:IsA("BasePart") then
+				sparks(st.ctx, adornee.Position, Vector3.yAxis, 5, 20)
+			end
+			image.ImageColor3 = WHITE
+			st.ctx:tween(b, 0.25, { Size = UDim2.fromScale(MARK_SIZE * 2.4, MARK_SIZE * 2.4) }, Enum.EasingStyle.Quart)
+			st.ctx:tween(image, 0.25, { ImageTransparency = 1, ImageColor3 = PURPLE }, Enum.EasingStyle.Quad, Enum.EasingDirection.In)
+			task.delay(0.3 / st.ctx.scale, function()
+				b:Destroy()
+			end)
+		elseif image then
+			st.ctx:tween(image, 0.15, { ImageTransparency = 1 })
+			task.delay(0.2 / st.ctx.scale, function()
+				b:Destroy()
+			end)
+		else
+			b:Destroy()
 		end
-		att:Destroy()
 	end
 	table.clear(st.marks)
+end
+
+-- 처형 직전 내 화면 눌림 (ColorCorrection, 내 화면만)
+local function dimStart(st: State, time: number)
+	if not st.mine then
+		return
+	end
+	local cc = Instance.new("ColorCorrectionEffect")
+	cc.Name = "ShadowChainDim"
+	cc.Parent = game:GetService("Lighting")
+	st.dim = cc
+	st.ctx:tween(cc, time, { Brightness = DIM.brightness, Saturation = DIM.saturation, Contrast = DIM.contrast })
+end
+
+local function dimRelease(st: State, flash: boolean)
+	local cc = st.dim
+	if not cc then
+		return
+	end
+	st.dim = nil
+	if flash then
+		cc.Brightness, cc.Saturation, cc.Contrast = 0.18, -0.2, 0.1
+	end
+	game:GetService("TweenService"):Create(cc, TweenInfo.new(0.35 / st.ctx.scale), { Brightness = 0, Saturation = 0, Contrast = 0 }):Play()
+	task.delay(0.4 / st.ctx.scale, function()
+		cc:Destroy()
+	end)
 end
 
 -- 끝: 몸이 다시 보이고 회전 잠금·고정 풂 (여러 번 불려도 한 번만)
@@ -348,6 +401,7 @@ local function finish(st: State)
 	end
 	st.done = true
 	st.pin = nil
+	dimRelease(st, false)
 	local hide = st.setHidden
 	if hide then
 		local t0 = st.ctx:clock()
@@ -386,8 +440,8 @@ local function onStrike(st: State, character: Model, payload: any)
 	moveTo(st, character, dest)
 	local ctx = st.ctx
 	streak(ctx, from + Vector3.new(0, 0.5, 0), dest.Position + Vector3.new(0, 0.5, 0))
-	smokePuff(ctx, dest.Position, 5, 3, true)
-	slashX(ctx, point + Vector3.new(0, 0.4, 0), SLASH_LEN, SLASH_W, 3)
+	smokePuff(ctx, dest.Position, 3, 4, true)
+	slashX(ctx, point + Vector3.new(0, 0.4, 0), SLASH_SIZE, 3)
 	local dir = (point - dest.Position) * Vector3.new(1, 0, 1)
 	sparks(ctx, point, if dir.Magnitude > 0.1 then dir.Unit else dest.LookVector, 6, 26)
 	addMark(st, target)
@@ -410,6 +464,9 @@ local function onReturn(st: State, character: Model, payload: any)
 	light.Color, light.Range, light.Brightness, light.Shadows = PURPLE, 12, 0, false
 	light.Parent = holder
 	st.ctx:tween(light, SKILL.executeDelay or 0.3, { Brightness = 3 })
+	if payload.timeScale == nil then
+		dimStart(st, SKILL.executeDelay or 0.3)
+	end
 	Kit.casterSound(SOUNDS.gather, character, dest.Position)
 end
 
@@ -423,24 +480,22 @@ local function onExecute(st: State, character: Model, payload: any)
 	local missing = if type(payload.missing) == "number" then math.clamp(payload.missing, 0, 1) else 0.5
 	local grow = 1 + 0.5 * missing -- 많이 잃었을수록 크게
 	local ctx = st.ctx
-	slashX(ctx, point + Vector3.new(0, 0.5, 0), EXEC_LEN * grow, EXEC_W * grow, 4 + 2 * missing)
+	slashX(ctx, point + Vector3.new(0, 0.5, 0), EXEC_SIZE * grow, 4 + 2 * missing)
 	sparks(ctx, point, (point - dest.Position).Unit, 14, 40)
-	-- 섬광 구
-	local flash = Instance.new("Part")
-	flash.Name = "ExecuteFlash"
-	flash.Shape = Enum.PartType.Ball
-	flash.Material = Enum.Material.Neon
-	flash.Color = WHITE
-	flash.Transparency = 0.1
-	flash.Size = Vector3.one * 0.6
-	Kit.decor(flash)
-	flash.CFrame = CFrame.new(point)
-	flash.Parent = ctx.folder
-	ctx:tween(flash, 0.18, { Size = Vector3.one * 4 * grow, Transparency = 1, Color = LILAC })
+	-- 처형 문양 충격: 표식 그림이 크게 퍼지며 사라짐 + 빛
+	local shock = Kit.holder(ctx, CFrame.new(point), "ExecuteShock")
+	local board = Kit.billboard(shock, 3, 4)
+	local mark = Kit.image(board, TEX.mark, 1, 1)
+	mark.ImageColor3 = WHITE
+	ctx:tween(board, 0.3, { Size = UDim2.fromScale(15 * grow, 15 * grow) }, Enum.EasingStyle.Quart)
+	ctx:tween(mark, 0.3, { ImageTransparency = 1, ImageColor3 = PURPLE, Rotation = 45 }, Enum.EasingStyle.Quad, Enum.EasingDirection.In)
 	local light = Instance.new("PointLight")
 	light.Color, light.Range, light.Brightness, light.Shadows = LILAC, 18 * grow, 6, false
-	light.Parent = flash
-	smokePuff(ctx, point, 10, 5 * grow, false)
+	light.Parent = shock
+	ctx:tween(light, 0.4, { Brightness = 0 })
+	smokePuff(ctx, point, 6, 7 * grow, false)
+	Kit.smokeRing(ctx, Kit.ground(point, { character, ctx.folder }), 4 * grow, { duration = 0.8, count = 9, color = SMOKE, light = 0.6 })
+	dimRelease(st, true)
 	clearMarks(st, true)
 	Kit.casterSound(SOUNDS.execute, character, point)
 	Kit.sound(SOUNDS.executeHit, if st.mine then nil else point)
