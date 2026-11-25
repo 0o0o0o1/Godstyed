@@ -846,3 +846,16 @@
     - 플레이 확인(더미): 관통 돌격 26(47 지나감) / 사슬 갈고리 19 / 도약 찌르기 29 / 창 휘두르기 26 / 신의 창 12·12·22, 오류 없음. 다른 무기 스킬은 무기를 바꿔야 해서 실제로는 안 쏴 봄(코드로만 확인).
     - 게시: Services(Skill) + 마을 place 저장(더미 스크립트).
 - 다음: 창 휘두르기 → 신의 창 → 관통 돌격 강화 (하나씩).
+
+## 4. 단검(Dagger) 스킬 — 그림자 발걸음 Shadow Step (2026-11-25, 마을 place 패키지 코드)
+- 요청(사용자): 적 뒤로 순간이동 후 찌르는 단검 스킬의 VFX (검은 연기·보라 잔상·날카로운 칼날 궤적, 절제된 스타일). **스킬 자체가 없어서** 사용자 결정 "스킬까지 새로 만들기"로 판정까지 새로 만듦.
+- 정의 `Shared.Data.Skills.shadow_step` (kind **"blink"**, 수치 임시: 쿨 8 / 피해 ×2.4 / castDelay 0.15 = 사라짐→도착 / stabDelay 0.27 = 도착 뒤 찌르기(단검 기본 공격 windup 과 같게) / maxDistance 30 / 앞쪽 aimAssist 50° / behindDistance 3.5 / flinch 0.5). 성유물 `DaggerRelics.relic_shadow_step` (아이콘 임시 = Parry 아이콘, 전용 아이콘 필요). `TEST_COOLDOWN = 1` 이라 지금은 쿨 1초.
+- 서버 `Services.Skill`: `blinkTarget`(앞쪽 각도·사거리 안, 벽에 안 가린 가장 가까운 적) / `blinkDest`(적이 보는 반대쪽 → 대각 뒤 → 옆 → 내 쪽 순으로 벽·바닥 검사, 적을 보는 CFrame) / `blinkHits`(시전~도착+0.15 무적 ForceField, 적 통과 충돌 그룹, castDelay+stabDelay 에 대상 하나 피해 + 경직 + phase "hit"). 대상이 없으면 "No target in reach." 안내, 쿨다운 없음. ECHO_EXCLUDED·ROOT_BLOCKED 에 blink 추가(클라 SkillController 속박 검사도). 이동은 leap 처럼 **클라 연출 모듈이 내 캐릭터를 dest 로 PivotTo**.
+- 연출 `Controllers.SkillController.Vfx.ShadowStep` (원본 `scripts/packages/Controllers/Vfx_ShadowStep.lua`):
+  - 사라짐(0): 어두운 보라 잔상(뒤로 밀리며 0.35초) + 발밑 검은 연기 고리(VfxKit.smokeRing 어둡게, 바깥으로) + FsSmokeDark 덩이 5 + 보라 알갱이 9. 시전자 몸·무기 빛을 모든 화면에서 숨김(LocalTransparencyModifier).
+  - 도착(castDelay): 연기·알갱이가 **안쪽으로 빨려 듦**(Sphere Inward) + 세로 보라 틈 번쩍 + 작은 연기 고리 → 출발과 반대 움직임으로 구분. 몸 0.08초에 다시 보임. 내 캐릭터면 단검 콤보 첫 타 모션.
+  - 찌르기(+stabDelay): **임시 칼날 = Beam 4개 마름모**(보라 바깥 + 흰 심, 길이 6.5, 0.06초 뻗고 0.14초 사라짐). 모듈 아래 MeshPart **`BladeMesh`** 가 있으면 그걸 씀(없으면 임시). 맞음(phase "hit"): EbSpark 흰 7 + 보라 10, 작은 섬광 구, 빛, 타격음, 약한 흔들림.
+  - 정리: 연출 폴더 1.62초 뒤 삭제, 몸 숨김·회전 잠금은 무슨 일이 있어도 0.92초 뒤 복구(task.delay).
+- 플레이 확인(더미, 창 무기 소켓 1에 임시 Script 로 끼워 SkillCast 직접 발사): 15.5 이동 → 더미 정확히 뒤 3.5(뒤 방향 내적 −1.00), +0.44초 hit 연출, 몸 숨김 1 → 복구 0, 남은 폴더·ForceField 없음, AutoRotate 복구, 오류 없음. 대상 없는 쪽으로 쓰면 연출·이동 없음. **실제 단검 + 키 입력·남의 화면·PvP 는 안 해 봄.**
+- Blender 칼날 메시(선택, 아직 안 만듦): 길이 6.5 × 폭 0.8 × 두께 0.05 스터드 납작한 마름모(가장 넓은 곳 꼬리에서 72%), 앞 = Roblox −Z, 피벗 = 꼬리 가운데, Neon·보라(110,0,230)·투명 0.2, CanCollide/CanQuery/CanTouch 끔, CastShadow 끔. Studio 에서 `Vfx.ShadowStep` 아래 `BladeMesh` 로 두고 PivotOffset 을 꼬리로.
+- 게시 필요: **Shared**(Skills, DaggerRelics) / **Services**(Skill) / **Controllers**(SkillController, Vfx.ShadowStep).
