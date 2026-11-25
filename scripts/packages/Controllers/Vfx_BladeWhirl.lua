@@ -1,6 +1,8 @@
 --!strict
--- 칼날 회오리 연출 v2 (Skills.blade_whirl, kind "whirl", vfx = "BladeWhirl"). 흰 + 선명한 보라.
+-- 칼날 회오리 연출 v3 (Skills.blade_whirl, kind "whirl", vfx = "BladeWhirl"). 흰 + 선명한 보라.
 -- 원본: 저장소 scripts/packages/Controllers/Vfx_BladeWhirl.lua (Controllers 패키지 SkillController.Vfx.BladeWhirl)
+-- v3 (2026-11-25, 사용자 참고 그림): 메시에 SurfaceAppearance 그라데이션(흰 앞날 → 보라 → 어두운 꼬리, 투명도) + 발광 마스크,
+--   베기마다 앞머리 보라 빛(PointLight) + 불티, 강조·마무리 베기는 접선 방향 빛줄기. 텍스처 scripts/vfx_whirl_slash_tex.py
 -- v1(원형 궤도 칼날 2장 + 검은 연기)은 git 기록. v2 = 개별 초승달 베기 메시를 여러 평면·높이·각도로 시간 차를 두고 교차시킴
 --   발동      0                 가슴 앞 짧은 흰 섬광 + 빛 + 반짝이 몇 개
 --   연속 베기  castDelay ~ 0.85   SlashA 8개 (수평·대각·높낮이·크기·휘두르는 방향이 모두 다름), 하나씩 0.2초 동안 나타나 휘둘러지고 사라짐
@@ -8,7 +10,7 @@
 --   마무리     0.92 / 0.97        SlashC 2개가 몸 앞 수직 평면에서 X 자로 교차 → 1.0(서버 3타) 흰 섬광 + 바깥으로 튀는 불꽃(보조 충격파)
 --   맞음      phase "hit"        맞은 자리 흰·보라 불꽃 + 작은 섬광 (서버 타격 하나 = 연출 하나)
 --   몸        (내 캐릭터) 기존과 같음: castDelay 부터 spinTime 동안 왼쪽 turns 바퀴, 단검 첫 타 휘두른 자세 멈춤
--- 메시: 이 모듈 아래 MeshPart SlashA / SlashB / SlashC (각각 자식 MeshPart "Core" = 흰 심). Blender scripts/blade_whirl_slashes.py
+-- 메시: 이 모듈 아래 MeshPart SlashA / SlashB / SlashC (SurfaceAppearance, v3 는 흰 심 Core 없음 — 자식 MeshPart 가 있으면 같이 움직임). Blender scripts/blade_whirl_slashes.py
 --   규격: 호(arc) 모양 칼날, PivotOffset = 호의 중심(휘두르는 축), 칼날 가운데 = 피벗 로컬 -X, 칼날 평면 법선 = 로컬 Y,
 --   로컬 +Y 축 양의 회전 = 칼날 끝(앞) 쪽으로 휘두름. 메시가 없으면 그 베기는 건너뜀 (경고 한 번)
 -- 판정·피해·타격 시각은 서버(Skill 서비스 whirlHits)가 정한다. 이 모듈은 보이는 것과 내 캐릭터 회전만.
@@ -31,6 +33,14 @@ local PURPLE_SOFT = Color3.fromRGB(205, 160, 255)
 
 local HOLD_FRACTION = 0.55 -- 단검 첫 타를 휘두른 자세 (길이 대비)
 local C_RADIUS = 7 -- SlashC 호 반지름 (메시와 같게)
+-- 베기 메시마다 앞머리(빛·불티를 붙일 자리) = 피벗 로컬. 호 반지름 r, 호 각 span 의 끝 쪽 85% 지점
+-- (Blender (r cos a, r sin a) → Roblox 로컬 (-r cos a, 0, r sin a))
+local function headOf(r: number, spanDeg: number): Vector3
+	local a = math.rad(spanDeg / 2 * 0.85)
+	return Vector3.new(-r * math.cos(a), 0, r * math.sin(a))
+end
+local HEADS = { SlashA = headOf(3.6, 150), SlashB = headOf(4.4, 175), SlashC = headOf(7.0, 72) }
+local STREAK_TEXTURE = T.FsSlashLine -- 가는 흰 선 (Beam 색으로 물들임)
 
 -- 베기 배치표. t = 시전 후 시각, yaw = 그 순간 몸 방향에서 더 돌린 각(도), tilt = 칼날 평면을 기울인 각(도, 0 = 수평),
 -- h = 허리에서 높이, k0→k1 = 크기, sweep = 휘두르는 각(도), dir = 1 왼쪽으로 / -1 반대로, life = 보이는 시간
@@ -175,6 +185,22 @@ local function swing(ctx: Kit.Ctx, mesh: string, life: number, pivotAt: (number)
 		end
 	end
 	add(template, m)
+	-- 앞머리: 보라 빛(바닥·몸을 물들임) + 흩날리는 불티
+	local headLocal = HEADS[mesh] or Vector3.new(-3, 0, 0)
+	local head = Kit.holder(ctx, pivotAt(0), "SlashHead")
+	local light = Instance.new("PointLight")
+	light.Color, light.Range, light.Brightness, light.Shadows = PURPLE_SOFT, if mesh == "SlashA" then 9 else 13, 0, false
+	light.Parent = head
+	local sparks = Kit.emitter(ctx, head, sparkProps({
+		Rate = if mesh == "SlashA" then 40 else 70,
+		Color = ColorSequence.new(WHITE, PURPLE),
+		Size = seq({ { 0, 0.28 }, { 1, 0 } }),
+		Lifetime = NumberRange.new(0.12, 0.3),
+		Speed = NumberRange.new(4, 12),
+		SpreadAngle = Vector2.new(70, 70),
+		Acceleration = Vector3.new(0, -8, 0),
+		Drag = 4,
+	}))
 	local t0 = ctx:clock()
 	local function place(s: number)
 		local pivot = pivotAt(s)
@@ -185,6 +211,9 @@ local function swing(ctx: Kit.Ctx, mesh: string, life: number, pivotAt: (number)
 			p.part.CFrame = pivot * CFrame.new(-p.off * k)
 			p.part.Transparency = p.base + (1 - p.base) * f
 		end
+		head.CFrame = pivot * CFrame.new(headLocal * k)
+		light.Brightness = (1 - f) * (if mesh == "SlashA" then 2.2 else 3.5)
+		sparks.Enabled = f < 0.6
 	end
 	place(0)
 	ctx:step(t0 + life, function(t)
@@ -194,6 +223,35 @@ local function swing(ctx: Kit.Ctx, mesh: string, life: number, pivotAt: (number)
 		for _, p in pieces do
 			p.part:Destroy()
 		end
+		sparks.Enabled = false
+		light.Brightness = 0
+	end)
+end
+
+-- 빛줄기: 한 점에서 dir 방향으로 길게 뻗는 가는 흰·보라 선이 번쩍 (강조·마무리 베기)
+local function streak(ctx: Kit.Ctx, at: Vector3, dir: Vector3, length: number, width: number)
+	local a0 = Kit.holder(ctx, CFrame.new(at - dir * length * 0.5), "StreakA")
+	local a1 = Kit.holder(ctx, CFrame.new(at + dir * length * 0.5), "StreakB")
+	local att0, att1 = Instance.new("Attachment"), Instance.new("Attachment")
+	att0.Parent, att1.Parent = a0, a1
+	local b = Instance.new("Beam")
+	b.Attachment0, b.Attachment1 = att0, att1
+	b.Texture = STREAK_TEXTURE
+	b.TextureMode = Enum.TextureMode.Stretch
+	b.Color = ColorSequence.new({ ColorSequenceKeypoint.new(0, PURPLE), ColorSequenceKeypoint.new(0.5, WHITE), ColorSequenceKeypoint.new(1, PURPLE) })
+	b.Transparency = seq({ { 0, 1 }, { 0.35, 0.2 }, { 0.5, 0 }, { 0.65, 0.2 }, { 1, 1 } })
+	b.Width0, b.Width1 = width, width
+	b.LightEmission, b.LightInfluence, b.Brightness = 1, 0, 6
+	b.FaceCamera = true
+	b.Segments = 1
+	b.Parent = a0
+	local t0 = ctx:clock()
+	ctx:step(t0 + 0.16, function(t)
+		local k = math.clamp((t - t0) / 0.16, 0, 1)
+		b.Width0 = width * (1 - k)
+		b.Width1 = width * (1 - k)
+		att0.WorldPosition = at - dir * length * (0.3 + 0.25 * k)
+		att1.WorldPosition = at + dir * length * (0.3 + 0.25 * k)
 	end)
 end
 
@@ -211,6 +269,17 @@ local function spawnSlash(ctx: Kit.Ctx, center: Vector3, bodyYaw: number, spec: 
 		base *= CFrame.Angles(math.pi, 0, 0) -- 뒤집어 반대로 휘두름
 	end
 	local sweep = math.rad(spec.sweep)
+	if spec.mesh == "SlashB" then
+		-- 강조: 휘두름이 가장 빠른 순간 앞머리에서 접선 방향 빛줄기
+		ctx:at(spec.life * 0.18, function()
+			local mid = base * CFrame.Angles(0, -sweep / 2 + sweep * easeOut(0.18), 0)
+			local headAt = (mid * CFrame.new(HEADS.SlashB * spec.k1)).Position
+			local tangent = (mid * CFrame.Angles(0, 0.05, 0) * CFrame.new(HEADS.SlashB * spec.k1)).Position - headAt
+			if tangent.Magnitude > 1e-3 then
+				streak(ctx, headAt, tangent.Unit, 11, 0.35)
+			end
+		end)
+	end
 	swing(ctx, spec.mesh, spec.life, function(s)
 		return base * CFrame.Angles(0, -sweep / 2 + sweep * easeOut(s), 0)
 	end, function(s)
@@ -230,6 +299,9 @@ local function spawnFinish(ctx: Kit.Ctx, cross: Vector3, look: Vector3, side: nu
 	local right = look:Cross(Vector3.yAxis).Unit
 	local d = (right * side - Vector3.yAxis).Unit -- 호 중심 → 칼날 가운데 (불룩한 쪽, 아래 대각)
 	local life = 0.4
+	ctx:at(0.05, function()
+		streak(ctx, cross, (right * side + Vector3.yAxis).Unit, 13, 0.4) -- 칼날이 그어지는 대각 방향
+	end)
 	swing(ctx, "SlashC", life, function(s)
 		-- 0.09초(전체의 22%) 안에 빠르게 그어지고 멈춤
 		local p = easeOut(math.min(s / 0.22, 1))

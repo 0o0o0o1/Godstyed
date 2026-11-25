@@ -3,6 +3,7 @@
 #   exec(open(r"D:\god\scripts\blade_whirl_slashes.py", encoding="utf-8").read())
 # 결과: 컬렉션 BladeWhirlSlashes, FBX D:\god\exports\BladeWhirlSlashes.fbx (Roblox 업로드용, 저장소에는 안 올라감)
 #
+# v3 (2026-11-25): UV 추가 (u = 길이 0 꼬리 → 1 끝, v = 0 바깥 날 → 1 안쪽) — 그라데이션·발광 텍스처(SurfaceAppearance)용
 # v2 (2026-11-25): 화면에서 선처럼 가늘어 보여 폭을 약 1.8배로 (A 0.42→0.78, B 0.82→1.30, C 0.55→0.95)
 # 공통 규칙 (Roblox 에서 돌리기 쉽게):
 #   - 칼날은 Blender XY 평면(두께 = Z)의 호. **원점 = 호의 중심(휘두르는 축)** → Roblox 에서 PivotOffset 을 이 점으로 두고
@@ -41,6 +42,7 @@ def slash(name, r, span_deg, wmax, peak, thick, sharp, rise, bow, wscale=1.0, ts
     me = bpy.data.meshes.new(name)
     bm = bmesh.new()
     rings = []
+    uvmap = {}  # 꼭짓점 → (u 길이, v 바깥 날 0 ~ 안쪽 1) — scripts/vfx_whirl_slash_tex.py 텍스처 규칙
     for i in range(STATIONS + 1):
         s = i / STATIONS
         u = u0 + (u1 - u0) * s
@@ -51,16 +53,21 @@ def slash(name, r, span_deg, wmax, peak, thick, sharp, rise, bow, wscale=1.0, ts
         c, sn = math.cos(a), math.sin(a)
         ro = r - inset  # 바깥 날
         if i == 0 or i == STATIONS:
-            rings.append([bm.verts.new((ro * c, ro * sn, z0))])
+            tipv = bm.verts.new((ro * c, ro * sn, z0))
+            uvmap[tipv] = (u, 0.0)
+            rings.append([tipv])
             continue
         rm = ro - w * 0.55  # 능선 (안쪽으로 치우침 → 바깥 날이 얇은 쐐기)
         ri = ro - w
-        rings.append([
+        ring = [
             bm.verts.new((ro * c, ro * sn, z0)),
             bm.verts.new((rm * c, rm * sn, z0 + t)),
             bm.verts.new((ri * c, ri * sn, z0 + t * 0.15)),
             bm.verts.new((rm * c, rm * sn, z0 - t)),
-        ])
+        ]
+        for vert, vv in zip(ring, (0.0, 0.55, 1.0, 0.55)):
+            uvmap[vert] = (u, vv)
+        rings.append(ring)
     for a_, b_ in zip(rings[:-1], rings[1:]):
         if len(a_) == 1:
             for j in range(4):
@@ -72,6 +79,10 @@ def slash(name, r, span_deg, wmax, peak, thick, sharp, rise, bow, wscale=1.0, ts
             for j in range(4):
                 bm.faces.new((a_[j], a_[(j + 1) % 4], b_[(j + 1) % 4], b_[j]))
     bmesh.ops.recalc_face_normals(bm, faces=bm.faces)
+    uv = bm.loops.layers.uv.new("UVMap")
+    for f in bm.faces:
+        for loop in f.loops:
+            loop[uv].uv = uvmap[loop.vert]
     bm.to_mesh(me)
     bm.free()
     return bpy.data.objects.new(name, me)

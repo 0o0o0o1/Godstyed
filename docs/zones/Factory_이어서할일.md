@@ -882,3 +882,10 @@
   - 확인: 편집 화면 느린 미리보기 캡처(v2 폭 넓히기 전)로 여러 평면 교차·강조 베기·X 교차를 눈으로 봄 → 칼날이 가늘고 X 가 몸에 가려 폭 1.8배·X 앞으로 옮김. 폭 넓힌 뒤에는 편집 화면이 그려지지 않아 **눈으로 다시 못 봄**. 플레이(더미): A 8·B 2·C 2 모두 생성, 칼날 평면 법선 제각각, 타격 연출 3번, 방향 복구, 남은 폴더 없음, 오류 없음.
   - Blender MCP 가 응답 없음(look 뒤 시작 화면에 막힌 듯) → `D:\blender.exe -b --factory-startup --python-expr "exec(open(r'D:\god\scripts\blade_whirl_slashes.py', encoding='utf-8').read())"` 로 명령줄 실행해서 만듦.
   - 게시: Controllers (Vfx.BladeWhirl + SlashA/B/C).
+- ✔ **칼날 회오리 연출 v3 — 참고 그림(흰 앞날 → 보라 → 어두운 꼬리, 번짐·빛줄기·불티) 방식 (2026-11-25, 사용자: "전부에, 그 퀄리티 안 나오면 만들지 마" → 시험 후 "바로 적용해서 직접 보기" 선택, 못 미치면 v2 로 되돌림)**
+  - 텍스처 `scripts/vfx_whirl_slash_tex.py` (명령줄 Blender, 1024x256): 색+투명도 맵(앞날 흰 → 라일락 → 보라 → 어두운 보라 꼬리, 길이 방향 붓질 결) **이미지 99342720630432** / 발광 마스크 **이미지 117824323402160** (Decal 88923218582093 / 102808745498924, 그룹, 승인 확인 후 붙임).
+  - 메시 v3 = `blade_whirl_slashes.py` 에 UV 추가 (u = 길이 0 꼬리 → 1 끝, v = 바깥 날 0 → 안쪽 1), 모델 107046513668773. Studio `Vfx.BladeWhirl.SlashA/B/C` = SmoothPlastic 흰 + DoubleSided + **SurfaceAppearance**(ColorMap, AlphaMode Transparency, EmissiveMask, EmissiveStrength 4, EmissiveTint 255,225,255), Core 없음. 원본 `ServerStorage.WhirlProto`.
+  - 모듈: 베기마다 앞머리(호 끝 85%)에 보라 PointLight(A 2.2 / B·C 3.5, 사라지며 꺼짐) + 흰·보라 불티(Rate 40/70). 강조 B 는 휘두름 18% 시점 앞머리에서 접선 빛줄기(FsSlashLine Beam, 길이 11, 0.16초), 마무리 C 는 그어지는 대각 방향 빛줄기(13). 
+  - 플레이(더미): A 8·B 2·C 2, 앞머리 12, 빛줄기 4, 타격 3번, 방향 복구, 남은 폴더 없음, 텍스처·스크립트 오류 없음. 맵 Bloom 0.68/30/1.6. **화면으로는 못 봄**(Studio 편집 화면 캡처가 빈 화면, 플레이는 타이틀 화면이 덮음) → 사용자가 `/fx blade_whirl 0.3` 으로 판단. 못 미치면 git 의 v2 모듈 + `SlashA/B/C` 를 v2 메시(Neon 보라 + Core)로 되돌리기.
+  - Blender MCP 창이 응답 없음 상태(이 세션) — 다음에 Blender 창 확인.
+  - 게시: Controllers (Vfx.BladeWhirl + SlashA/B/C).

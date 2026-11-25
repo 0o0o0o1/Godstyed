@@ -247,13 +247,14 @@
     "Core_meshId": 76586362218692
   },
   "BladeWhirlSlashes": {
-    "_note": "칼날 회오리 v2 초승달 베기 메시 A/B/C (모델 에셋, 그룹 소유). scripts/blade_whirl_slashes.py → Vfx.BladeWhirl.SlashA/B/C (+Core). 폭 넓힌 v2 = 107005971350233 (처음 것 100915407961479 안 씀)",
-    "model": 107005971350233,
-    "SlashA": 117264424193540,
-    "SlashA_Core": 77349094543984,
-    "SlashB": 76872503707920,
-    "SlashB_Core": 76500759494596,
-    "SlashC": 82169133471607,
-    "SlashC_Core": 101560582166857
+    "_note": "칼날 회오리 초승달 베기 메시 A/B/C. v3(2026-11-25) = UV 있는 모델 107046513668773 + SurfaceAppearance(아래 이미지). 이전 v2 107005971350233 / v1 100915407961479 안 씀",
+    "model": 107046513668773,
+    "SlashA": 133410355256916,
+    "SlashB": 139062898301438,
+    "SlashC": 72584706074755,
+    "ColorMap_image": 99342720630432,
+    "ColorMap_decal": 88923218582093,
+    "EmissiveMask_image": 117824323402160,
+    "EmissiveMask_decal": 102808745498924
   }
 }
