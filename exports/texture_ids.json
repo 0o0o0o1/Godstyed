@@ -220,6 +220,23 @@
         "rbxassetid://138857019741172",
         "rbxassetid://112634341954437"
       ]
+    },
+    "BladeWhirlBrush": {
+      "note": "scripts/vfx_whirl_brush.py (Python numpy·Pillow 붓질), v5 WhirlKit 텍스처 대체 시험용 — 적용 안 함(2026-11-26 비교만)",
+      "beam_body": "96644713838136",
+      "beam_core": "110352702228000",
+      "beam_wisp": "86676823393097",
+      "flip_thick": "73878924934458",
+      "flip_thin": "101902337881562",
+      "flip_trail": "108534677078975",
+      "replaces": {
+        "136549178027459": "beam_body",
+        "80823115982547": "beam_core",
+        "115638000454630": "beam_wisp",
+        "13780268621": "flip_thick",
+        "13138038111": "flip_thin",
+        "12817881196": "flip_trail"
+      }
     }
   },
   "SpearIcons": {
