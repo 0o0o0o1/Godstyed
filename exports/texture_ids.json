@@ -222,7 +222,7 @@
       ]
     },
     "BladeWhirlBrush": {
-      "note": "scripts/vfx_whirl_brush.py (Python numpy·Pillow 붓질), v5 WhirlKit 텍스처 대체 시험용 — 적용 안 함(2026-11-26 비교만)",
+      "note": "scripts/vfx_whirl_brush.py (Python numpy·Pillow 붓질). 2026-11-26 Vfx.BladeWhirl.WhirlKit 에 적용 (원래 키트 텍스처는 각 인스턴스 속성 OrigTexture)",
       "beam_body": "96644713838136",
       "beam_core": "110352702228000",
       "beam_wisp": "86676823393097",
