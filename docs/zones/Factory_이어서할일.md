@@ -865,3 +865,12 @@
   - 모듈: 메시가 있으면 자식 MeshPart 도 상대 위치 그대로 같이 밀려나가며 사라짐. 시각 맞춤 `atAbs`(연출 시작 기준) — 잔상 복제 등 앞 작업 시간만큼 도착·찌르기가 밀리던 것 고침.
   - 플레이: 칼날 끝이 더미 쪽(내적 1.00), Core 같이 나옴, 0.25초 뒤 투명 1, 남은 폴더 없음. Studio 에서 칼날 = 받은 뒤 0.53~0.57초, 서버 타격 연출 0.56~0.61초로 거의 같이 나옴(Studio 자체 지연 0.15~0.22 포함). 실제 화면 모양은 눈으로 안 봄.
   - 게시: Controllers (Vfx.ShadowStep + BladeMesh).
+
+### 칼날 회오리 Blade Whirl (2026-11-25, 단검 스킬 2번째, 마을 place 패키지 코드)
+- 요청(사용자): 제자리 회전 연속 베기 VFX(Blender 칼날 메시 + 파티클, 어두운 보라 중심, 절제). 스킬이 없어서 사용자 결정 "스킬까지 새로" + "지금 Blender로 메시 제작".
+- 정의 `Skills.blade_whirl` (kind **"whirl"**, 임시: 쿨 9 / castDelay 0.1 / spinTime 0.9 / turns 3 / radius 10 / flinch 0.3 / hits 0.4·0.7·1.0 = 바퀴 끝마다, 피해 0.8·0.8·1.2, 마지막 knockback 8). 성유물 `DaggerRelics.relic_blade_whirl` (아이콘 임시 = Parry).
+- 서버 `Services.Skill.whirlHits`: 타 시각마다 그 순간 내 자리 반경 안(높이 차 radius/2, 벽 너머 제외) 대상 피해 + 경직 + 바깥 넉백, 맞은 대상마다 phase "hit"(index). ECHO_EXCLUDED 에 whirl. 속박 중에도 사용 가능(제자리).
+- 메시 `scripts/blade_whirl_arc.py`: 수평 초승달 칼날 2장 180° 마주 봄(바운딩 중심 = 회전 중심), 바깥 날 반지름 4.6, 호 110°, 최대 폭 0.55(끝 쪽 82%), 두께 0.07, 꼬리 가늘게 끌림 + 흰 심 Core(폭 40%). 삼각형 824. 모델 **138502072838714**, WhirlBlade MeshId 102624018300327 / Core 76586362218692 (`texture_ids.json` → BladeWhirl). Studio `Vfx.BladeWhirl.WhirlBlade`(Neon 보라 투명 0.35) + `Core`(Neon 흰 0.1), CFrame·PivotOffset identity. EditableMesh 로 확인: 넓은 부분이 115~128°/295~308° → 칼날 끝이 회전(왼쪽) 방향 앞.
+- 연출 `Vfx.BladeWhirl` (원본 `scripts/packages/Controllers/Vfx_BladeWhirl.lua`): 발동 = 발밑 검은 연기 고리(2.6) + 원기둥 둘레 보라 알갱이 안쪽으로 16 + 보라 빛 / 회전 = 내 몸 왼쪽 3바퀴(HRP CFrame, 회전 잠금, 단검 첫 타 55% 자세 멈춤) + 칼날 메시가 몸과 같은 각도로 허리 높이에서 돎(5° 기울임, 0.1초에 0.6→1 크기·투명→보임) + 칼날 끝 보라 불티(Rate 45) / 맞음 = 접선 방향 흰 EbSpark 5 + 보라 6 + 작은 섬광 + 타격음 / 끝 = 칼날 1.12배로 커지며 0.18초에 사라지고 회전 감속, 원 둘레 잔광 알갱이 22 + 빛 0.4초. 메시가 없으면 Beam 곡선 초승달 2장(보라+흰 심).
+- 플레이 확인(더미, 창 무기 소켓 2에 임시 Script): 타격 연출 3번(index 1·2·3, 받은 뒤 0.45/0.76/1.11초), 칼날과 몸 각도 매 순간 같음, 끝나고 처음 방향(내적 1.00)·AutoRotate 복구, 남은 폴더 없음, 오류 없음. 메시를 뗀 임시 Beam 버전도 빔 4개로 정상·정리됨. **눈으로 모양은 안 봄, 실제 단검·남의 화면 안 해 봄.**
+- 게시: Shared(Skills, DaggerRelics) / Services(Skill) / Controllers(Vfx.BladeWhirl + WhirlBlade).

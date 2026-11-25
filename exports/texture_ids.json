@@ -239,5 +239,11 @@
     "_note": "그림자 발걸음 찌르기 칼날 메시 (모델 에셋, 그룹 소유). scripts/shadow_step_blade.py → Vfx.ShadowStep.BladeMesh(+Core)",
     "model": 127313928571413,
     "BladeMesh_meshId": 119094222831278
+  },
+  "BladeWhirl": {
+    "_note": "칼날 회오리 회전 칼날 메시 (모델 에셋, 그룹 소유). scripts/blade_whirl_arc.py → Vfx.BladeWhirl.WhirlBlade(+Core)",
+    "model": 138502072838714,
+    "WhirlBlade_meshId": 102624018300327,
+    "Core_meshId": 76586362218692
   }
 }
