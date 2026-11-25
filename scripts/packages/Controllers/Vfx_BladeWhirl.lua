@@ -1,8 +1,9 @@
 --!strict
--- 칼날 회오리 연출 v3 (Skills.blade_whirl, kind "whirl", vfx = "BladeWhirl"). 흰 + 선명한 보라.
+-- 칼날 회오리 연출 v4 (Skills.blade_whirl, kind "whirl", vfx = "BladeWhirl"). 흰 + 선명한 보라.
 -- 원본: 저장소 scripts/packages/Controllers/Vfx_BladeWhirl.lua (Controllers 패키지 SkillController.Vfx.BladeWhirl)
 -- v3 (2026-11-25, 사용자 참고 그림): 메시에 SurfaceAppearance 그라데이션(흰 앞날 → 보라 → 어두운 꼬리, 투명도) + 발광 마스크,
 --   베기마다 앞머리 보라 빛(PointLight) + 불티, 강조·마무리 베기는 접선 방향 빛줄기. 텍스처 scripts/vfx_whirl_slash_tex.py
+-- v4 (2026-11-25 사용자): 범위 10→16 에 맞춰 넓은 띠 메시(A 반지름 7·폭 2.2 / B 9·3.4 / C 11·2.0), 플레이어 오라(테두리 빛·발밑 원·솟는 불티·빛기둥)
 -- v1(원형 궤도 칼날 2장 + 검은 연기)은 git 기록. v2 = 개별 초승달 베기 메시를 여러 평면·높이·각도로 시간 차를 두고 교차시킴
 --   발동      0                 가슴 앞 짧은 흰 섬광 + 빛 + 반짝이 몇 개
 --   연속 베기  castDelay ~ 0.85   SlashA 8개 (수평·대각·높낮이·크기·휘두르는 방향이 모두 다름), 하나씩 0.2초 동안 나타나 휘둘러지고 사라짐
@@ -32,14 +33,15 @@ local PURPLE = Color3.fromRGB(140, 40, 255)
 local PURPLE_SOFT = Color3.fromRGB(205, 160, 255)
 
 local HOLD_FRACTION = 0.55 -- 단검 첫 타를 휘두른 자세 (길이 대비)
-local C_RADIUS = 7 -- SlashC 호 반지름 (메시와 같게)
+local C_RADIUS = 11 -- SlashC 호 반지름 (메시와 같게, v4 범위 16)
 -- 베기 메시마다 앞머리(빛·불티를 붙일 자리) = 피벗 로컬. 호 반지름 r, 호 각 span 의 끝 쪽 85% 지점
 -- (Blender (r cos a, r sin a) → Roblox 로컬 (-r cos a, 0, r sin a))
 local function headOf(r: number, spanDeg: number): Vector3
 	local a = math.rad(spanDeg / 2 * 0.85)
 	return Vector3.new(-r * math.cos(a), 0, r * math.sin(a))
 end
-local HEADS = { SlashA = headOf(3.6, 150), SlashB = headOf(4.4, 175), SlashC = headOf(7.0, 72) }
+local HEADS = { SlashA = headOf(7.0, 150), SlashB = headOf(9.0, 170), SlashC = headOf(11.0, 72) } -- v4 넓은 띠 메시
+local GROUND_IMAGE = "rbxassetid://88252622732116" -- 발밑 빛 원 (scripts/vfx_whirl_slash_tex.py WhirlGround)
 local STREAK_TEXTURE = T.FsSlashLine -- 가는 흰 선 (Beam 색으로 물들임)
 
 -- 베기 배치표. t = 시전 후 시각, yaw = 그 순간 몸 방향에서 더 돌린 각(도), tilt = 칼날 평면을 기울인 각(도, 0 = 수평),
@@ -60,8 +62,8 @@ local SLASHES: { SlashSpec } = {
 -- 마무리 X: 시각, 몸 앞 평면에서 칼날이 불룩한 쪽(오른쪽 +1 / 왼쪽 -1)
 local FINISH = { { t = 0.92, side = 1 }, { t = 0.97, side = -1 } }
 local FINISH_FLASH = 1.0 -- 서버 3타와 같은 시각
-local FINISH_FORWARD, FINISH_UP = 3.6, 0.3 -- X 교차점: 몸 앞·위 (2.2·0.8 은 뒤 카메라에서 몸에 가려서, 2026-11-25)
-local FINISH_SCALE = 1.15 -- 마무리 베기 크기
+local FINISH_FORWARD, FINISH_UP = 5, 0.5 -- X 교차점: 몸 앞·위 (v4: 칼날이 커져 앞으로)
+local FINISH_SCALE = 1 -- 마무리 베기 크기 (v4 메시가 이미 큼)
 
 local SOUNDS = {
 	flash = { id = "rbxassetid://125132253621935", volume = 0.4, speed = 1.1 }, -- Sword Whoosh Slash
@@ -189,10 +191,10 @@ local function swing(ctx: Kit.Ctx, mesh: string, life: number, pivotAt: (number)
 	local headLocal = HEADS[mesh] or Vector3.new(-3, 0, 0)
 	local head = Kit.holder(ctx, pivotAt(0), "SlashHead")
 	local light = Instance.new("PointLight")
-	light.Color, light.Range, light.Brightness, light.Shadows = PURPLE_SOFT, if mesh == "SlashA" then 9 else 13, 0, false
+	light.Color, light.Range, light.Brightness, light.Shadows = PURPLE_SOFT, if mesh == "SlashA" then 14 else 20, 0, false
 	light.Parent = head
 	local sparks = Kit.emitter(ctx, head, sparkProps({
-		Rate = if mesh == "SlashA" then 40 else 70,
+		Rate = if mesh == "SlashA" then 60 else 100,
 		Color = ColorSequence.new(WHITE, PURPLE),
 		Size = seq({ { 0, 0.28 }, { 1, 0 } }),
 		Lifetime = NumberRange.new(0.12, 0.3),
@@ -276,7 +278,7 @@ local function spawnSlash(ctx: Kit.Ctx, center: Vector3, bodyYaw: number, spec: 
 			local headAt = (mid * CFrame.new(HEADS.SlashB * spec.k1)).Position
 			local tangent = (mid * CFrame.Angles(0, 0.05, 0) * CFrame.new(HEADS.SlashB * spec.k1)).Position - headAt
 			if tangent.Magnitude > 1e-3 then
-				streak(ctx, headAt, tangent.Unit, 11, 0.35)
+				streak(ctx, headAt, tangent.Unit, 16, 0.45)
 			end
 		end)
 	end
@@ -300,7 +302,7 @@ local function spawnFinish(ctx: Kit.Ctx, cross: Vector3, look: Vector3, side: nu
 	local d = (right * side - Vector3.yAxis).Unit -- 호 중심 → 칼날 가운데 (불룩한 쪽, 아래 대각)
 	local life = 0.4
 	ctx:at(0.05, function()
-		streak(ctx, cross, (right * side + Vector3.yAxis).Unit, 13, 0.4) -- 칼날이 그어지는 대각 방향
+		streak(ctx, cross, (right * side + Vector3.yAxis).Unit, 18, 0.5) -- 칼날이 그어지는 대각 방향
 	end)
 	swing(ctx, "SlashC", life, function(s)
 		-- 0.09초(전체의 22%) 안에 빠르게 그어지고 멈춤
@@ -371,6 +373,93 @@ local function playHit(payload: any, character: Model, point: Vector3?)
 	Kit.sound(SOUNDS.hit, if isMine(character) then nil else hitAt)
 end
 
+-- 플레이어 오라 (v4, 사용자 참고 그림 3): 스킬 동안 몸에 보라 테두리 빛 + 발밑 빛 원 + 몸 둘레로 솟는 불티 + 은은한 빛기둥.
+-- 몸을 따라다니고 untilT(연출 시각)에 0.35초 동안 사라짐
+local function playerAura(ctx: Kit.Ctx, character: Model, root: BasePart?, untilT: number)
+	if not root then
+		return
+	end
+	local glow = Instance.new("Highlight")
+	glow.FillColor, glow.OutlineColor = PURPLE, PURPLE_SOFT
+	glow.FillTransparency, glow.OutlineTransparency = 1, 1
+	glow.DepthMode = Enum.HighlightDepthMode.Occluded
+	glow.Adornee = character
+	glow.Parent = ctx.folder
+	ctx:tween(glow, 0.12, { FillTransparency = 0.72, OutlineTransparency = 0.25 })
+	ctx:tween(glow, 0.35, { FillTransparency = 1, OutlineTransparency = 1 }, nil, nil, untilT)
+	-- 발밑 빛 원 (천천히 돌며 커졌다 사라짐)
+	local disc = Kit.holder(ctx, CFrame.new(root.Position), "AuraGround")
+	disc.Size = Vector3.new(3, 0.05, 3)
+	local gui = Instance.new("SurfaceGui")
+	gui.Face = Enum.NormalId.Top
+	gui.LightInfluence = 0
+	gui.Brightness = 2.5
+	gui.SizingMode = Enum.SurfaceGuiSizingMode.PixelsPerStud
+	gui.PixelsPerStud = 40
+	gui.Parent = disc
+	local img = Instance.new("ImageLabel")
+	img.BackgroundTransparency = 1
+	img.Size = UDim2.fromScale(1, 1)
+	img.Image = GROUND_IMAGE
+	img.ImageTransparency = 1
+	img.Parent = gui
+	-- 솟는 불티 (몸 둘레 원기둥 안에서)
+	local column = Kit.holder(ctx, CFrame.new(root.Position), "AuraColumn")
+	column.Size = Vector3.new(4.5, 5, 4.5)
+	local embers = Kit.emitter(ctx, column, sparkProps({
+		Texture = T.HolySparkle,
+		Orientation = Enum.ParticleOrientation.FacingCamera,
+		Rate = 80,
+		Color = ColorSequence.new(WHITE, PURPLE),
+		Size = seq({ { 0, 0.3 }, { 0.5, 0.22 }, { 1, 0 } }),
+		Transparency = seq({ { 0, 0.1 }, { 1, 1 } }),
+		Lifetime = NumberRange.new(0.5, 0.9),
+		Speed = NumberRange.new(2, 6),
+		EmissionDirection = Enum.NormalId.Top,
+		SpreadAngle = Vector2.new(20, 20),
+		Acceleration = Vector3.new(0, 4, 0),
+		Shape = Enum.ParticleEmitterShape.Cylinder,
+		ShapeStyle = Enum.ParticleEmitterShapeStyle.Volume,
+		Drag = 1,
+	}))
+	-- 은은한 빛기둥 (발에서 위로, 카메라를 봄)
+	local a0, a1 = Instance.new("Attachment"), Instance.new("Attachment")
+	a0.Parent, a1.Parent = column, column
+	local pillar = Instance.new("Beam")
+	pillar.Attachment0, pillar.Attachment1 = a0, a1
+	pillar.Texture = T.PillarCore
+	pillar.Color = ColorSequence.new(PURPLE_SOFT, PURPLE)
+	pillar.Transparency = seq({ { 0, 0.55 }, { 0.6, 0.75 }, { 1, 1 } })
+	pillar.Width0, pillar.Width1 = 3.6, 2
+	pillar.LightEmission, pillar.LightInfluence, pillar.Brightness = 1, 0, 2
+	pillar.FaceCamera = true
+	pillar.Parent = column
+	local light = Instance.new("PointLight")
+	light.Color, light.Range, light.Brightness, light.Shadows = PURPLE, 16, 0, false
+	light.Parent = column
+	ctx:tween(light, 0.15, { Brightness = 2.2 })
+	local t0 = ctx:clock()
+	ctx:step(untilT + 0.35, function(t)
+		local e = t - t0
+		local out = math.clamp((t - untilT) / 0.35, 0, 1)
+		local inn = math.clamp(e / 0.15, 0, 1)
+		local alive = inn * (1 - out)
+		local pos = if root.Parent then root.Position else column.Position
+		local feet = Kit.ground(pos, { character, ctx.folder })
+		local d = 3 + 5 * (1 - (1 - inn) ^ 2) + 0.8 * out
+		disc.Size = Vector3.new(d, 0.05, d)
+		disc.CFrame = CFrame.new(feet + Vector3.new(0, 0.06, 0)) * CFrame.Angles(0, e * 1.5, 0)
+		img.ImageTransparency = 1 - alive
+		column.CFrame = CFrame.new(feet + Vector3.new(0, 2.5, 0))
+		a0.Position, a1.Position = Vector3.new(0, -2.5, 0), Vector3.new(0, 5.5, 0)
+		pillar.Transparency = seq({ { 0, 1 - 0.45 * alive }, { 0.6, 1 - 0.25 * alive }, { 1, 1 } })
+		embers.Enabled = out <= 0
+		if out > 0 then
+			light.Brightness = 2.2 * (1 - out)
+		end
+	end)
+end
+
 local function playCast(payload: any, character: Model)
 	local origin = payload.origin :: CFrame
 	local castDelay = SKILL.castDelay
@@ -407,6 +496,7 @@ local function playCast(payload: any, character: Model)
 		Drag = 6,
 	})):Emit(8)
 	Kit.casterSound(SOUNDS.flash, character, origin.Position)
+	playerAura(ctx, character, root, spinEnd)
 
 	-- 내 캐릭터: 기존과 같은 회전·자세 (무엇이 실패해도 끝나면 반드시 풀림)
 	local unlock: (() -> ())? = nil

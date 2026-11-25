@@ -85,3 +85,28 @@ def save(name, px):
 
 print("saved", save("SlashColor", col))
 print("saved", save("SlashEmissive", emi))
+
+# 발밑 빛 원 (플레이어 오라, 2026-11-25 사용자 참고 그림 3): 512x512, 가운데 은은한 라일락 빛 + 가는 흰·보라 고리 2겹 + 바깥으로 퍼지는 결
+G = 512
+gcol = [0.0] * (G * G * 4)
+for y in range(G):
+    for x in range(G):
+        dx, dy = (x + 0.5) / G * 2 - 1, (y + 0.5) / G * 2 - 1
+        r = math.sqrt(dx * dx + dy * dy)
+        ang = math.atan2(dy, dx) / (2 * math.pi) + 0.5
+        fib = 0.6 + 0.4 * vnoise(grid, GX, GY, min(r, 0.999), abs(ang - 0.5) * 1.998)  # 각도를 접어 이음매 없앰
+        inner = math.exp(-(r / 0.42) ** 2) * 0.55
+        ring1 = math.exp(-((r - 0.78) / 0.035) ** 2)
+        ring2 = math.exp(-((r - 0.9) / 0.018) ** 2) * 0.7
+        rays = math.exp(-((r - 0.6) / 0.25) ** 2) * 0.35 * fib
+        a = min(inner + ring1 + ring2 + rays, 1.0) * (1 - sstep(0.94, 1.0, r))
+        hot = min(ring1 * 0.9 + inner * 0.6, 1.0)
+        c = lerp(PURPLE, WHITE, hot)
+        k = (y * G + x) * 4
+        gcol[k:k + 4] = (c[0], c[1], c[2], a)
+img = bpy.data.images.new("WhirlGround", G, G, alpha=True)
+img.pixels.foreach_set(gcol)
+img.filepath_raw = os.path.join(OUT, "WhirlGround.png")
+img.file_format = "PNG"
+img.save()
+print("saved", img.filepath_raw)

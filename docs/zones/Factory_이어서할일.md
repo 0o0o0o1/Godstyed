@@ -889,3 +889,9 @@
   - 플레이(더미): A 8·B 2·C 2, 앞머리 12, 빛줄기 4, 타격 3번, 방향 복구, 남은 폴더 없음, 텍스처·스크립트 오류 없음. 맵 Bloom 0.68/30/1.6. **화면으로는 못 봄**(Studio 편집 화면 캡처가 빈 화면, 플레이는 타이틀 화면이 덮음) → 사용자가 `/fx blade_whirl 0.3` 으로 판단. 못 미치면 git 의 v2 모듈 + `SlashA/B/C` 를 v2 메시(Neon 보라 + Core)로 되돌리기.
   - Blender MCP 창이 응답 없음 상태(이 세션) — 다음에 Blender 창 확인.
   - 게시: Controllers (Vfx.BladeWhirl + SlashA/B/C).
+- ✔ **칼날 회오리 v4 (2026-11-25, 사용자 피드백 3가지 + 참고 그림)**: ① "플레이어에 이펙트가 없다"(참고: 발밑 빛 원 + 솟는 불티 + 빛기둥) ② "광역 스킬, 범위 넓게" ③ "베기가 너무 얇다, 두껍게(넓은 띠)"
+  - ② `Skills.blade_whirl.radius` 10 → **16** (서버 판정 반경). 더미 14스터드에서 3타 모두 맞음 확인.
+  - ③ 메시 v4 `blade_whirl_slashes.py` SPECS: A 반지름 7·호 150°·폭 2.2·두께 0.16 / B 9·170°·폭 3.4·두께 0.22·나선 들림 1.2 / C 11·72°·폭 2.0. 모델 **107706310707069** (MeshId 는 texture_ids.json). SurfaceAppearance 같은 이미지. 모듈 HEADS·C_RADIUS 11·FINISH_FORWARD 5·UP 0.5·FINISH_SCALE 1, 앞머리 빛 범위 14/20·불티 60/100, 빛줄기 16/18.
+  - ① `playerAura` (castDelay 전부터 spinEnd + 0.35초 사라짐, 몸을 따라감): 캐릭터 Highlight(보라, 채움 0.72·테두리 0.25) + 발밑 빛 원(새 이미지 **88252622732116**, Decal 103431041913167, 지름 3→8로 커지며 천천히 돎) + 원기둥 안에서 솟는 흰·보라 불티(Rate 80) + PillarCore 빛기둥(발~+8, 보라) + 보라 PointLight 16.
+  - 플레이: 오라 4종·베기 12·앞머리 12·빛줄기 4·섬광 2·충격 불꽃 1, 타격 3번, 방향 복구, 남은 폴더 없음, 오류 없음. **화면으로는 못 봄** (사용자 확인 대기).
+  - 게시: Shared(Skills) + Controllers(Vfx.BladeWhirl + SlashA/B/C).
