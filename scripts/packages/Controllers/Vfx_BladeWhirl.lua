@@ -1,19 +1,18 @@
 --!strict
--- 칼날 회오리 연출 v4 (Skills.blade_whirl, kind "whirl", vfx = "BladeWhirl"). 흰 + 선명한 보라.
+-- 칼날 회오리 연출 v5 (Skills.blade_whirl, kind "whirl", vfx = "BladeWhirl"). 흰 + 선명한 보라 + 어두운 결.
 -- 원본: 저장소 scripts/packages/Controllers/Vfx_BladeWhirl.lua (Controllers 패키지 SkillController.Vfx.BladeWhirl)
--- v3 (2026-11-25, 사용자 참고 그림): 메시에 SurfaceAppearance 그라데이션(흰 앞날 → 보라 → 어두운 꼬리, 투명도) + 발광 마스크,
---   베기마다 앞머리 보라 빛(PointLight) + 불티, 강조·마무리 베기는 접선 방향 빛줄기. 텍스처 scripts/vfx_whirl_slash_tex.py
--- v4 (2026-11-25 사용자): 범위 10→16 에 맞춰 넓은 띠 메시(A 반지름 7·폭 2.2 / B 9·3.4 / C 11·2.0), 플레이어 오라(테두리 빛·발밑 원·솟는 불티·빛기둥)
--- v1(원형 궤도 칼날 2장 + 검은 연기)은 git 기록. v2 = 개별 초승달 베기 메시를 여러 평면·높이·각도로 시간 차를 두고 교차시킴
---   발동      0                 가슴 앞 짧은 흰 섬광 + 빛 + 반짝이 몇 개
---   연속 베기  castDelay ~ 0.85   SlashA 8개 (수평·대각·높낮이·크기·휘두르는 방향이 모두 다름), 하나씩 0.2초 동안 나타나 휘둘러지고 사라짐
---   강조 베기  0.36 / 0.67        SlashB 2개 (더 크고 넓음, 다른 방향으로 교차) — 서버 1·2타(0.4·0.7) 직전
---   마무리     0.92 / 0.97        SlashC 2개가 몸 앞 수직 평면에서 X 자로 교차 → 1.0(서버 3타) 흰 섬광 + 바깥으로 튀는 불꽃(보조 충격파)
+-- v5 (2026-11-25 사용자 "무료 Slash VFX System 기반으로 다시"): 베기 = Creator Store 무료 에셋 "Slash VFX System"
+--   (MorphoTheNoob, 85889779196357, "Free to use")의 휘어진 텍스처 빔 초승달(빔 5겹) + 평면 초승달 플립북 + 불꽃·별·번개를
+--   모듈 아래 Part "WhirlKit" 에 모아 둔 것(CrescentA/CrescentB 빔, Slash 플립북, Burst 터짐)을 복제해서 씀.
+--   v3·v4 의 SurfaceAppearance 메시 칼날은 화면에서 거의 안 보여서(어둡고 투명) 버림. v1~v4 는 git 기록.
+--   발동      0                 가슴 앞 짧은 흰 섬광 + 반짝이, 플레이어 오라(테두리 빛·발밑 원·솟는 불티·빛기둥) 시작
+--   연속 베기  castDelay ~ 0.85   보통 초승달 8개 (수평·대각·높낮이·크기·휘두르는 방향이 모두 다름), 각각 자기 평면 안에서 휘둘러지며 나타났다 사라짐
+--   강조 베기  0.36 / 0.67        큰 초승달 2개 (서버 1·2타 0.4·0.7 직전) + 터짐 조금
+--   마무리     0.92 / 0.97        몸 앞 수직 평면에서 큰 초승달 2개가 X 자로 교차 → 1.0(서버 3타) 흰 섬광 + 불꽃·별·번개·선 터짐
 --   맞음      phase "hit"        맞은 자리 흰·보라 불꽃 + 작은 섬광 (서버 타격 하나 = 연출 하나)
---   몸        (내 캐릭터) 기존과 같음: castDelay 부터 spinTime 동안 왼쪽 turns 바퀴, 단검 첫 타 휘두른 자세 멈춤
--- 메시: 이 모듈 아래 MeshPart SlashA / SlashB / SlashC (SurfaceAppearance, v3 는 흰 심 Core 없음 — 자식 MeshPart 가 있으면 같이 움직임). Blender scripts/blade_whirl_slashes.py
---   규격: 호(arc) 모양 칼날, PivotOffset = 호의 중심(휘두르는 축), 칼날 가운데 = 피벗 로컬 -X, 칼날 평면 법선 = 로컬 Y,
---   로컬 +Y 축 양의 회전 = 칼날 끝(앞) 쪽으로 휘두름. 메시가 없으면 그 베기는 건너뜀 (경고 한 번)
+--   몸        (내 캐릭터) castDelay 부터 spinTime 동안 왼쪽 turns 바퀴, 단검 첫 타 휘두른 자세 멈춤
+-- WhirlKit 초승달 규격: CrescentA(로컬 0,-7) → CrescentB(0,+7), 빔이 로컬 -Z 쪽으로 반지름 약 7 만큼 불룩 = 원점을 감싸는 반원,
+--   평면 법선 = 로컬 X. 법선(X) 둘레로 돌리면 자기 평면 안에서 휘둘러짐
 -- 판정·피해·타격 시각은 서버(Skill 서비스 whirlHits)가 정한다. 이 모듈은 보이는 것과 내 캐릭터 회전만.
 -- payload.timeScale 이면 개발 명령 /fx 미리보기 (몸 회전·모션 없이, 맞음 연출은 타 시각마다 앞에 하나씩).
 
@@ -33,19 +32,12 @@ local PURPLE = Color3.fromRGB(140, 40, 255)
 local PURPLE_SOFT = Color3.fromRGB(205, 160, 255)
 
 local HOLD_FRACTION = 0.55 -- 단검 첫 타를 휘두른 자세 (길이 대비)
-local C_RADIUS = 11 -- SlashC 호 반지름 (메시와 같게, v4 범위 16)
--- 베기 메시마다 앞머리(빛·불티를 붙일 자리) = 피벗 로컬. 호 반지름 r, 호 각 span 의 끝 쪽 85% 지점
--- (Blender (r cos a, r sin a) → Roblox 로컬 (-r cos a, 0, r sin a))
-local function headOf(r: number, spanDeg: number): Vector3
-	local a = math.rad(spanDeg / 2 * 0.85)
-	return Vector3.new(-r * math.cos(a), 0, r * math.sin(a))
-end
-local HEADS = { SlashA = headOf(7.0, 150), SlashB = headOf(9.0, 170), SlashC = headOf(11.0, 72) } -- v4 넓은 띠 메시
 local GROUND_IMAGE = "rbxassetid://88252622732116" -- 발밑 빛 원 (scripts/vfx_whirl_slash_tex.py WhirlGround)
-local STREAK_TEXTURE = T.FsSlashLine -- 가는 흰 선 (Beam 색으로 물들임)
+local KIT = script:WaitForChild("WhirlKit") -- 무료 Slash VFX System 재료 (위 설명)
+local ARC_R = 7 -- 키트 초승달 반지름 (스터드, 크기 1 기준)
 
--- 베기 배치표. t = 시전 후 시각, yaw = 그 순간 몸 방향에서 더 돌린 각(도), tilt = 칼날 평면을 기울인 각(도, 0 = 수평),
--- h = 허리에서 높이, k0→k1 = 크기, sweep = 휘두르는 각(도), dir = 1 왼쪽으로 / -1 반대로, life = 보이는 시간
+-- 베기 배치표. t = 시전 후 시각, mesh = "SlashA" 보통 / "SlashB" 강조(크고 굵게), yaw = 그 순간 몸 방향에서 더 돌린 각(도),
+-- tilt = 칼날 평면을 기울인 각(도, 0 = 수평), h = 허리에서 높이, k0→k1 = 크기(1 = 반지름 7), sweep = 휘두르는 각(도), dir = 1 왼쪽 / -1 반대, life = 보이는 시간
 type SlashSpec = { t: number, mesh: string, yaw: number, tilt: number, h: number, k0: number, k1: number, sweep: number, dir: number, life: number }
 local SLASHES: { SlashSpec } = {
 	{ t = 0.10, mesh = "SlashA", yaw = 0, tilt = 0, h = 0.0, k0 = 0.85, k1 = 1.05, sweep = 110, dir = 1, life = 0.2 },
@@ -62,8 +54,8 @@ local SLASHES: { SlashSpec } = {
 -- 마무리 X: 시각, 몸 앞 평면에서 칼날이 불룩한 쪽(오른쪽 +1 / 왼쪽 -1)
 local FINISH = { { t = 0.92, side = 1 }, { t = 0.97, side = -1 } }
 local FINISH_FLASH = 1.0 -- 서버 3타와 같은 시각
-local FINISH_FORWARD, FINISH_UP = 5, 0.5 -- X 교차점: 몸 앞·위 (v4: 칼날이 커져 앞으로)
-local FINISH_SCALE = 1 -- 마무리 베기 크기 (v4 메시가 이미 큼)
+local FINISH_FORWARD, FINISH_UP = 4.5, 0.8 -- X 교차점: 몸 앞·위
+local FINISH_SCALE = 1.25 -- 마무리 초승달 크기
 
 local SOUNDS = {
 	flash = { id = "rbxassetid://125132253621935", volume = 0.4, speed = 1.1 }, -- Sword Whoosh Slash
@@ -160,167 +152,107 @@ local function flash(ctx: Kit.Ctx, at: Vector3, size: number, time: number, brig
 	ctx:tween(light, time * 1.6, { Brightness = 0 })
 end
 
-type Piece = { part: BasePart, size: Vector3, base: number, off: Vector3 }
+-- 키트 터짐(불꽃·별·선·번개)을 at 에서 dir 쪽으로, 기본 개수 × mult
+local function kitBurst(ctx: Kit.Ctx, at: Vector3, dir: Vector3, mult: number)
+	local h = Kit.holder(ctx, CFrame.lookAt(at, at + dir), "KitBurst")
+	local b = KIT.Burst:Clone()
+	b.CFrame = CFrame.Angles(0, math.pi, 0) -- 키트 이미터는 Back 방향 → 몸 바깥(dir)으로
+	b.Parent = h
+	for _, e in b:GetChildren() do
+		if e:IsA("ParticleEmitter") then
+			e.TimeScale = ctx.scale
+			e:Emit(math.max(1, math.floor((e:GetAttribute("EmitCount") or 5) * mult)))
+		end
+	end
+end
 
--- 베기 하나: 템플릿(바깥 + 자식 Core)을 복제해 pivot(호 중심) 둘레로 휘두르며 크기·투명도를 바꾸고 끝나면 지움
--- pivotAt(s): s = 0 ~ 1 진행도의 피벗 CFrame, scale(s), fade(s) (0 보임 ~ 1 사라짐)
-local function swing(ctx: Kit.Ctx, mesh: string, life: number, pivotAt: (number) -> CFrame, scale: (number) -> number, fade: (number) -> number)
-	local template = script:FindFirstChild(mesh)
-	if not (template and template:IsA("MeshPart")) then
-		if not warned then
-			warned = true
-			warn("[BladeWhirl] 베기 메시 " .. mesh .. " 없음 (모듈 아래 SlashA/B/C 필요)")
+type BeamInfo = { beam: Beam, w0: number, w1: number, c0: number, c1: number, tr: NumberSequence }
+
+-- 투명도 시퀀스를 alive(0 안 보임 ~ 1 원래대로) 만큼 보이게
+local function fadeSeq(src: NumberSequence, alive: number): NumberSequence
+	local keys = {}
+	for _, k in src.Keypoints do
+		table.insert(keys, NumberSequenceKeypoint.new(k.Time, 1 - (1 - k.Value) * alive, k.Envelope))
+	end
+	return NumberSequence.new(keys)
+end
+
+-- 초승달 하나: 키트 빔 초승달(+ 평면 플립북)을 cf 자리에 두고, 평면 법선(로컬 X) 둘레로 sweep 만큼 휘두르며 나타났다 사라짐
+-- cf: 원점 = 반원의 중심, 로컬 X = 평면 법선, 로컬 -Z = 불룩한 쪽. scale = 크기(1 = 반지름 7), widthMul = 굵기 배율
+local function crescent(ctx: Kit.Ctx, cf: CFrame, scale0: number, scale1: number, life: number, sweepDeg: number, widthMul: number, flip: boolean)
+	local holder = Kit.holder(ctx, cf, "Crescent")
+	local a0, a1 = KIT.CrescentA:Clone(), KIT.CrescentB:Clone()
+	local base0, base1 = a0.Position, a1.Position
+	a0.Parent, a1.Parent = holder, holder
+	local beams: { BeamInfo } = {}
+	for _, b in a1:GetChildren() do
+		if b:IsA("Beam") then
+			b.Attachment0 = if b.Attachment0 and b.Attachment0.Name == "CrescentA" then a0 else a1
+			b.Attachment1 = if b.Attachment1 and b.Attachment1.Name == "CrescentA" then a0 else a1
+			table.insert(beams, { beam = b, w0 = b.Width0, w1 = b.Width1, c0 = b.CurveSize0, c1 = b.CurveSize1, tr = b.Transparency })
+			b.Transparency = NumberSequence.new(1)
+			b.Enabled = true
 		end
-		return
 	end
-	local pieces: { Piece } = {}
-	local function add(src: MeshPart, copy: BasePart)
-		Kit.decor(copy)
-		copy.Transparency = 1
-		copy.Parent = ctx.folder
-		table.insert(pieces, { part = copy, size = src.Size, base = src.Transparency, off = src.PivotOffset.Position })
-	end
-	local m = template:Clone()
-	for _, c in template:GetChildren() do
-		if c:IsA("MeshPart") then
-			add(c, m:FindFirstChild(c.Name) :: BasePart)
+	-- 보조: 같은 평면에 눕는 초승달 플립북 (어두운 결 + 보라)
+	local flat = KIT.Slash:Clone()
+	flat.CFrame = CFrame.Angles(0, 0, -math.pi / 2) -- 플립북 축(Y) = 평면 법선(X)
+	flat.Parent = holder
+	for _, e in flat:GetChildren() do
+		if e:IsA("ParticleEmitter") then
+			e.TimeScale = ctx.scale
+			e.Size = NumberSequence.new(e.Size.Keypoints[1].Value * scale1 * 1.4)
+			e:Emit(e:GetAttribute("EmitCount") or 5)
 		end
 	end
-	add(template, m)
-	-- 앞머리: 보라 빛(바닥·몸을 물들임) + 흩날리는 불티
-	local headLocal = HEADS[mesh] or Vector3.new(-3, 0, 0)
-	local head = Kit.holder(ctx, pivotAt(0), "SlashHead")
-	local light = Instance.new("PointLight")
-	light.Color, light.Range, light.Brightness, light.Shadows = PURPLE_SOFT, if mesh == "SlashA" then 14 else 20, 0, false
-	light.Parent = head
-	local sparks = Kit.emitter(ctx, head, sparkProps({
-		Rate = if mesh == "SlashA" then 60 else 100,
-		Color = ColorSequence.new(WHITE, PURPLE),
-		Size = seq({ { 0, 0.28 }, { 1, 0 } }),
-		Lifetime = NumberRange.new(0.12, 0.3),
-		Speed = NumberRange.new(4, 12),
-		SpreadAngle = Vector2.new(70, 70),
-		Acceleration = Vector3.new(0, -8, 0),
-		Drag = 4,
-	}))
+	local sweep = math.rad(sweepDeg) * (if flip then -1 else 1)
 	local t0 = ctx:clock()
-	local function place(s: number)
-		local pivot = pivotAt(s)
-		local k = scale(s)
-		local f = fade(s)
-		for _, p in pieces do
-			p.part.Size = p.size * k
-			p.part.CFrame = pivot * CFrame.new(-p.off * k)
-			p.part.Transparency = p.base + (1 - p.base) * f
-		end
-		head.CFrame = pivot * CFrame.new(headLocal * k)
-		light.Brightness = (1 - f) * (if mesh == "SlashA" then 2.2 else 3.5)
-		sparks.Enabled = f < 0.6
-	end
-	place(0)
 	ctx:step(t0 + life, function(t)
-		place(math.clamp((t - t0) / life, 0, 1))
-	end)
-	ctx:at(life + 0.02, function()
-		for _, p in pieces do
-			p.part:Destroy()
+		local s = math.clamp((t - t0) / life, 0, 1)
+		local e = 1 - (1 - s) ^ 3
+		local k = scale0 + (scale1 - scale0) * e
+		holder.CFrame = cf * CFrame.Angles(-sweep / 2 + sweep * e, 0, 0)
+		a0.Position, a1.Position = base0 * k, base1 * k
+		local appear = math.clamp(s / 0.12, 0, 1)
+		local alive = appear * (1 - (if s < 0.45 then 0 else ((s - 0.45) / 0.55) ^ 1.3))
+		for _, b in beams do
+			b.beam.Width0 = b.w0 * k * widthMul * (0.5 + 0.5 * appear)
+			b.beam.Width1 = b.w1 * k * widthMul * (0.5 + 0.5 * appear)
+			b.beam.CurveSize0, b.beam.CurveSize1 = b.c0 * k, b.c1 * k
+			b.beam.Transparency = fadeSeq(b.tr, alive)
 		end
-		sparks.Enabled = false
-		light.Brightness = 0
+	end)
+	ctx:at(life + 0.05, function()
+		holder:Destroy()
 	end)
 end
 
--- 빛줄기: 한 점에서 dir 방향으로 길게 뻗는 가는 흰·보라 선이 번쩍 (강조·마무리 베기)
-local function streak(ctx: Kit.Ctx, at: Vector3, dir: Vector3, length: number, width: number)
-	local a0 = Kit.holder(ctx, CFrame.new(at - dir * length * 0.5), "StreakA")
-	local a1 = Kit.holder(ctx, CFrame.new(at + dir * length * 0.5), "StreakB")
-	local att0, att1 = Instance.new("Attachment"), Instance.new("Attachment")
-	att0.Parent, att1.Parent = a0, a1
-	local b = Instance.new("Beam")
-	b.Attachment0, b.Attachment1 = att0, att1
-	b.Texture = STREAK_TEXTURE
-	b.TextureMode = Enum.TextureMode.Stretch
-	b.Color = ColorSequence.new({ ColorSequenceKeypoint.new(0, PURPLE), ColorSequenceKeypoint.new(0.5, WHITE), ColorSequenceKeypoint.new(1, PURPLE) })
-	b.Transparency = seq({ { 0, 1 }, { 0.35, 0.2 }, { 0.5, 0 }, { 0.65, 0.2 }, { 1, 1 } })
-	b.Width0, b.Width1 = width, width
-	b.LightEmission, b.LightInfluence, b.Brightness = 1, 0, 6
-	b.FaceCamera = true
-	b.Segments = 1
-	b.Parent = a0
-	local t0 = ctx:clock()
-	ctx:step(t0 + 0.16, function(t)
-		local k = math.clamp((t - t0) / 0.16, 0, 1)
-		b.Width0 = width * (1 - k)
-		b.Width1 = width * (1 - k)
-		att0.WorldPosition = at - dir * length * (0.3 + 0.25 * k)
-		att1.WorldPosition = at + dir * length * (0.3 + 0.25 * k)
-	end)
-end
-
-local function easeOut(s: number): number
-	return 1 - (1 - s) ^ 3
-end
-
--- 보통·강조 베기: 허리 둘레, 지정한 평면에서 sweep 만큼 휘두름. 나타남 15% → 유지 → 뒤 55% 동안 사라짐
+-- 보통·강조 베기: 허리 둘레, 지정한 평면에서 sweep 만큼 휘두름
 local function spawnSlash(ctx: Kit.Ctx, center: Vector3, bodyYaw: number, spec: SlashSpec)
-	local base = CFrame.new(center + Vector3.new(0, spec.h, 0))
+	local strong = spec.mesh == "SlashB"
+	-- 수평(tilt 0) = 법선이 위: 키트 법선(X)을 위(Y)로 → Z 둘레 90°. 그 전에 몸 방향 yaw, 평면 기울임 tilt
+	local cf = CFrame.new(center + Vector3.new(0, spec.h, 0))
 		* CFrame.Angles(0, bodyYaw + math.rad(spec.yaw), 0)
-		* CFrame.Angles(0, -math.pi / 2, 0) -- 칼날 가운데(-X) = 이 방향 앞
-		* CFrame.Angles(math.rad(spec.tilt), 0, 0) -- 칼날 평면 기울임 (가운데 방향 축)
-	if spec.dir < 0 then
-		base *= CFrame.Angles(math.pi, 0, 0) -- 뒤집어 반대로 휘두름
-	end
-	local sweep = math.rad(spec.sweep)
-	if spec.mesh == "SlashB" then
-		-- 강조: 휘두름이 가장 빠른 순간 앞머리에서 접선 방향 빛줄기
-		ctx:at(spec.life * 0.18, function()
-			local mid = base * CFrame.Angles(0, -sweep / 2 + sweep * easeOut(0.18), 0)
-			local headAt = (mid * CFrame.new(HEADS.SlashB * spec.k1)).Position
-			local tangent = (mid * CFrame.Angles(0, 0.05, 0) * CFrame.new(HEADS.SlashB * spec.k1)).Position - headAt
-			if tangent.Magnitude > 1e-3 then
-				streak(ctx, headAt, tangent.Unit, 16, 0.45)
-			end
+		* CFrame.Angles(0, 0, math.rad(spec.tilt))
+		* CFrame.Angles(0, 0, math.pi / 2)
+	local k1 = spec.k1 * (if strong then 1.3 else 1)
+	crescent(ctx, cf, spec.k0, k1, spec.life + (if strong then 0.06 else 0.04), spec.sweep, if strong then 1.6 else 1, spec.dir < 0)
+	if strong then
+		ctx:at(spec.life * 0.25, function()
+			local out = cf.LookVector -- 로컬 -Z 의 반대 = 불룩한 쪽은 -LookVector
+			kitBurst(ctx, cf.Position - out * ARC_R * k1, -out, 0.5)
 		end)
 	end
-	swing(ctx, spec.mesh, spec.life, function(s)
-		return base * CFrame.Angles(0, -sweep / 2 + sweep * easeOut(s), 0)
-	end, function(s)
-		return spec.k0 + (spec.k1 - spec.k0) * easeOut(s)
-	end, function(s)
-		if s < 0.15 then
-			return 1 - s / 0.15
-		elseif s < 0.45 then
-			return 0
-		end
-		return ((s - 0.45) / 0.55) ^ 1.5
-	end)
 end
 
--- 마무리 베기 하나: 몸 앞 수직 평면(법선 = look)에서 대각선으로. side = 칼날이 불룩한 쪽
+-- 마무리 베기 하나: 몸 앞 수직 평면(법선 = look)에서 대각선 큰 초승달. side = 기울기 방향(±1)
 local function spawnFinish(ctx: Kit.Ctx, cross: Vector3, look: Vector3, side: number)
-	local right = look:Cross(Vector3.yAxis).Unit
-	local d = (right * side - Vector3.yAxis).Unit -- 호 중심 → 칼날 가운데 (불룩한 쪽, 아래 대각)
-	local life = 0.4
-	ctx:at(0.05, function()
-		streak(ctx, cross, (right * side + Vector3.yAxis).Unit, 18, 0.5) -- 칼날이 그어지는 대각 방향
-	end)
-	swing(ctx, "SlashC", life, function(s)
-		-- 0.09초(전체의 22%) 안에 빠르게 그어지고 멈춤
-		local p = easeOut(math.min(s / 0.22, 1))
-		local k = FINISH_SCALE + 0.08 * s
-		local center = cross - d * C_RADIUS * k
-		local pivot = CFrame.fromMatrix(center, -d, look)
-		return pivot * CFrame.Angles(0, math.rad(-24 + 30 * p), 0)
-	end, function(s)
-		return FINISH_SCALE + 0.08 * s
-	end, function(s)
-		if s < 0.08 then
-			return 1 - s / 0.08
-		elseif s < 0.5 then
-			return 0
-		end
-		return ((s - 0.5) / 0.5) ^ 1.4
-	end)
+	-- 키트 법선(X) = look, 위(Y) = 세계 위 → 평면 안에서 side·45° 기울임
+	local cf0 = CFrame.fromMatrix(cross, look, Vector3.yAxis) * CFrame.Angles(math.rad(45 * side), 0, 0)
+	-- 반원의 불룩한 쪽(로컬 -Z)이 교차점을 지나도록 중심을 반대쪽으로 옮김 → 두 호가 교차점에서 X 로 겹침
+	local bulge = -cf0.LookVector
+	local cf = cf0 - bulge * ARC_R * FINISH_SCALE * 0.72
+	crescent(ctx, cf, FINISH_SCALE * 0.9, FINISH_SCALE, 0.42, 50, 2, side < 0)
 end
 
 -- 맞음: 칼이 지나가는 방향(접선)으로 흰·보라 불꽃 + 작은 섬광
@@ -560,6 +492,7 @@ local function playCast(payload: any, character: Model)
 	atAbs(FINISH_FLASH, function()
 		local cross = centerPos() + look * FINISH_FORWARD + Vector3.new(0, FINISH_UP, 0)
 		flash(ctx, cross, 2.4, 0.12, 5)
+		kitBurst(ctx, cross, look, 1.2)
 		-- 보조 충격파: 허리 높이에서 바깥으로 튀는 짧은 불꽃
 		local ring = Kit.holder(ctx, CFrame.new(centerPos()), "WhirlShock")
 		ring.Size = Vector3.new(1.5, 0.1, 1.5)

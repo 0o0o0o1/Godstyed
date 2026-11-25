@@ -895,3 +895,9 @@
   - ① `playerAura` (castDelay 전부터 spinEnd + 0.35초 사라짐, 몸을 따라감): 캐릭터 Highlight(보라, 채움 0.72·테두리 0.25) + 발밑 빛 원(새 이미지 **88252622732116**, Decal 103431041913167, 지름 3→8로 커지며 천천히 돎) + 원기둥 안에서 솟는 흰·보라 불티(Rate 80) + PillarCore 빛기둥(발~+8, 보라) + 보라 PointLight 16.
   - 플레이: 오라 4종·베기 12·앞머리 12·빛줄기 4·섬광 2·충격 불꽃 1, 타격 3번, 방향 복구, 남은 폴더 없음, 오류 없음. **화면으로는 못 봄** (사용자 확인 대기).
   - 게시: Shared(Skills) + Controllers(Vfx.BladeWhirl + SlashA/B/C).
+- ✔ **칼날 회오리 v5 — 무료 Creator Store "Slash VFX System" 기반 (2026-11-25, 사용자 "그걸로 다시")**
+  - 발견: v3·v4 SurfaceAppearance 메시 칼날은 실제 화면에서 거의 안 보였음(어둡고 투명). 플레이 화면 캡처로 확인 → 이제 확인 방법: 플레이 시작 후 `user_keyboard_input` Space(타이틀 넘김) → screen_capture.
+  - 무료 에셋 격리 검사 `ServerStorage.VfxQuarantine` (4개, 위험 스크립트 없음). 채택: "Slash VFX System" (MorphoTheNoob, 85889779196357, "Free to use") → 재료를 `Vfx.BladeWhirl.WhirlKit` Part 로: CrescentA/CrescentB(휘어진 텍스처 빔 5겹 반원, 반지름 7, 법선 로컬 X) / Slash(평면 플립북 combo1) / Burst(불꽃·별·선·번개). 텍스처는 다른 소유자지만 게임에서 로드 확인(Success).
+  - 모듈 v5: 베기 10개 = 빔 초승달을 배치표 평면에 두고 법선 둘레로 휘두르며 나타났다 사라짐(강조 B 는 1.3배·굵기 1.6 + 터짐), 마무리 = 몸 앞 수직 평면 큰 초승달 2개 X + 1.0초 섬광·터짐. 오라·타격·범위 16 그대로. 메시 SlashA/B/C 는 모듈에서 뺌(ServerStorage.WhirlProto 에 남음).
+  - 확인: 실제 F 키 시전 화면 캡처에서 굵은 보라 초승달들이 몸을 감싸며 교차하는 것 확인. 마무리 X·정리 여부는 아직 화면으로 확인 안 함.
+  - 게시: Shared(Skills 범위 16) + Controllers(Vfx.BladeWhirl + WhirlKit).
