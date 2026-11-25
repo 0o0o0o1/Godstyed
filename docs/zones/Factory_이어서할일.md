@@ -925,3 +925,10 @@
   - R 8 은 복도에서 거의 안 이어짐(1.5명), R 16~20 은 떨어진 다른 무리까지 넘어가는 일이 늘어남.
   - 처형 예시 2.0 + 잃은 체력 × 3.0 (반피 ×3.5, 10% ×4.7), 보스는 잃은 체력 몫 +1.0 상한.
 - 다음: 사용자에게 R·한 타 배율·처형 계수·쿨다운 확정 받기 → 서버 판정 + 임시 연출.
+- ✔ **2단계: 서버 판정 + 임시 연출 (2026-11-26, 사용자 "추천대로": 반경 12 / 한 타 ×1.0 / 처형 2.0 + 잃은 체력 × 3.0, 보스 +1.0 상한 / 쿨 16)**
+  - `Shared.Data.Skills.shadow_chain` (kind **"chain"**, 필드 hopTime 0.18·chainRadius 12·maxTargets 6·returnTime 0.25·executeDelay 0.3·executeBase/Scale/BossCap, 타입 SkillDef 에도 추가) + `DaggerRelics.relic_shadow_chain` (아이콘 임시 = Parry).
+  - `Services.Skill`: `chainNext`(방금 벤 적 자리 기준 수평 반경·높이 차 8·안 벤·벽 검사, 가장 가까운 적) / `chainDest`(blinkDest 를 지금 내 자리 기준으로) / `chainHits`(무적 ForceField + 적 통과, 벨 때마다 phase "strike"(index, from, target, point), 기다리는 동안 다시 고름, 끝나면 "return" → "execute"(missing, mult), 첫 대상이 죽었으면 "finish"). ECHO_EXCLUDED·ROOT_BLOCKED(서버+클라 SkillController)에 chain, 대상 없으면 "No target in reach." 쿨다운 없음.
+  - 임시 연출 `Vfx.ShadowChain` (원본 `scripts/packages/Controllers/Vfx_ShadowChain.lua`): 시전~끝까지 몸·무기 빛을 모든 화면에서 숨김(사용자 결정), 내 캐릭터는 서버가 보낸 자리로 옮겨 고정. 출발 잔상·검은 연기 고리 / 적 사이 그림자 궤적(Beam) / 적에 X 칼자국(Beam)·불꽃 / 벤 적 보라 표식 → 처형 때 터짐 / 처형 큰 X·섬광·흔들림(잃은 체력만큼 크게) → 몸 다시 보임. 텍스처는 기존 것(FsSmokeDark·EbSpark·HolySparkle), 다음 단계에서 Python 그림으로.
+  - 플레이 시험 (로비, office_husk 8마리 제자리 고정, 시험 동안만 단검 5번 소켓에 성유물·무적, 끝나고 되돌림: 5번 소켓 원래 비어 있음): ① 무리 7 + 먼 1 → strike 1~6 → return → execute, 6명 제한으로 1명·먼 적은 안 벰, 피해 들어감, 끝나고 머리 보임·AutoRotate 복구·연출 폴더·표식 남지 않음. ② 첫 대상 체력 3 → 첫 타에 죽고 연쇄 5명 뒤 "finish"(처형 생략). 오류 없음. 첫 시도는 로비 훈련용 더미가 첫 대상이 되어 1명에서 끝남(더미 주변 12 안에 적 없음, 정상 동작).
+  - 화면: 몸은 안 보이고 칼자국·궤적만 보임 확인. 임시 연출이라 얇고 작음 → 3단계에서 키움.
+  - 게시: Services(Skill), Shared(Skills·DaggerRelics), Controllers(SkillController·Vfx.ShadowChain). `TEST_COOLDOWN = 1` 이 켜져 있어 지금은 쿨 1초.
