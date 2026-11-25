@@ -234,5 +234,10 @@
     "Relic_spear_sweep": "rbxassetid://104596984114484",
     "Relic_god_spear": "rbxassetid://95627576562842",
     "_decals": "skill 93985771030498/108019314974509/71118353499864/106139086267801, relic 106356603668321/93103301187395/86423554860261/115750402043045/122621903116339"
+  },
+  "ShadowStepBlade": {
+    "_note": "그림자 발걸음 찌르기 칼날 메시 (모델 에셋, 그룹 소유). scripts/shadow_step_blade.py → Vfx.ShadowStep.BladeMesh(+Core)",
+    "model": 127313928571413,
+    "BladeMesh_meshId": 119094222831278
   }
 }

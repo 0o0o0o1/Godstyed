@@ -9,6 +9,7 @@
 --   맞음    phase "hit" (서버)        맞은 자리에 작은 보라·흰 불꽃 + 짧은 섬광, 타격음
 -- 칼날 궤적: 이 모듈 아래에 MeshPart "BladeMesh" 가 있으면 그 메시를 쓰고, 없으면 Beam 3개로 만든 임시 칼날(마름모)을 쓴다.
 --   BladeMesh 규격: 길이 = 앞(-Z, LookVector) 방향, 피벗 = 칼날 꼬리 가운데. 크기·색·투명도는 메시에 넣은 값 그대로 (아래 BLADE_* 로 움직임만)
+--   지금 들어 있는 것 (2026-11-25): Blender scripts/shadow_step_blade.py, 모델 에셋 127313928571413. 보라 Neon 바깥 + 자식 "Core" 흰 심
 -- 판정·이동 거리·무적은 서버(Skill 서비스 blinkTarget/blinkDest/blinkHits)가 정한다. 이 모듈은 보이는 것만.
 -- payload.timeScale 이면 개발 명령 /fx 미리보기 (이동·모션 없이 연출만, 맞음 연출도 이어서).
 
@@ -273,12 +274,28 @@ local function playBlade(ctx: Kit.Ctx, from: Vector3, dir: Vector3)
 	local template = script:FindFirstChild("BladeMesh")
 	if template and template:IsA("MeshPart") then
 		-- Blender 메시 (스킬 전용, 이 모듈 아래에 둠): 꼬리 피벗을 from 에 두고 앞으로 밀며 사라짐
+		-- 자식 MeshPart(흰 심 "Core" 등)는 바깥 메시와의 상대 위치를 그대로 두고 같이 움직임
 		local m = template:Clone()
-		Kit.decor(m)
+		local pieces: { BasePart } = { m }
+		for _, c in template:GetChildren() do
+			if c:IsA("BasePart") then
+				local copy = m:FindFirstChild(c.Name) :: BasePart
+				copy.Parent = ctx.folder
+				table.insert(pieces, copy)
+			end
+		end
 		m:PivotTo(CFrame.lookAt(from, from + dir))
-		m.Parent = ctx.folder
-		ctx:tween(m, BLADE_IN + BLADE_OUT, { CFrame = m.CFrame + dir * (BLADE_LENGTH * 0.35) }, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
-		ctx:tween(m, BLADE_OUT, { Transparency = 1 }, Enum.EasingStyle.Quad, Enum.EasingDirection.In, BLADE_IN)
+		local move = dir * (BLADE_LENGTH * 0.35)
+		for i, p in pieces do
+			Kit.decor(p)
+			if i > 1 then
+				p.CFrame = m.CFrame * template.CFrame:ToObjectSpace(template:FindFirstChild(p.Name).CFrame)
+			end
+			p.Parent = ctx.folder
+			-- 찌르는 쪽으로 밀려나가며 BLADE_IN 뒤부터 사라짐
+			ctx:tween(p, BLADE_IN + BLADE_OUT, { CFrame = p.CFrame + move }, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
+			ctx:tween(p, BLADE_OUT, { Transparency = 1 }, Enum.EasingStyle.Quad, Enum.EasingDirection.In, BLADE_IN)
+		end
 		return
 	end
 	-- 임시 칼날 (메시 없음): 꼬리·넓은 곳·끝 세 점을 Beam 으로 이어 마름모 칼날. 바깥 보라 + 안쪽 흰 심
@@ -395,6 +412,10 @@ local function playCast(payload: any, character: Model)
 	local preview = payload.timeScale ~= nil
 	local mine = isMine(character) and not preview
 	local ctx = Kit.begin("ShadowStep", CAST_DELAY + stabDelay + 1.2, payload.timeScale)
+	-- 연출 시작 기준 시각에 실행 (잔상 복제 등 앞 작업이 걸린 시간만큼 밀리지 않게)
+	local function atAbs(seconds: number, fn: () -> ())
+		ctx:at(math.max(seconds - ctx:clock(), 0), fn)
+	end
 	local humanoid = character:FindFirstChildOfClass("Humanoid")
 	local root = character:FindFirstChild("HumanoidRootPart") :: BasePart?
 
@@ -421,7 +442,7 @@ local function playCast(payload: any, character: Model)
 	-- 연출이 끝나기 전에 무엇이 실패해도 몸은 반드시 다시 보이게 (ctx 와 상관없이)
 	task.delay((CAST_DELAY + stabDelay + 0.5) / ctx.scale, restore)
 
-	ctx:at(CAST_DELAY, function()
+	atAbs(CAST_DELAY, function()
 		-- 내 캐릭터: 서버가 정한 자리로 옮기고 적을 봄 + 단검 첫 타 모션 (기본 공격 windup 과 같아 stabDelay 에 찌름)
 		if mine and root and humanoid and humanoid.Health > 0 then
 			root.AssemblyLinearVelocity = Vector3.zero
@@ -452,7 +473,7 @@ local function playCast(payload: any, character: Model)
 		end
 	end)
 
-	ctx:at(CAST_DELAY + stabDelay, function()
+	atAbs(CAST_DELAY + stabDelay, function()
 		local target = payload.target
 		local targetRoot = typeof(target) == "Instance" and target:FindFirstChild("HumanoidRootPart")
 		local from = dest.Position + Vector3.new(0, 0.3, 0) - dest.LookVector * 0.6
@@ -469,7 +490,7 @@ local function playCast(payload: any, character: Model)
 			playHit({ origin = dest, timeScale = payload.timeScale, point = from + dir * (SKILL.behindDistance or 3.5) }, character)
 		end
 	end)
-	ctx:at(CAST_DELAY + stabDelay + 0.3, restore)
+	atAbs(CAST_DELAY + stabDelay + 0.3, restore)
 end
 
 function ShadowStep.play(payload: any, character: Model)

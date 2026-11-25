@@ -860,3 +860,8 @@
 - Blender 칼날 메시(선택, 아직 안 만듦): 길이 6.5 × 폭 0.8 × 두께 0.05 스터드 납작한 마름모(가장 넓은 곳 꼬리에서 72%), 앞 = Roblox −Z, 피벗 = 꼬리 가운데, Neon·보라(110,0,230)·투명 0.2, CanCollide/CanQuery/CanTouch 끔, CastShadow 끔. Studio 에서 `Vfx.ShadowStep` 아래 `BladeMesh` 로 두고 PivotOffset 을 꼬리로.
 - 게시 필요: **Shared**(Skills, DaggerRelics) / **Services**(Skill) / **Controllers**(SkillController, Vfx.ShadowStep).
 - ✔ **대상 = 주변 가장 가까운 적 (2026-11-25, 사용자)**: `Skills.shadow_step.aimAssist` 50 → 180, 서버 `blinkTarget` 은 180 이면 방향 검사를 건너뜀(정확히 뒤 적이 부동소수 오차로 빠지지 않게). 설명문도 "in front of you" 뺌. 플레이: 더미를 정확히 등진 채(−1.00) 시전 → 더미 뒤 3.5 로 이동 + hit, 오류 없음. 게시: Shared(Skills) + Services(Skill).
+- ✔ **Blender 칼날 메시 (2026-11-25, 사용자 "만들어줘")**: `scripts/shadow_step_blade.py` — 마름모 단면(가운데 능선 두께 0.12, 날 0) 칼날, 길이 6.5·최대 폭 0.78(꼬리에서 72%), 꼬리는 가늘게 끌리고 끝은 오목하게 날카로움 + 안쪽 흰 심 Core(폭 35%), 삼각형 284. 모델 에셋 **127313928571413**(그룹), BladeMesh MeshId 119094222831278 (`exports/texture_ids.json` → ShadowStepBlade).
+  - Studio: `Vfx.ShadowStep.BladeMesh`(Neon 보라 110,0,230 투명 0.3) + 자식 `Core`(Neon 흰 투명 0.05). PivotOffset = 꼬리, 앞(LookVector) = 칼날 끝(메시 로컬 −X, 보정표대로), 위 = 두께 축. 충돌·그림자 끔.
+  - 모듈: 메시가 있으면 자식 MeshPart 도 상대 위치 그대로 같이 밀려나가며 사라짐. 시각 맞춤 `atAbs`(연출 시작 기준) — 잔상 복제 등 앞 작업 시간만큼 도착·찌르기가 밀리던 것 고침.
+  - 플레이: 칼날 끝이 더미 쪽(내적 1.00), Core 같이 나옴, 0.25초 뒤 투명 1, 남은 폴더 없음. Studio 에서 칼날 = 받은 뒤 0.53~0.57초, 서버 타격 연출 0.56~0.61초로 거의 같이 나옴(Studio 자체 지연 0.15~0.22 포함). 실제 화면 모양은 눈으로 안 봄.
+  - 게시: Controllers (Vfx.ShadowStep + BladeMesh).
