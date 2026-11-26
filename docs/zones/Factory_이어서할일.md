@@ -1049,3 +1049,4 @@
   - ⚠ 몬스터 80 은 실제 공장 배치(31지점 67마리)에서 몇 곳이 남는지 **확인 못 함** (패키지 게시 전이라 공장에서 새 코드가 안 돎). 너무 많이 걸리면 MONSTER_CLEAR 를 낮출 것.
 - **물 속 −15%** (`Services.Movement`, `MovementConfig.WATER_SPEED_MULT 0.85 / WATER_CHECK 0.2`): 0.2초마다 발이 지형 물 복셀(4스터드)·Water 재질 파트에 잠기거나 수영 중이면 캐릭터 속성 **WaterSpeedMult** = 0.85 → applySpeed 에 곱함, 클라이언트 AttackSlow 도 같은 계산. 모든 레이드 맵 공통. 공장 운하는 지형 물(높이 -12~0). 확인(마을, 물 재질 파트): 걷기 13 → 11.05 → 벗어나면 13.
 - 게시 필요: **공장 place**(ServerStorage.TownPortalTemplate, Workspace.RaidNoSpawn — 사용자가 공장 place 를 게시) + **Shared**(RaidConfig·MovementConfig) · **Services**(Raid·Movement) · **Controllers**(CombatController.AttackSlow).
+- (추가, 2026-11-26) 사용자 "포탈 이동시간 10초, 범위 1.5배" → `RaidConfig.EXIT.STAND` 15 → **10**초, `EXIT.RADIUS` 10 → **15** (바닥 원판·판정·탈출 타이머 표시 모두 이 값을 읽음, 모든 레이드 맵 공통). 도착 마을행 포탈의 E키 5초는 그대로. 게시: **Shared**(RaidConfig).
