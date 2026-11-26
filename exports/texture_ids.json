@@ -250,8 +250,13 @@
         "streak_body": "101677181154586",
         "streak_edge": "116684781302503",
         "slash": "111483383685103",
-        "mark": "135691841665308"
-      }
+        "mark": "135691841665308",
+        "plasma_orb": "104092823311094",
+        "plasma_pop": "111147598409051"
+      },
+      "plasma_orb": "93620747404382",
+      "plasma_pop": "120435824829957",
+      "note_plasma": "scripts/vfx_shadow_chain_plasma.py (처형 대상 터짐: 압축 구슬 → 핵 폭발). 폐기한 리본 터짐 vfx_shadow_chain_burst.py 이미지 body 114166786881687 / rim 120873567690290, 빛 구슬 burst_glow 96253058174530 은 계속 씀"
     }
   },
   "SpearIcons": {

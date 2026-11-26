@@ -39,6 +39,10 @@ local TEX = {
 	streakEdge = "rbxassetid://95405263185689", -- 궤적 테두리 선 + 심
 	slash = "rbxassetid://112085606213352", -- 칼자국 4x4 (16칸: 그어짐 → 머묾 → 갈라져 사라짐)
 	mark = "rbxassetid://125070638939268", -- 표식 (끊긴 고리 + 네 갈래 가시)
+	-- 2차 (같은 날): 플라즈마 구슬 (scripts/vfx_shadow_chain_plasma.py) — 넓게 퍼진 구름이 빠르게 압축 → 핵이 터짐
+	plasmaOrb = "rbxassetid://93620747404382", -- 모임 4x4 (색 들어감, 압축 → 번개가 핵으로)
+	plasmaPop = "rbxassetid://120435824829957", -- 핵 폭발 4x4 (섬광 → 충격파 → 껍질 찢어짐 → 잔광)
+	burstGlow = "rbxassetid://96253058174530", -- 가운데 빛 구슬
 }
 task.spawn(function()
 	local list = {}
@@ -58,6 +62,9 @@ local SLASH_SIZE, SLASH_LIFE = 9, 0.34 -- 칼자국 플립북 크기 (스터드)
 local EXEC_SIZE = 17 -- 처형 X (missing 에 따라 최대 1.5배)
 local MARK_SIZE = 4.2 -- 표식 지름
 local DIM = { brightness = -0.14, saturation = -0.5, contrast = 0.15 } -- 처형 직전 내 화면 눌림
+-- 플라즈마: 모임 크기 = Size 키 (크게 퍼진 구름 9.5 → 압축 4.2, 텍스처 ORB_SIZE_KEYS 와 같음), 폭발 = 캐릭터보다 조금 큼
+local ORB_SIZE_KEYS = { { 0, 9.5 }, { 0.12, 8.2 }, { 0.3, 3.9 }, { 0.38, 4.5 }, { 0.48, 4.2 }, { 1, 4.2 } }
+local POP_SIZE, POP_LIFE = 9, 0.55
 local REVEAL = 0.12 -- 끝나고 몸이 다시 보이는 시간
 
 local SOUNDS = {
@@ -83,6 +90,7 @@ type State = {
 	done: boolean,
 	mine: boolean,
 	dim: ColorCorrectionEffect?,
+	burst: { holder: BasePart, board: BillboardGui, core: ImageLabel, halo: ImageLabel, orb: ParticleEmitter, follow: BasePart? }?,
 }
 local active: { [Instance]: State } = {}
 
@@ -394,6 +402,122 @@ local function dimRelease(st: State, flash: boolean)
 	end)
 end
 
+-- 처형 대상 터짐 시작 (귀환 때): 대상 몸에서 그림자 리본이 말려 들며 빛 구슬을 감쌈 (처형 직후 플립북이 터지는 칸)
+local function burstStart(st: State, at: Vector3, follow: BasePart?)
+	local ctx = st.ctx
+	local holder = Kit.holder(ctx, CFrame.new(at), "ExecuteBurst")
+	local gather = SKILL.executeDelay or 0.3
+	-- 플라즈마 구슬: 넓게 퍼진 구름이 앞 30% 동안 빠르게 압축, 처형 순간에 마지막 칸 (텍스처에 색이 들어 있어 Color 흰색)
+	local orbKeys = {}
+	for _, kv in ORB_SIZE_KEYS do
+		table.insert(orbKeys, NumberSequenceKeypoint.new(kv[1], kv[2]))
+	end
+	local orb = Kit.emitter(ctx, holder, {
+		Texture = TEX.plasmaOrb,
+		FlipbookLayout = Enum.ParticleFlipbookLayout.Grid4x4,
+		FlipbookMode = Enum.ParticleFlipbookMode.OneShot,
+		Color = ColorSequence.new(WHITE),
+		LightEmission = 1,
+		LightInfluence = 0,
+		Brightness = 1.2,
+		Size = NumberSequence.new(orbKeys),
+		Transparency = NumberSequence.new(0),
+		Lifetime = NumberRange.new(gather + 0.08),
+		Speed = NumberRange.new(0),
+		Rotation = NumberRange.new(0, 360),
+		RotSpeed = NumberRange.new(-40, -40),
+		ZOffset = 2,
+		LockedToPart = true,
+	})
+	pcall(function()
+		(orb :: any).FlipbookStartRandom = false
+	end)
+	orb:Emit(1)
+	-- 가운데 빛 구슬: 모이는 동안 커지며 밝아짐 (처형 때 번쩍 후 사라짐)
+	local board = Kit.billboard(holder, 4.2 * 0.7, 4)
+	local halo = Kit.image(board, TEX.burstGlow, 0.3, 1)
+	halo.ImageColor3 = LILAC
+	halo.ImageTransparency = 0.5
+	local core = Kit.image(board, TEX.burstGlow, 0.15, 2)
+	core.ImageTransparency = 0.4
+	ctx:tween(halo, gather, { Size = UDim2.fromScale(1, 1), ImageTransparency = 0.6 })
+	ctx:tween(core, gather, { Size = UDim2.fromScale(0.35, 0.35), ImageTransparency = 0.2 })
+	local light = Instance.new("PointLight")
+	light.Color, light.Range, light.Brightness, light.Shadows = LILAC, 14, 0, false
+	light.Parent = holder
+	ctx:tween(light, gather, { Brightness = 3 })
+	st.burst = { holder = holder, board = board, core = core, halo = halo, orb = orb, follow = follow }
+	-- 대상이 밀려도 따라감 (터지고 나면 그 자리에)
+	local t0 = ctx:clock()
+	ctx:step(t0 + gather + 0.05, function()
+		if follow and follow.Parent and st.burst and st.burst.follow == follow then
+			holder.CFrame = CFrame.new(follow.Position + Vector3.new(0, 0.3, 0))
+		end
+	end)
+end
+
+-- 처형 순간: 빛 구슬이 번쩍 커졌다 사라지고 라일락 반짝이가 사방으로 (리본은 플립북이 이어서 터짐). 없으면 바로 만듦
+local function burstPop(st: State, at: Vector3, grow: number)
+	local b = st.burst
+	if not b then
+		burstStart(st, at, nil)
+		b = st.burst
+	end
+	if not b then
+		return
+	end
+	b.follow = nil
+	local ctx = st.ctx
+	-- 압축된 구슬을 거두고 같은 자리에서 핵 폭발 (캐릭터보다 조금 큼, missing 에 따라 최대 1.2배)
+	b.orb:Clear()
+	local popSize = POP_SIZE * math.min(grow, 1.2)
+	local pop = Kit.emitter(ctx, b.holder, {
+		Texture = TEX.plasmaPop,
+		FlipbookLayout = Enum.ParticleFlipbookLayout.Grid4x4,
+		FlipbookMode = Enum.ParticleFlipbookMode.OneShot,
+		Color = ColorSequence.new(WHITE),
+		LightEmission = 1,
+		LightInfluence = 0,
+		Brightness = 1.4,
+		Size = NumberSequence.new(popSize),
+		Transparency = NumberSequence.new(0),
+		Lifetime = NumberRange.new(POP_LIFE),
+		Speed = NumberRange.new(0),
+		Rotation = NumberRange.new(0, 360),
+		ZOffset = 2,
+		LockedToPart = true,
+	})
+	pcall(function()
+		(pop :: any).FlipbookStartRandom = false
+	end)
+	pop:Emit(1)
+	b.board.Size = UDim2.fromScale(popSize * 0.5, popSize * 0.5)
+	b.core.Size, b.core.ImageTransparency = UDim2.fromScale(0.5, 0.5), 0.1
+	b.halo.Size, b.halo.ImageTransparency = UDim2.fromScale(1.1, 1.1), 0.45
+	ctx:tween(b.core, 0.35, { Size = UDim2.fromScale(0.2, 0.2), ImageTransparency = 1 }, Enum.EasingStyle.Quad, Enum.EasingDirection.In, 0.05)
+	ctx:tween(b.halo, 0.4, { Size = UDim2.fromScale(1.6, 1.6), ImageTransparency = 1 }, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
+	local light = b.holder:FindFirstChildOfClass("PointLight")
+	if light then
+		light.Brightness, light.Range = 7, 20 * grow
+		ctx:tween(light, 0.45, { Brightness = 0 })
+	end
+	Kit.emitter(ctx, b.holder, {
+		Texture = T.HolySparkle,
+		Color = ColorSequence.new(WHITE, LILAC),
+		LightEmission = 1,
+		Brightness = 3,
+		Size = seq({ { 0, 0.45 }, { 1, 0 } }),
+		Transparency = seq({ { 0, 0 }, { 1, 0.6 } }),
+		Lifetime = NumberRange.new(0.35, 0.7),
+		Speed = NumberRange.new(18, 32),
+		SpreadAngle = Vector2.new(180, 180),
+		Drag = 4,
+		Shape = Enum.ParticleEmitterShape.Sphere,
+		ShapeStyle = Enum.ParticleEmitterShapeStyle.Surface,
+	}):Emit(26)
+	st.burst = nil
+end
+
 -- 끝: 몸이 다시 보이고 회전 잠금·고정 풂 (여러 번 불려도 한 번만)
 local function finish(st: State)
 	if st.done then
@@ -467,6 +591,14 @@ local function onReturn(st: State, character: Model, payload: any)
 	if payload.timeScale == nil then
 		dimStart(st, SKILL.executeDelay or 0.3)
 	end
+	-- 처형 대상 몸에서 그림자 리본이 모이기 시작
+	local target = payload.target
+	local targetRoot = typeof(target) == "Instance" and target:FindFirstChild("HumanoidRootPart")
+	if targetRoot and targetRoot:IsA("BasePart") then
+		burstStart(st, targetRoot.Position + Vector3.new(0, 0.3, 0), targetRoot)
+	elseif typeof(payload.point) == "Vector3" then
+		burstStart(st, payload.point + Vector3.new(0, 0.3, 0), nil)
+	end
 	Kit.casterSound(SOUNDS.gather, character, dest.Position)
 end
 
@@ -495,6 +627,7 @@ local function onExecute(st: State, character: Model, payload: any)
 	ctx:tween(light, 0.4, { Brightness = 0 })
 	smokePuff(ctx, point, 6, 7 * grow, false)
 	Kit.smokeRing(ctx, Kit.ground(point, { character, ctx.folder }), 4 * grow, { duration = 0.8, count = 9, color = SMOKE, light = 0.6 })
+	burstPop(st, point + Vector3.new(0, 0.3, 0), grow)
 	dimRelease(st, true)
 	clearMarks(st, true)
 	Kit.casterSound(SOUNDS.execute, character, point)
@@ -507,6 +640,10 @@ end
 
 local function onFinish(st: State, payload: any)
 	clearMarks(st, false)
+	if st.burst then
+		st.burst.holder:Destroy() -- 처형 없이 끝: 모이던 리본·빛 거둠
+		st.burst = nil
+	end
 	if typeof(payload.origin) == "CFrame" then
 		smokePuff(st.ctx, payload.origin.Position, 6, 3.5, false) -- 서버가 보낸 지금 자리 (마지막으로 벤 곳)
 	end
@@ -577,7 +714,7 @@ local function playCast(payload: any, character: Model)
 		local back = CFrame.lookAt(first + (first - at).Unit * 3.5, first)
 		local tReturn = SKILL.castDelay + hop * (#spots - 1) + (SKILL.returnTime or 0.25)
 		ctx:at(tReturn, function()
-			onReturn(st, character, { origin = back, from = prev })
+			onReturn(st, character, { origin = back, from = prev, point = first })
 		end)
 		ctx:at(tReturn + (SKILL.executeDelay or 0.3), function()
 			onExecute(st, character, { origin = back, point = first, missing = 0.6, timeScale = payload.timeScale })
