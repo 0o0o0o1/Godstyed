@@ -1060,3 +1060,4 @@
 - 패드(36×36)가 소품과 겹치는 자리 정리: **상가 place** A 자리 풀 덤불 13 + 관목 2 삭제(나무 기둥은 패드 밖이라 둠), B 자리 세단 1대 삭제(밀면 트럭과 겹쳐서). **공장 place** 탈출구 자리 풀·돌무더기 5 삭제. C 자리는 비어 있음.
 - 확인: 마을 편집 화면에서 템플릿 복제 + addExit 순서 흉내(글자 B, 구역 원판, 빨강 상태) 캡처. **실제 레이드에서 탈출·색 전환은 게시 후 확인 필요.**
 - 게시 필요: **Shared**(Assets.ExitPortalTemplate 새 폴더) · **Services**(Raid) · **Controllers**(RaidExitController) + **상가 place**·**공장 place**(소품 정리).
+- (추가) 사용자 "위치표시 빔은 없어도 될 것 같다" → 템플릿 Gate 의 **SkyBeam·BeamBottom·BeamTop 삭제**. 남은 상태 색 = 유도등 렌즈 + PadGlow. 게시: Shared.
