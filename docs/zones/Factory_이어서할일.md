@@ -1083,4 +1083,5 @@
 - **StarterPlayerScripts.Main** (원본 `scripts/start/ClientMain.lua`): CodeReady 를 기다린 뒤(최대 25초) 컨트롤러 시작. 내 Controllers 에 LiveLoaded 가 없으면(서버 교체 전에 들어옴) LiveControllers 를 내 쪽에 복사해서 사용.
 - 확인: 마을(ForceLiveCode) **7/7 받음 1.8초**, 모든 서비스·컨트롤러 시작, 클라 LiveLoaded 사용. 공장(ForceLiveCode) **7/7 2.0초**, FactoryRaid 등 정상, 탈출구 3개가 게시된 Shared 의 헬리패드로 생김. 두 곳 모두 테스트 속성 지움.
 - **place 별 상태**: 마을·공장·상가·갓운드 **4곳 모두 새 Main 넣음** (각 place 한 번 게시 필요). 그 뒤로는 코드 수정 = 마을에서 패키지 게시만. 상가 탈출구 자리 소품 정리도 그대로 남아 있음 확인(A 자리 위 나무 가지만 걸침, 기둥은 밖).
+- ⚠ **다른 place Studio 테스트는 그 place 의 패키지 사본으로 돈다** (Studio 는 최신 코드를 안 받음). 상점 지구는 PackageLink AutoUpdate 가 모두 꺼져 있어 Shared 가 v141 에 멈춰 헬리패드 대신 돌기둥 문이 나왔고, Studio "최신으로 업데이트"도 "최신"이라고만 함. → 2026-11-27 Shared 내용만 게시 최신본(LoadAsset)으로 바꿔 넣음(PackageLink 는 그대로 v141, 상가에만 있던 변경 없음 확인) → 플레이에서 출구 A·B·C 헬리패드 확인. LoadAsset 으로 받은 사본은 PackageLink 가 없으므로 **루트째 바꾸면 안 됨**(패키지 연결이 끊겨 Main 이 건너뜀). 이 사본은 "수정됨" 상태지만 상가에서 패키지 게시는 하지 말 것.
 - ⚠ 패키지를 잘못 게시하면 모든 맵 새 서버에 바로 퍼짐 → 게시 전 마을 Studio 플레이로 확인. 이미 열려 있는 서버는 그대로(새 서버부터).
