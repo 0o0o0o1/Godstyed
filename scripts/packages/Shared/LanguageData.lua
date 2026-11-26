@@ -580,6 +580,7 @@ local SOURCE = [==[
 - | Raid failed. Head out again and reach an exit alive. | 레이드 실패. 다시 출발해 살아서 출구에 도착하세요.
 - | +%d Bandage | 붕대 +%d
 - | Tutorial complete! | 튜토리얼 완료!
+- | Press M | M을 누르세요
 Tutorial.Equip.Title | Equip your weapon | 무기를 장착하세요
 Tutorial.Move.Title | Go to the training dummy | 훈련용 허수아비로 가세요
 Tutorial.Move.Text | Hold Shift to sprint. Press Q to dash at least once on the way. | Shift를 누르고 있으면 달립니다. 가는 길에 Q로 대시를 한 번 이상 해 보세요.
@@ -595,6 +596,8 @@ Tutorial.Depart.Title | Head out on a raid | 레이드에 출발하세요
 Tutorial.Depart.Text | Walk to the raid gate and choose Shop District. | 레이드 관문으로 걸어가 상가 거리를 고르세요.
 Tutorial.Extract.Title | Escape the raid | 레이드에서 탈출하세요
 Tutorial.Extract.Text | Grab loot, then stand in an exit before time runs out. If you die, you lose what you found here. | 전리품을 챙긴 뒤 시간이 끝나기 전에 출구에 서 있으세요. 죽으면 여기서 얻은 것을 잃습니다.
+Tutorial.Map.Title | Open the map | 지도를 여세요
+Tutorial.Map.Text | Press M to see where you are and where the exits are. | M을 누르면 내 위치와 출구 위치를 볼 수 있습니다.
 Tutorial.Retry.Title | Escape a raid | 레이드에서 탈출하기
 Tutorial.Retry.Text | Head out again. Reach an exit alive to finish the tutorial. | 다시 출발하세요. 살아서 출구에 도착하면 튜토리얼이 끝납니다.
 ## UI.Loading
