@@ -304,5 +304,17 @@
     "EmissiveMask_decal": 102808745498924,
     "Ground_image": 88252622732116,
     "Ground_decal": 103431041913167
-  }
+  },
+  "SteelworksLoading2": {
+    "note": "공장 로딩 화면 (2026-11-27, 사용자 이미지 2000x959)",
+    "tiles": {
+      "SteelworksLoading2_1": "129552346638365",
+      "SteelworksLoading2_2": "136161181086855"
+    },
+    "decals": [
+      "123597860711343",
+      "88334472667446"
+    ]
+  },
+  "Helipad_Exit_model": "137640186423471"
 }

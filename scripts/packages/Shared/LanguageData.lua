@@ -597,6 +597,8 @@ local SOURCE = [==[
 - | Raid failed. Head out again and reach an exit alive. | 레이드 실패. 다시 출발해 살아서 출구에 도착하세요.
 - | +%d Bandage | 붕대 +%d
 - | Tutorial complete! | 튜토리얼 완료!
+- | Hold Space to skip | 스페이스를 길게 눌러 건너뛰기
+- | Skip >> | 건너뛰기 >>
 - | Press M | M을 누르세요
 - | Tap the map | 지도를 누르세요
 - | Tap outside to close | 지도 밖을 눌러 닫기
