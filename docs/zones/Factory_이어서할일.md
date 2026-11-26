@@ -1030,3 +1030,9 @@
 - 확인: PC — 자동 핑(앞쪽 바닥, 빛기둥·원판), 아이콘 3종 모양, 휠(한국어, 고른 칸 강조), 튜토리얼 9/10 패널, 핑 찍으면 서버가 extract 로 넘김, M 지도에 핑 점. 모바일(iPhone 17 Pro) — 핑 버튼 자리(지도 왼쪽, 겹침 없음), 튜토리얼 말풍선, 조준점. 오류 없음. 테스트 뒤 튜토리얼 done, PingTest 속성·지도 테스트 줄 제거, 시뮬레이터 끔.
 - **못 해 본 것**: 실제 레이드에서 2인 파티로 상대 화면에 보이는지, 진짜 마우스 휠 클릭·손가락 길게 누르기(테스트 도구가 휠 버튼·터치를 못 보냄), 실제 적·상자에 자동 분류.
 - 게시 필요: **Shared**(PingConfig·ButtonLayoutConfig·TutorialConfig·LanguageData) · **Services**(Ping·Tutorial) · **Controllers**(PingController·RaidMapController·HudSlideController·TutorialController).
+
+### ⚠ 진행 중: 핑을 M 지도에서만 찍게 바꾸는 중 (2026-11-26, 중단)
+- 사용자: "M을 눌러서 핑을 찍으려 했다" → 결정: **지도 핑만**(마우스 휠 클릭·모바일 핑 버튼 없앰), 튜토리얼 핑 단계 = **지도에서 탈출구를 눌러 핑**.
+- 한 것: `Controllers.PingController` 를 지도 전용으로 다시 씀(컴파일 OK). `PingController.mapPress(input, aim)`(aim = { kind = "exit"|"move", position }), 짧게 = aim.kind, 길게 = 휠. `cancelPress()`. 탈출구 아이콘(초록 원 + 문) 추가. PingDebug = send(kind,x,y,z)/wheel/close.
+- **남은 것**: ① RaidMapController — 지도 판 위 TextButton(Modal=true, 쉬프트 락 마우스 풀기)으로 누르기 → 지도 좌표→월드 X,Z + 위에서 아래로 레이캐스트로 높이, 탈출구 표시 근처면 kind "exit"(위치 = Gate), 닫힐 때 cancelPress, 터치 Closer ZIndex 0(지도 밖만 닫기)·"Tap outside to close", 지도 아래 안내 "Click to ping · Hold for more", 튜토리얼 ping 단계면 탈출구 표시 깜빡임 + 안내. 지도에서 직접 만든 터치 지도 버튼은 유지. ② PingConfig: KINDS 에 exit(초록 110,255,150, dir 없음 — ORDER 에 넣지 말 것), MAX_DISTANCE 500 → 5000(지도 핑은 멀리). ③ Services.Ping: kind "exit" 이면 RaidExit 모델 Gate 30 안인지 확인(아니면 move), 그 kind 를 onSent 로. ④ Tutorial: onSent 에서 kind == "exit" 일 때만 advance. TutorialConfig ping 단계 문구 "Ping an exit" / "Open the map (M) and click an exit to ping it for your party." / touch "Open the map and tap an exit…", key = "M", keyText = "OPEN THE MAP", TutorialController GUIDE_BUTTONS.ping → 지도 버튼(RaidMapButton). 번역 추가. ⑤ 지우기: ButtonLayoutConfig 의 "ping", HudSlide 의 PingButton 줄. ⑥ 테스트(PingTest 속성 + 지도 테스트 줄 방식) 후 인수인계·커밋.
+- **지금 게시하면**: 핑을 찍을 방법이 없음(지도 누르기 미연결) → 튜토리얼 핑 단계에서 막힘(탈출하면 보상은 인정). 가능하면 위를 끝낸 뒤 게시.
