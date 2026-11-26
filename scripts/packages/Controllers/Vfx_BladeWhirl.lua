@@ -10,7 +10,9 @@
 --   발동      0                 가슴 앞 짧은 흰 섬광 + 반짝이, 플레이어 오라(테두리 빛·발밑 원·솟는 불티·빛기둥) 시작
 --   연속 베기  castDelay ~ 0.85   보통 초승달 8개 (수평·대각·높낮이·크기·휘두르는 방향이 모두 다름), 각각 자기 평면 안에서 휘둘러지며 나타났다 사라짐
 --   강조 베기  0.36 / 0.67        큰 초승달 2개 (서버 1·2타 0.4·0.7 직전) + 터짐 조금
---   마무리     0.92 / 0.97        몸 앞 수직 평면에서 큰 초승달 2개가 X 자로 교차 → 1.0(서버 3타) 흰 섬광 + 불꽃·별·번개·선 터짐
+--   마무리     1.0(서버 3타)       꽃잎 터짐 (2026-11-26 사용자: 마지막 X 베기를 빼고 꽃잎이 날리며 터지게 — 보라 + 흰 끝, 소용돌이쳐 퍼진 뒤 흩날림, 많고 작게)
+--                                몸 둘레 18곳에서 회전 방향(접선)으로 비스듬히 바깥으로 꽃잎이 튀어 반경(16)까지 소용돌이치며 퍼지고, 느려진 뒤 천천히 흩날려 떨어짐
+--                                + 천천히 떠도는 두 번째 꽃잎 + 몸 가까이 큰 꽃잎 몇 장 + 은은한 섬광. 꽃잎 = 자체 플립북 (scripts/vfx_whirl_petals*.py, Blender 렌더 + Python 빛 번짐)
 --   맞음      phase "hit"        맞은 자리 흰·보라 불꽃 + 작은 섬광 (서버 타격 하나 = 연출 하나)
 --   몸        (내 캐릭터) castDelay 부터 spinTime 동안 왼쪽 turns 바퀴, 단검 첫 타 휘두른 자세 멈춤
 -- WhirlKit 초승달 규격: CrescentA(로컬 0,-7) → CrescentB(0,+7), 빔이 로컬 -Z 쪽으로 반지름 약 7 만큼 불룩 = 원점을 감싸는 반원,
@@ -53,18 +55,17 @@ local SLASHES: { SlashSpec } = {
 	{ t = 0.76, mesh = "SlashA", yaw = 20, tilt = 75, h = 0.3, k0 = 0.85, k1 = 1.05, sweep = 120, dir = 1, life = 0.2 },
 	{ t = 0.84, mesh = "SlashA", yaw = 170, tilt = -15, h = 0.8, k0 = 0.8, k1 = 1.0, sweep = 110, dir = -1, life = 0.2 },
 }
--- 마무리 X: 시각, 몸 앞 평면에서 칼날이 불룩한 쪽(오른쪽 +1 / 왼쪽 -1)
-local FINISH = { { t = 0.92, side = 1 }, { t = 0.97, side = -1 } }
-local FINISH_FLASH = 1.0 -- 서버 3타와 같은 시각
-local FINISH_FORWARD, FINISH_UP = 4.5, 0.8 -- X 교차점: 몸 앞·위
-local FINISH_SCALE = 1.25 -- 마무리 초승달 크기
+-- 마무리 꽃잎 터짐 (서버 3타와 같은 시각)
+local FINISH_FLASH = 1.0
+-- 꽃잎 플립북 4x4 (16칸 = 기울어진 축으로 한 바퀴, 반복 재생). a = 끝이 둥근 잎, b = 가늘고 뾰족한 잎. 색이 들어 있어 Color 흰색
+local PETALS = { "rbxassetid://79525251161536", "rbxassetid://78183119470395" }
+local PETAL_LIFE = 3.6 -- 꽃잎이 다 떨어질 때까지 (연출 폴더 수명에 더함)
 
 local SOUNDS = {
 	flash = { id = "rbxassetid://125132253621935", volume = 0.4, speed = 1.1 }, -- Sword Whoosh Slash
 	slashB = { id = "rbxassetid://125132253621935", volume = 0.5, speed = 1.45 },
 	turn = { id = "rbxassetid://125132253621935", volume = 0.35, speed = 1.3 }, -- 바퀴마다
 	finish = { id = "rbxassetid://9116687945", volume = 0.7, speed = 1.35 }, -- Metal Impacts 20: 맑은 쇠 울림
-	finishCut = { id = "rbxassetid://9114159112", volume = 0.6, speed = 1.7, fadeAfter = 0.3 }, -- Doppler Whoosh
 	hit = { id = "rbxassetid://9113567601", volume = 0.6, speed = 1.4 }, -- Boxing Hits (Body Impact)
 }
 Kit.preloadSounds(SOUNDS)
@@ -248,13 +249,84 @@ local function spawnSlash(ctx: Kit.Ctx, center: Vector3, bodyYaw: number, spec: 
 end
 
 -- 마무리 베기 하나: 몸 앞 수직 평면(법선 = look)에서 대각선 큰 초승달. side = 기울기 방향(±1)
-local function spawnFinish(ctx: Kit.Ctx, cross: Vector3, look: Vector3, side: number)
-	-- 키트 법선(X) = look, 위(Y) = 세계 위 → 평면 안에서 side·45° 기울임
-	local cf0 = CFrame.fromMatrix(cross, look, Vector3.yAxis) * CFrame.Angles(math.rad(45 * side), 0, 0)
-	-- 반원의 불룩한 쪽(로컬 -Z)이 교차점을 지나도록 중심을 반대쪽으로 옮김 → 두 호가 교차점에서 X 로 겹침
-	local bulge = -cf0.LookVector
-	local cf = cf0 - bulge * ARC_R * FINISH_SCALE * 0.72
-	crescent(ctx, cf, FINISH_SCALE * 0.9, FINISH_SCALE, 0.42, 50, 2, side < 0)
+-- 마무리 꽃잎 터짐: center = 허리, spinYaw = 그 순간 몸 방향(회전 방향 = yaw 가 커지는 쪽), radius = 스킬 반경
+local function petalEmitter(ctx: Kit.Ctx, parent: Instance, texture: string, props: { [string]: any }): ParticleEmitter
+	local base = {
+		Texture = texture,
+		FlipbookLayout = Enum.ParticleFlipbookLayout.Grid4x4,
+		FlipbookMode = Enum.ParticleFlipbookMode.Loop,
+		Color = ColorSequence.new(WHITE),
+		LightEmission = 0.2, -- 화면 확인: 0.35·밝기 1.7 은 로비 조명과 겹쳐 분홍빛 흰색으로 날아감 → 보라가 보이게 낮춤
+		LightInfluence = 0.25,
+		Brightness = 1.15,
+		Rotation = NumberRange.new(0, 360),
+		RotSpeed = NumberRange.new(-240, 240),
+		EmissionDirection = Enum.NormalId.Front,
+		ZOffset = 0.3,
+	}
+	for k, v in props do
+		base[k] = v
+	end
+	local e = Kit.emitter(ctx, parent, base)
+	pcall(function()
+		(e :: any).FlipbookStartRandom = true -- 꽃잎마다 다른 각도에서 돌기 시작
+		(e :: any).FlipbookFramerate = props.FlipbookFramerate or NumberRange.new(14, 26)
+	end)
+	return e
+end
+
+local function petalBurst(ctx: Kit.Ctx, center: Vector3, spinYaw: number, radius: number)
+	local spots = 18
+	local reach = radius / 16 -- 속도는 반경 16 기준
+	for i = 0, spots - 1 do
+		local a = spinYaw + (i + math.random() * 0.6) / spots * math.pi * 2
+		-- yaw 가 커지는 회전(왼쪽)에서 점 (cos a, 0, -sin a) 의 진행 방향 = (-sin a, 0, -cos a)
+		local out = Vector3.new(math.cos(a), 0, -math.sin(a))
+		local tangent = Vector3.new(-math.sin(a), 0, -math.cos(a))
+		local lift = (math.random() - 0.35) * 0.35
+		local dir = (tangent * 0.8 + out * 0.6 + Vector3.new(0, lift, 0)).Unit
+		local at = center + out * 1.4 + Vector3.new(0, -0.9 + math.random() * 2.6, 0)
+		local holder = Kit.holder(ctx, CFrame.lookAt(at, at + dir), "WhirlPetals")
+		local tex = PETALS[i % 2 + 1]
+		-- 튀어 나가 소용돌이치며 퍼지는 꽃잎 (많고 작게)
+		petalEmitter(ctx, holder, tex, {
+			Size = seq({ { 0, 0.15 }, { 0.05, 0.55 }, { 0.75, 0.48 }, { 1, 0 } }),
+			Transparency = seq({ { 0, 0 }, { 0.7, 0.05 }, { 1, 1 } }),
+			Lifetime = NumberRange.new(1.7, 2.8),
+			Speed = NumberRange.new(30 * reach, 50 * reach),
+			SpreadAngle = Vector2.new(16, 26),
+			Drag = 2.4,
+			Acceleration = Vector3.new(0, -3.2, 0),
+		}):Emit(12)
+		-- 천천히 떠도는 꽃잎 (흩날림)
+		petalEmitter(ctx, holder, PETALS[(i + 1) % 2 + 1], {
+			Size = seq({ { 0, 0.1 }, { 0.08, 0.42 }, { 0.8, 0.38 }, { 1, 0 } }),
+			Transparency = seq({ { 0, 0.05 }, { 0.75, 0.15 }, { 1, 1 } }),
+			Lifetime = NumberRange.new(2.4, 3.4),
+			Speed = NumberRange.new(9 * reach, 18 * reach),
+			SpreadAngle = Vector2.new(40, 55),
+			Drag = 1.6,
+			Acceleration = Vector3.new(0, -1.6, 0),
+			FlipbookFramerate = NumberRange.new(9, 16),
+			RotSpeed = NumberRange.new(-140, 140),
+		}):Emit(5)
+	end
+	-- 몸 가까이 큰 꽃잎 몇 장
+	local core = Kit.holder(ctx, CFrame.new(center + Vector3.new(0, 0.6, 0)), "WhirlPetalsCore")
+	core.Size = Vector3.new(2.5, 2, 2.5)
+	petalEmitter(ctx, core, PETALS[1], {
+		Size = seq({ { 0, 0.3 }, { 0.06, 1.0 }, { 0.8, 0.9 }, { 1, 0 } }),
+		Transparency = seq({ { 0, 0 }, { 0.75, 0.1 }, { 1, 1 } }),
+		Lifetime = NumberRange.new(1.4, 2.2),
+		Speed = NumberRange.new(10, 18),
+		Shape = Enum.ParticleEmitterShape.Sphere,
+		ShapeStyle = Enum.ParticleEmitterShapeStyle.Volume,
+		SpreadAngle = Vector2.new(180, 180),
+		Drag = 2.2,
+		Acceleration = Vector3.new(0, -2.4, 0),
+		Brightness = 1.3,
+		FlipbookFramerate = NumberRange.new(10, 18),
+	}):Emit(10)
 end
 
 -- 맞음: 칼이 지나가는 방향(접선)으로 흰·보라 불꽃 + 작은 섬광
@@ -399,10 +471,11 @@ local function playCast(payload: any, character: Model)
 	local castDelay = SKILL.castDelay
 	local spinTime = if type(payload.spinTime) == "number" then payload.spinTime else (SKILL.spinTime or 0.9)
 	local turns = if type(payload.turns) == "number" then payload.turns else (SKILL.turns or 3)
+	local radius = if type(payload.radius) == "number" then payload.radius else (SKILL.radius or 16) -- 꽃잎이 퍼지는 거리
 	local spinEnd = castDelay + spinTime
 	local preview = payload.timeScale ~= nil
 	local mine = isMine(character) and not preview
-	local ctx = Kit.begin("BladeWhirl", math.max(spinEnd, FINISH_FLASH) + 0.8, payload.timeScale)
+	local ctx = Kit.begin("BladeWhirl", math.max(spinEnd, FINISH_FLASH) + PETAL_LIFE, payload.timeScale)
 	local function atAbs(seconds: number, fn: () -> ())
 		ctx:at(math.max(seconds - ctx:clock(), 0), fn)
 	end
@@ -480,32 +553,11 @@ local function playCast(payload: any, character: Model)
 		end)
 	end
 
-	-- 마무리 X 교차 (몸이 3바퀴 돌아 처음 방향을 볼 때)
-	local look = (origin.LookVector * Vector3.new(1, 0, 1)).Unit
-	for _, f in FINISH do
-		atAbs(f.t, function()
-			local cross = centerPos() + look * FINISH_FORWARD + Vector3.new(0, FINISH_UP, 0)
-			spawnFinish(ctx, cross, look, f.side)
-		end)
-	end
-	atAbs(FINISH[1].t, function()
-		Kit.casterSound(SOUNDS.finishCut, character, origin.Position)
-	end)
+	-- 마무리: 꽃잎이 소용돌이치며 터짐 (서버 3타 순간)
 	atAbs(FINISH_FLASH, function()
-		local cross = centerPos() + look * FINISH_FORWARD + Vector3.new(0, FINISH_UP, 0)
-		flash(ctx, cross, 2.4, 0.12, 5)
-		kitBurst(ctx, cross, look, 1.2)
-		-- 보조 충격파: 허리 높이에서 바깥으로 튀는 짧은 불꽃
-		local ring = Kit.holder(ctx, CFrame.new(centerPos()), "WhirlShock")
-		ring.Size = Vector3.new(1.5, 0.1, 1.5)
-		Kit.emitter(ctx, ring, sparkProps({
-			Lifetime = NumberRange.new(0.14, 0.22),
-			Speed = NumberRange.new(28, 36),
-			Shape = Enum.ParticleEmitterShape.Cylinder,
-			ShapeInOut = Enum.ParticleEmitterShapeInOut.Outward,
-			ShapeStyle = Enum.ParticleEmitterShapeStyle.Surface,
-			Drag = 7,
-		})):Emit(24)
+		local c = centerPos()
+		flash(ctx, c + Vector3.new(0, 0.6, 0), 3.2, 0.16, 1.6) -- 은은한 섬광 (꽃잎이 주인공)
+		petalBurst(ctx, c, baseYaw + spinAngle(FINISH_FLASH), radius)
 		Kit.casterSound(SOUNDS.finish, character, origin.Position)
 	end)
 

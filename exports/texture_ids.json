@@ -257,6 +257,15 @@
       "plasma_orb": "93620747404382",
       "plasma_pop": "120435824829957",
       "note_plasma": "scripts/vfx_shadow_chain_plasma.py (처형 대상 터짐: 압축 구슬 → 핵 폭발). 폐기한 리본 터짐 vfx_shadow_chain_burst.py 이미지 body 114166786881687 / rim 120873567690290, 빛 구슬 burst_glow 96253058174530 은 계속 씀"
+    },
+    "BladeWhirlPetals": {
+      "note": "칼날 회오리 마무리 꽃잎 4x4 플립북 (16칸 한 바퀴 반복). scripts/vfx_whirl_petals_blender.py(명령줄 Blender 렌더) → scripts/vfx_whirl_petals.py final(빛 번짐) → petal_<a|b>.png. Vfx.BladeWhirl PETALS",
+      "petal_a": "79525251161536",
+      "petal_b": "78183119470395",
+      "decals": {
+        "petal_a": "138477262254617",
+        "petal_b": "101725452154625"
+      }
     }
   },
   "SpearIcons": {

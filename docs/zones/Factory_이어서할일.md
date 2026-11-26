@@ -966,3 +966,11 @@
 - **남 화면에 아무 티도 안 나게 (2026-11-26 사용자 "남들은 이펙트가 아예 안 보이게, 스킬을 쓴지도 모르게")**: castDelay 0.1 → **0** (0.1 이면 남 화면에 대시 시작이 보였음). 서버 `onCast` 가 은신일 때만 분신을 **먼저** 만들고 연출을 보냄 → 연출이 도착할 때 분신·Stealthed 가 이미 있음(확인), 남 화면은 같은 프레임에 내 몸만 숨기고 분신이 그 자리에. 분신 사라질 때 연기는 **나만**(남에게는 그냥 사라짐). 남 화면에서는 내 캐릭터의 입자·광선·Trail·빛·하이라이트·이름표도 끄고(다른 코드가 다시 켜도 매 프레임 끔) 끝나면 되돌림. `FootstepController`: 은신 중인 남의 발소리는 안 냄. 시험: 주인 없는 캐릭터 복제(=남 취급)에 입자·빛·이름표를 달아 돌려 봄 → 전부 숨김(LTM 1)·꺼짐·분신 연기 없음·화면 어둡게 없음, 끝나면 모두 되돌아옴. 실제 두 번째 클라이언트로는 아직 안 봄.
   - 남는 것(없앨 수 없음): 분신이 맞아 사라지거나 은신이 끝나 내가 다른 자리에서 나타나는 순간은 남에게도 보임 (연출 없이).
 - 게시 필요: **Shared** (Skills·DaggerRelics), **Services** (Skill·StealthState·Combat·DamageDealer·Movement·Enemy.EnemyAI), **Controllers** (Vfx.Vanish·AttackSlow·FootstepController). 남은 것: 정식 쿨다운, 전용 아이콘, 다른 화면 확인.
+
+### 칼날 회오리 마무리 = 꽃잎 터짐 (2026-11-26)
+- 사용자: "마지막 X 베기를 빼고 꽃잎이 날리면서 터지는 느낌, 파이썬이든 뭐든 다 활용, 퀄리티 좋게". 결정: **보라 + 흰 끝** / **소용돌이쳐 퍼진 뒤 흩날림** / **많고 작게** / 제작은 "둘 다 써서 좋은 쪽으로".
+- 꽃잎 그림: Python 판(`scripts/vfx_whirl_petals.py`, numpy 로 곡면 꽃잎 점 구름을 돌려 z 버퍼 투영·빛) 과 Blender 판(`scripts/vfx_whirl_petals_blender.py`, 실제 메시 + 반투명 재질 + 키·역광, Cycles 256px 16칸) 을 나란히 비교(`_petal_compare.png`) → Blender 는 돌 때 빛을 받아 반짝이는 게 좋고 Python 은 빛 번짐·색이 좋아서 **Blender 렌더 + Python 빛 번짐**으로 합침(`python scripts/vfx_whirl_petals.py final`). Blender 첫 렌더의 잎맥이 기계로 그은 줄 같아서 밑동 쪽만 옅게. 꽃잎 2종(끝 둥근 잎 a, 가늘고 뾰족한 잎 b). 이미지 **a 79525251161536 / b 78183119470395** (`texture_ids.json` → `VFX.BladeWhirlPetals`).
+  - 참고: Blender MCP 로 렌더하다 연결이 끊기고 Blender 가 7칸째에서 멈춤 → 명령줄 `D:lender.exe -b --factory-startup --python scripts/vfx_whirl_petals_blender.py` 로 렌더(40초). 열려 있던 Blender 는 건드리지 않음.
+- `Vfx.BladeWhirl`: 마무리 X(초승달 2개·0.92 쉭 소리·X 점 키트 터짐·허리 불꽃 고리) 제거 → 1.0(서버 3타) 에 `petalBurst`: 몸 둘레 18곳에서 회전 방향 접선 0.8 + 바깥 0.6 으로 꽃잎(Loop 플립북, 시작 칸 무작위, 회전) 12개씩 속도 30~50·Drag 2.4·아래 가속 3.2 → 반경 16까지 퍼지고 흩날림, 느린 꽃잎 5개씩(9~18, 2.4~3.4초), 몸 가까이 큰 꽃잎 10장, 은은한 섬광. 연출 폴더 수명 + 3.6초. 판정은 그대로.
+- 화면 확인 (`/fx blade_whirl 0.1` 로 느리게): 터진 직후 몸 둘레에 몰렸다가 1초 뒤 반경 전체에 흩어져 돌며 떨어짐. 처음 밝기 1.7·LightEmission 0.35 는 로비 조명과 겹쳐 분홍빛 흰색 → 1.15·0.2 로 낮추니 보라 + 흰 끝으로 보임.
+- 게시 필요: **Controllers** (Vfx.BladeWhirl).
