@@ -259,11 +259,15 @@ local function sparks(ctx: Kit.Ctx, at: Vector3, dir: Vector3, count: number, sp
 end
 
 -- X 칼자국 (자체 4x4 플립북, 카메라를 봄): 두 장을 ±38° 로 엇갈려, 0.04초 차이. 바깥 보라 번짐 + 흰 심
-local function slashX(ctx: Kit.Ctx, center: Vector3, size: number, brightness: number)
+-- final: 처형 X — 흰 심 대신 라일락 심(약하게) + 보라 번짐을 주로, 벨 때 X(흰 심)와 구분
+local function slashX(ctx: Kit.Ctx, center: Vector3, size: number, brightness: number, final: boolean?)
 	local holder = Kit.holder(ctx, CFrame.new(center), "ChainSlash")
 	local base = math.random(-15, 15)
 	local function one(rot: number)
-		for _, layer in { { color = PURPLE, scale = 1.18, tr = 0.15, b = brightness * 0.8, z = 1 }, { color = WHITE, scale = 1, tr = 0, b = brightness, z = 1.2 } } do
+		local layers = if final
+			then { { color = PURPLE, scale = 1.22, tr = 0.05, b = brightness * 1.1, z = 1 }, { color = LILAC, scale = 0.95, tr = 0.35, b = brightness * 0.45, z = 1.2 } }
+			else { { color = PURPLE, scale = 1.18, tr = 0.15, b = brightness * 0.8, z = 1 }, { color = WHITE, scale = 1, tr = 0, b = brightness, z = 1.2 } }
+		for _, layer in layers do
 			local e = Kit.emitter(ctx, holder, {
 				Texture = TEX.slash,
 				FlipbookLayout = Enum.ParticleFlipbookLayout.Grid4x4,
@@ -612,7 +616,7 @@ local function onExecute(st: State, character: Model, payload: any)
 	local missing = if type(payload.missing) == "number" then math.clamp(payload.missing, 0, 1) else 0.5
 	local grow = 1 + 0.5 * missing -- 많이 잃었을수록 크게
 	local ctx = st.ctx
-	slashX(ctx, point + Vector3.new(0, 0.5, 0), EXEC_SIZE * grow, 2.2 + 1 * missing) -- 핵 폭발이 가려지지 않게 (원래 17·4+2m)
+	slashX(ctx, point + Vector3.new(0, 0.5, 0), EXEC_SIZE * grow, 2.2 + 1 * missing, true) -- 핵 폭발이 가려지지 않게 (원래 17·4+2m)
 	sparks(ctx, point, (point - dest.Position).Unit, 14, 40)
 	-- 처형 문양 충격: 표식 그림이 크게 퍼지며 사라짐 + 빛
 	local shock = Kit.holder(ctx, CFrame.new(point), "ExecuteShock")
