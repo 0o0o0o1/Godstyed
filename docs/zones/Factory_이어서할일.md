@@ -1074,3 +1074,4 @@
 - 확인(마을 Studio): 지도 창에서 공장 출발 → 스킵 표시(한국어) → 스페이스 1초 → 바로 암전·표시 사라짐, 서버 이동 처리(Studio 는 이동 안 함 로그). 공장 로딩 화면 새 이미지 표시. **도착 연출 건너뛰기·TeleportData 전달은 실제 이동이 필요해 게시 후 확인.**
 - ⚠ Studio LanguageData 가 저장소와 3구역(UI.Contracts +26B, UI.Tutorial +22B, Traits +6B) 다름 — 이번 작업 전부터. 누가 Studio 에서 직접 번역을 고친 것 같음. 저장소 ko.tsv 에 반영 필요(확인 후).
 - 게시 필요: **Shared**(SkipPrompt 새 모듈·LoadingConfig·LanguageData) · **Services**(DungeonEntry) · **Controllers**(RaidDepartureController·RaidArrivalController).
+- (수정, 같은 날) 사용자: "건너뛰기는 처음부터 말고, 트럭 출발 → 로딩 화면 → **그 뒤 도착 트럭 연출부터**". → `RaidDepartureController` 에서 SkipPrompt 제거(출발 연출은 못 건너뜀, "skip"·SkipArrival 안 보냄). `RaidArrivalController` 는 로딩 화면이 닫힌 뒤 연출 시작과 함께 SKIP 표시(로딩 중 표시·로딩 중 건너뛰기 분기 삭제), SkipArrival/TeleportData.skipArrival 확인 삭제. `DungeonEntry` 의 skip 처리 코드는 남아 있지만 이제 아무도 안 보내서 항상 7초 대기(그대로 둬도 됨). 게시: **Controllers**.
