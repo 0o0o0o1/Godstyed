@@ -4,7 +4,8 @@
 --   시전 (phase 없음)  내 캐릭터는 이동 방향(서 있으면 바라보는 쪽)으로 살짝 대시 (SKILL.dashSpeed × dashTime, 벽에서 멈춤) — 분신은 누른 자리에 남음
 --                      castDelay 뒤 몸을 숨김 — 남: 완전히 안 보임(이름표·무기 포함) / 파티원: 아주 흐린 윤곽 / 나: 반투명 + 검은 보라 실루엣
 --                      나만: 발밑 검은 연기 + 화면이 살짝 어두워짐 + 작은 소리 (남에게는 이펙트·소리 없음, 분신만 보임 — 분신은 서버가 만듦)
---   분신 사라짐 "decoy"  분신 자리에 검은 연기 (모두에게, 맞았거나 은신이 끝남)
+--   분신 사라짐 "decoy"  분신 자리에 검은 연기 (나만. 사용자: 남은 이펙트가 아예 안 보여야 하고 스킬을 쓴지도 몰라야 함)
+--   남 화면에는 어떤 연기·빛·소리도 없음: 연출이 오는 즉시(분신과 같은 순간) 내 몸만 숨김
 --   끝 "end"           몸이 다시 보임, 내 화면 효과 거둠
 -- 숨김은 화면마다 LocalTransparencyModifier (매 프레임 다시 적용: 카메라 스크립트가 내 몸 값을 바꾸는 것을 덮음)
 
@@ -42,7 +43,7 @@ type Veil = {
 	character: Model,
 	value: number,
 	parts: { [Instance]: boolean },
-	guis: { [LayerCollector]: boolean },
+	guis: { [Instance]: boolean }, -- 남 화면에서 꺼 둔 것 (이름표·입자·광선·빛·하이라이트) → 끝나면 다시 켬
 	conns: { RBXScriptConnection },
 	highlight: Highlight?,
 	dim: ColorCorrectionEffect?,
@@ -58,11 +59,15 @@ end
 local function track(v: Veil, d: Instance)
 	if d:IsA("BasePart") or d:IsA("Decal") then
 		v.parts[d] = true
-	elseif d:IsA("BillboardGui") or d:IsA("SurfaceGui") then
-		-- 남에게는 이름표·체력바도 숨김
-		if v.value >= 1 and (d :: LayerCollector).Enabled then
-			v.guis[d :: LayerCollector] = true
-			(d :: LayerCollector).Enabled = false
+	elseif v.value >= 1 and (d:IsA("BillboardGui") or d:IsA("SurfaceGui") or d:IsA("ParticleEmitter") or d:IsA("Trail") or d:IsA("Beam")
+		or d:IsA("Light") or d:IsA("Fire") or d:IsA("Smoke") or d:IsA("Sparkles") or d:IsA("Highlight")) then
+		-- 남에게는 이름표·체력바와 무기 빛·입자·광선도 숨김 (투명도로는 안 숨겨짐)
+		if (d :: any).Enabled then
+			v.guis[d] = true
+			(d :: any).Enabled = false
+			if d:IsA("ParticleEmitter") then
+				d:Clear()
+			end
 		end
 	end
 end
@@ -132,7 +137,7 @@ local function reveal(character: Model, token: {}?)
 	end
 	for gui in v.guis do
 		if gui.Parent then
-			gui.Enabled = true
+			(gui :: any).Enabled = true
 		end
 	end
 	if v.highlight then
@@ -169,6 +174,12 @@ local function veil(character: Model, life: number)
 				(part :: any).LocalTransparencyModifier = value
 			else
 				v.parts[part] = nil
+			end
+		end
+		-- 다른 컨트롤러가 다시 켜도 꺼 둠 (무기 빛 등)
+		for gui in v.guis do
+			if gui.Parent and (gui :: any).Enabled then
+				(gui :: any).Enabled = false
 			end
 		end
 	end))
@@ -258,11 +269,15 @@ local function onCast(payload: any, character: Model)
 			dash(character)
 		end
 	end
-	task.delay(delay, function()
-		if character.Parent then
-			veil(character, duration + 1)
-		end
-	end)
+	if delay <= 0 then
+		veil(character, duration + 1) -- 같은 프레임에 (남 화면에 대시·빈 틈이 보이지 않게)
+	else
+		task.delay(delay, function()
+			if character.Parent then
+				veil(character, duration + 1)
+			end
+		end)
+	end
 end
 
 function Vanish.play(payload: any, character: Model)
@@ -270,7 +285,10 @@ function Vanish.play(payload: any, character: Model)
 	if phase == nil then
 		onCast(payload, character)
 	elseif phase == "decoy" then
-		-- 분신이 연기로 사라짐 (모두에게)
+		-- 분신이 연기로 사라짐 (나만. 남에게는 연기 없이 사라짐)
+		if ownerOf(character) ~= player then
+			return
+		end
 		local ctx = Kit.begin("VanishDecoy", 1.2)
 		local at = payload.origin.Position
 		smoke(ctx, at, 10, 5)
