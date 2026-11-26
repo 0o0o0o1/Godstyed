@@ -945,3 +945,4 @@
   - `Vfx.ShadowChain`: burstStart = 구슬 ParticleEmitter 하나(LightEmission 1, Brightness 1.2, Lifetime = executeDelay + 0.08, RotSpeed -40), **크기 Size 키 `ORB_SIZE_KEYS` 9.5 → (0.3) 3.9 → 4.5 → 4.2** (텍스처의 압축과 같은 값 — 크기를 파티클로 줄여 해상도 유지). burstPop = 구슬 Clear → 폭발 emitter(크기 `POP_SIZE` 9 × min(grow, 1.2), 0.55초, Brightness 1.4) + 기존 반짝이·빛. 가운데 빛(BillboardGui core·halo)은 덜 하얗게(halo 투명 0.6·core 0.2, 처형 때 0.45·0.1).
   - 화면 확인: 첫 적용 Brightness 2.2·2.5 + 흰 빛 구슬이 겹쳐 하얗게 타서 결이 안 보임 → 따로 띄워 1로 맞춰 보니 소용돌이·번개 또렷 → 위 값으로 낮춤. 실제 미리보기(0.12배속, 파티클 TimeScale 0 으로 멈춰 캡처): 압축된 구슬 = 참고 그림 느낌 OK. 처형 순간엔 기존 큰 X 칼자국(EXEC_SIZE 17)이 가장 밝아 폭발이 그 뒤에 보임.
   - 게시 필요: **Controllers** (Vfx.ShadowChain).
+  - X 줄임 (사용자 "X 줄이기"): 처형 X 칼자국 `EXEC_SIZE` 17 → 11, 밝기 4+2×missing → 2.2+1×missing, 표식 충격 15 → 11 (× grow). **화면 확인 못 함**: 이번엔 플레이 캡처가 계속 빈 화면(Studio 창이 가려졌거나 최소화된 듯) → 다음에 처형 순간 폭발이 보이는지 확인할 것.

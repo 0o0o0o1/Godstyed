@@ -59,7 +59,7 @@ end)
 local GHOST_LIFE = 0.35
 local STREAK_LIFE = 0.28 -- 그림자 궤적이 남는 시간
 local SLASH_SIZE, SLASH_LIFE = 9, 0.34 -- 칼자국 플립북 크기 (스터드)·재생 시간
-local EXEC_SIZE = 17 -- 처형 X (missing 에 따라 최대 1.5배)
+local EXEC_SIZE = 11 -- 처형 X (missing 에 따라 최대 1.5배)
 local MARK_SIZE = 4.2 -- 표식 지름
 local DIM = { brightness = -0.14, saturation = -0.5, contrast = 0.15 } -- 처형 직전 내 화면 눌림
 -- 플라즈마: 모임 크기 = Size 키 (크게 퍼진 구름 9.5 → 압축 4.2, 텍스처 ORB_SIZE_KEYS 와 같음), 폭발 = 캐릭터보다 조금 큼
@@ -612,14 +612,14 @@ local function onExecute(st: State, character: Model, payload: any)
 	local missing = if type(payload.missing) == "number" then math.clamp(payload.missing, 0, 1) else 0.5
 	local grow = 1 + 0.5 * missing -- 많이 잃었을수록 크게
 	local ctx = st.ctx
-	slashX(ctx, point + Vector3.new(0, 0.5, 0), EXEC_SIZE * grow, 4 + 2 * missing)
+	slashX(ctx, point + Vector3.new(0, 0.5, 0), EXEC_SIZE * grow, 2.2 + 1 * missing) -- 핵 폭발이 가려지지 않게 (원래 17·4+2m)
 	sparks(ctx, point, (point - dest.Position).Unit, 14, 40)
 	-- 처형 문양 충격: 표식 그림이 크게 퍼지며 사라짐 + 빛
 	local shock = Kit.holder(ctx, CFrame.new(point), "ExecuteShock")
 	local board = Kit.billboard(shock, 3, 4)
 	local mark = Kit.image(board, TEX.mark, 1, 1)
 	mark.ImageColor3 = WHITE
-	ctx:tween(board, 0.3, { Size = UDim2.fromScale(15 * grow, 15 * grow) }, Enum.EasingStyle.Quart)
+	ctx:tween(board, 0.3, { Size = UDim2.fromScale(11 * grow, 11 * grow) }, Enum.EasingStyle.Quart)
 	ctx:tween(mark, 0.3, { ImageTransparency = 1, ImageColor3 = PURPLE, Rotation = 45 }, Enum.EasingStyle.Quad, Enum.EasingDirection.In)
 	local light = Instance.new("PointLight")
 	light.Color, light.Range, light.Brightness, light.Shadows = LILAC, 18 * grow, 6, false
