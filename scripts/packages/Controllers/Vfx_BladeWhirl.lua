@@ -59,9 +59,10 @@ local SLASHES: { SlashSpec } = {
 local FINISH_FLASH = 1.0
 -- 꽃잎 플립북 4x4 (16칸 = 기울어진 축으로 한 바퀴, 반복 재생). a = 끝이 둥근 잎, b = 가늘고 뾰족한 잎. 색이 들어 있어 Color 흰색
 local PETALS = { "rbxassetid://79525251161536", "rbxassetid://78183119470395" }
-local PETAL_LIFE = 4.2 -- 꽃잎이 다 사라질 때까지 (연출 폴더 수명에 더함, 가장 긴 꽃잎 수명 3.8 + 여유)
+local PETAL_LIFE = 2.0 -- 꽃잎이 다 사라질 때까지 (연출 폴더 수명에 더함, 가장 긴 꽃잎 수명 1.6 + 여유)
 -- 꽃잎 투명도: 절반쯤부터 서서히 옅어져 끝에 사라짐 (사용자: 뚝 사라짐 → 70% 까지 불투명했다가 크기까지 0 으로 줄어 터지듯 사라졌음)
-local PETAL_FADE = { { 0, 0 }, { 0.4, 0.04 }, { 0.75, 0.4 }, { 1, 1 } }
+-- 3차 (사용자 "너무 오래 남음, 확 뿌려지고 샥 사라지게"): 수명을 1초 남짓으로 줄이고, 뒤 절반에 빠르지만 부드럽게 사라짐
+local PETAL_FADE = { { 0, 0 }, { 0.5, 0.03 }, { 0.8, 0.45 }, { 1, 1 } }
 
 local SOUNDS = {
 	flash = { id = "rbxassetid://125132253621935", volume = 0.4, speed = 1.1 }, -- Sword Whoosh Slash
@@ -296,7 +297,7 @@ local function petalBurst(ctx: Kit.Ctx, center: Vector3, spinYaw: number, radius
 		petalEmitter(ctx, holder, tex, {
 			Size = seq({ { 0, 0.15 }, { 0.05, 0.55 }, { 1, 0.42 } }),
 			Transparency = seq(PETAL_FADE),
-			Lifetime = NumberRange.new(2.2, 3.2),
+			Lifetime = NumberRange.new(0.9, 1.35),
 			Speed = NumberRange.new(17 * reach, 29 * reach), -- Drag 3.2 → 7.7 ~ 13 스터드에서 멈춤
 			SpreadAngle = Vector2.new(16, 26),
 			Drag = 3.2,
@@ -306,7 +307,7 @@ local function petalBurst(ctx: Kit.Ctx, center: Vector3, spinYaw: number, radius
 		petalEmitter(ctx, holder, PETALS[(i + 1) % 2 + 1], {
 			Size = seq({ { 0, 0.1 }, { 0.08, 0.42 }, { 1, 0.34 } }),
 			Transparency = seq(PETAL_FADE),
-			Lifetime = NumberRange.new(2.8, 3.8),
+			Lifetime = NumberRange.new(1.1, 1.6),
 			Speed = NumberRange.new(6 * reach, 12 * reach), -- Drag 1.6 → 5.4 ~ 10.8 스터드
 			SpreadAngle = Vector2.new(40, 55),
 			Drag = 1.6,
@@ -321,7 +322,7 @@ local function petalBurst(ctx: Kit.Ctx, center: Vector3, spinYaw: number, radius
 	petalEmitter(ctx, core, PETALS[1], {
 		Size = seq({ { 0, 0.3 }, { 0.06, 1.0 }, { 1, 0.8 } }),
 		Transparency = seq(PETAL_FADE),
-		Lifetime = NumberRange.new(2.0, 2.8),
+		Lifetime = NumberRange.new(0.8, 1.2),
 		Speed = NumberRange.new(10, 18),
 		Shape = Enum.ParticleEmitterShape.Sphere,
 		ShapeStyle = Enum.ParticleEmitterShapeStyle.Volume,
