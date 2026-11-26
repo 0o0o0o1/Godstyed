@@ -21,7 +21,7 @@ Roblox Studio(MCP) + Blender(MCP)로 포스트 아포칼립스 맵 존을 만드
 - 수정은 `multi_edit` 으로 하고, 끝나면 `execute_luau` 로 Source 를 한 번 다시 써서(내용 + `"\n"` 후 원래 내용) 패키지 수정 표시를 띄운다.
 - 그 스크립트 탭이 Studio 에 열려 있으면 Source 수정이 되돌아가고, "자동 업데이트 비활성화" 확인 창이 뜨면 Studio 가 응답하지 않으니 사용자에게 확인을 눌러 달라고 한다.
 - 작업이 끝나면 게시할 패키지 이름을 알려 준다.
-- **코드 실행 시 불러오기 (2026-11-27)**: 각 place 의 서버/클라 `Main`(원본 `scripts/start/ServerMain.lua`·`ClientMain.lua`)이 서버 시작 때 코드 패키지 최신 게시 버전을 `InsertService:LoadAsset` 으로 받는다 → 코드 수정은 **패키지 게시만** 하면 모든 place 의 새 서버에 반영 (place 재게시 불필요, 맵을 바꿀 때만 place 게시). Studio 에서는 받지 않음(시험: Main 속성 ForceLiveCode). 새 place 를 만들면 이 두 Main 을 넣는다.
+- **코드 실행 시 불러오기 (2026-11-27)**: 각 place 의 서버/클라 `Main`(원본 `scripts/start/ServerMain.lua`·`ClientMain.lua`)이 서버 시작 때 코드 패키지 최신 게시 버전을 `InsertService:LoadAsset` 으로 받는다 → 코드 수정은 **패키지 게시만** 하면 모든 place 의 새 서버에 반영 (place 재게시 불필요, 맵을 바꿀 때만 place 게시). Studio 에서는 **마을만** 받지 않음(편집 사본으로 시험, 받으려면 Main 속성 ForceLiveCode) — 다른 place 는 Studio 플레이에서도 최신 게시본을 받으니, 마을에서 고친 것은 게시해야 다른 맵 테스트에 나온다. 새 place 를 만들면 이 두 Main 을 넣는다.
 - 공장 전용 코드도 패키지 안에 있다 (2026-11-21 옮김): Services `FactoryRaid`·`FactoryHazards` (Shared `PlaceConfig.SERVICE_PLACE` 로 공장에서만 시작), Controllers `FactoryCrateOutlineController`·`FactoryFireHudController`·`FactoryLightFXController` (init 에서 공장 place 가 아니면 바로 끝). 원본은 저장소 `scripts/packages/<패키지>/<이름>.lua` — 마을 place 에서 고친 뒤 이 파일도 같이 고친다.
 
 ## 폴더 구조

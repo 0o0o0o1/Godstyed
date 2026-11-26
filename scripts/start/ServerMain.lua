@@ -7,7 +7,9 @@
 --   place 안의 사본과 바꾼다 -> 패키지만 게시하면 모든 place 의 새 서버에 반영 (place 는 다시 게시하지 않아도 됨).
 --   대상: LIVE_PACKAGES (패키지 ID 는 각 사본의 PackageLink 에서 읽음). 게임과 패키지가 같은 그룹 소유라 LoadAsset 이 허용됨.
 --   받기에 실패하거나 LOAD_TIMEOUT 안에 못 받은 패키지는 place 안의 사본(비상용)으로 돈다.
---   Studio 에서는 받지 않는다 (편집 중인 사본으로 테스트). Studio 에서 시험하려면 이 스크립트 속성 ForceLiveCode = true.
+--   Studio: 코드를 고치는 마을 place(EDIT_PLACE_ID)만 받지 않는다 (편집 중인 사본으로 테스트).
+--     다른 place(공장·상점 지구·갓운드 등)는 Studio 플레이에서도 최신 게시 버전을 받는다 (2026-11-27 사용자 결정:
+--     place 안 사본이 옛 버전에 멈춰 있어도 항상 게시된 최신으로 테스트). 마을에서 시험하려면 속성 ForceLiveCode = true.
 --   긴급 끄기: 이 스크립트 속성 UseEmbeddedCode = true (place 게시 필요). 보통은 패키지 버전을 되돌려 게시하는 쪽이 빠름.
 --   끝나면 ReplicatedStorage 속성 CodeReady = true, CodeLive = (하나라도 받았는가). 클라 Main 이 이것을 기다린다.
 --   Controllers: 받은 것에 속성 LiveLoaded 를 달아 StarterPlayerScripts 에 두고, 서버 시작 직후에 들어와
@@ -20,6 +22,7 @@ local ServerScriptService = game:GetService("ServerScriptService")
 local ServerStorage = game:GetService("ServerStorage")
 local StarterPlayerScripts = game:GetService("StarterPlayer"):WaitForChild("StarterPlayerScripts")
 
+local EDIT_PLACE_ID = 133122559439695 -- 마을(Godstayed): 패키지 코드를 고치는 곳
 local LOAD_TIMEOUT = 20
 local LIVE_MIRROR_TIME = 90
 
@@ -95,7 +98,8 @@ local function loadLiveCode(): number
 	return swapped
 end
 
-local useLive = script:GetAttribute("UseEmbeddedCode") ~= true and (not RunService:IsStudio() or script:GetAttribute("ForceLiveCode") == true)
+local useLive = script:GetAttribute("UseEmbeddedCode") ~= true
+	and (not RunService:IsStudio() or game.PlaceId ~= EDIT_PLACE_ID or script:GetAttribute("ForceLiveCode") == true)
 local live = if useLive then loadLiveCode() else 0
 ReplicatedStorage:SetAttribute("CodeLive", live > 0)
 ReplicatedStorage:SetAttribute("CodeReady", true)
