@@ -422,6 +422,11 @@ local SOURCE = [==[
 - | Save | 저장
 - | Menu | 메뉴
 - | Skill %d | 스킬 %d
+- | Ping | 핑
+- | Go here | 여기로
+- | Enemy | 적
+- | Loot | 전리품
+- | Need help | 도와줘
 - | %s can't be used. Use A-Z (not WASD, Q, E, C, B, P, J, I, O) or 5-0. | %s 키는 쓸 수 없습니다. A-Z(WASD, Q, E, C, B, P, J, I, O 제외)나 5-0을 쓰세요.
 ## UI.Party
 - | In Combat | 전투 중
@@ -593,6 +598,9 @@ local SOURCE = [==[
 - | Tutorial complete! | 튜토리얼 완료!
 - | Press M | M을 누르세요
 - | Tap the map | 지도를 누르세요
+- | Tap ping | 핑을 누르세요
+- | Click the mouse wheel | 마우스 휠을 누르세요
+- | Wheel | 휠
 Tutorial.Equip.Title | Equip your weapon | 무기를 장착하세요
 Tutorial.Move.Title | Go to the training dummy | 훈련용 허수아비로 가세요
 Tutorial.Move.Text | Hold Shift to sprint. Press Q to dash at least once on the way. | Shift를 누르고 있으면 달립니다. 가는 길에 Q로 대시를 한 번 이상 해 보세요.
@@ -611,6 +619,9 @@ Tutorial.Extract.Text | Grab loot, then stand in an exit before time runs out. I
 Tutorial.Map.Title | Open the map | 지도를 여세요
 Tutorial.Map.Text | Press M to see where you are and where the exits are. | M을 누르면 내 위치와 출구 위치를 볼 수 있습니다.
 Tutorial.Map.TouchText | Tap the map button to see where you are and where the exits are. | 지도 버튼을 누르면 내 위치와 출구 위치를 볼 수 있습니다.
+Tutorial.Ping.Title | Ping a spot | 핑을 찍어 보세요
+Tutorial.Ping.Text | Click the mouse wheel to ping where you point. Hold it to choose a ping type. Your party sees your pings. | 마우스 휠을 누르면 가리킨 곳에 핑이 찍힙니다. 누르고 있으면 핑 종류를 고를 수 있습니다. 핑은 파티원에게 보입니다.
+Tutorial.Ping.TouchText | Tap the ping button to ping the spot under the aim mark. Hold it to choose a ping type. Your party sees your pings. | 핑 버튼을 누르면 조준점 자리에 핑이 찍힙니다. 누르고 있으면 핑 종류를 고를 수 있습니다. 핑은 파티원에게 보입니다.
 Tutorial.Retry.Title | Escape a raid | 레이드에서 탈출하기
 Tutorial.Retry.Text | Head out again. Reach an exit alive to finish the tutorial. | 다시 출발하세요. 살아서 출구에 도착하면 튜토리얼이 끝납니다.
 ## UI.Loading
