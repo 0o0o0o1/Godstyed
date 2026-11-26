@@ -1,7 +1,7 @@
 --!strict
 -- 은신 상태 (Skills kind "stealth", 은신 Vanish). ParryState 처럼 Skill 밑에 두고 EnemyAI·DamageDealer·Combat·Skill 이 같이 씀
 -- (Enemy → Skill 순환 require 없이).
---   begin(player, character, skill)   분신을 세우고 은신 시작 (처음 호출은 Skill 서비스의 castDelay 뒤)
+--   begin(player, character, skill, at?) 분신을 at(시전 자리, 없으면 지금 자리)에 세우고 은신 시작 (Skill 서비스가 castDelay 뒤 호출, 그사이 내 몸은 대시로 떠남)
 --   finish(player, reason)            끝: "timeout" | "attack"(기본 공격) | "skill"(다른 스킬) | "hit"(피격) | "death" | "refresh"
 --                                     "attack"·"skill" 이면 ambushWindow 동안 준 피해 × ambushMult (DamageDealer 가 ambushMult 로 물음)
 --   redirect(player) -> (분신 몸통?, 은신 중?)  EnemyAI: 은신 중인 플레이어 대신 분신을 쫓게 (분신이 없으면 못 찾음)
@@ -55,7 +55,7 @@ end
 
 -- 분신: 내 캐릭터 복제, 가만히 선 기본 자세(관절 Transform 은 복제되지 않아 쉬는 자세), 발은 바닥에.
 -- Humanoid 는 옷·이름표 때문에 두고 상태 기계만 끔. 누구든 피해를 주면(체력이 줄면) 연기로 사라짐
-local function makeDecoy(player: Player, character: Model): Model?
+local function makeDecoy(player: Player, character: Model, at: CFrame?): Model?
 	local root = character:FindFirstChild("HumanoidRootPart") :: BasePart?
 	local humanoid = character:FindFirstChildOfClass("Humanoid")
 	if not (root and humanoid) then
@@ -100,12 +100,13 @@ local function makeDecoy(player: Player, character: Model): Model?
 	cloneHumanoid.MaxHealth = 100
 	cloneHumanoid.Health = 100
 	-- 바닥에 서 있게 (점프 중에 써도)
-	local look = root.CFrame.LookVector
+	local from = at or root.CFrame
+	local look = from.LookVector
 	local flat = Vector3.new(look.X, 0, look.Z)
 	if flat.Magnitude < 1e-3 then
 		flat = Vector3.zAxis
 	end
-	local pos = root.Position
+	local pos = from.Position
 	local params = RaycastParams.new()
 	params.FilterType = Enum.RaycastFilterType.Exclude
 	params.RespectCanCollide = true
@@ -151,7 +152,7 @@ local function removeDecoy(player: Player, entry: Entry, reason: string)
 	end
 end
 
-function StealthState.begin(player: Player, character: Model, skill: any)
+function StealthState.begin(player: Player, character: Model, skill: any, at: CFrame?)
 	if active[player] then
 		StealthState.finish(player, "refresh")
 	end
@@ -162,7 +163,7 @@ function StealthState.begin(player: Player, character: Model, skill: any)
 	local token = {}
 	local entry: Entry = { token = token, character = character, skill = skill, decoy = nil, conns = {} }
 	active[player] = entry
-	entry.decoy = makeDecoy(player, character)
+	entry.decoy = makeDecoy(player, character, at)
 	character:SetAttribute("Stealthed", true)
 	character:SetAttribute("StealthSpeedMult", 1 + (skill.speedBoost or 0))
 	-- 맞으면 끊김 (사용자 결정), 죽으면 끝

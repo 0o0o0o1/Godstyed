@@ -1,7 +1,8 @@
 --!strict
 -- 은신 연출 (Skills.vanish, kind "stealth", vfx = "Vanish"). 단검 색 = 보라 + 검은 연기.
 -- 원본: 저장소 scripts/packages/Controllers/Vfx_Vanish.lua (Controllers 패키지 SkillController.Vfx.Vanish)
---   시전 (phase 없음)  castDelay 뒤 몸을 숨김 — 남: 완전히 안 보임(이름표·무기 포함) / 파티원: 아주 흐린 윤곽 / 나: 반투명 + 검은 보라 실루엣
+--   시전 (phase 없음)  내 캐릭터는 이동 방향(서 있으면 바라보는 쪽)으로 살짝 대시 (SKILL.dashSpeed × dashTime, 벽에서 멈춤) — 분신은 누른 자리에 남음
+--                      castDelay 뒤 몸을 숨김 — 남: 완전히 안 보임(이름표·무기 포함) / 파티원: 아주 흐린 윤곽 / 나: 반투명 + 검은 보라 실루엣
 --                      나만: 발밑 검은 연기 + 화면이 살짝 어두워짐 + 작은 소리 (남에게는 이펙트·소리 없음, 분신만 보임 — 분신은 서버가 만듦)
 --   분신 사라짐 "decoy"  분신 자리에 검은 연기 (모두에게, 맞았거나 은신이 끝남)
 --   끝 "end"           몸이 다시 보임, 내 화면 효과 거둠
@@ -196,6 +197,51 @@ local function veil(character: Model, life: number)
 	end)
 end
 
+-- 살짝 대시: 기본 대시(MovementController)와 같은 방식 — 수평 LinearVelocity, 벽에 막히면 바로 멈춤
+local DASH_BLOCK_GRACE, DASH_BLOCKED_RATIO = 0.05, 0.5
+local function dash(character: Model)
+	local humanoid = character:FindFirstChildOfClass("Humanoid")
+	local root = character:FindFirstChild("HumanoidRootPart") :: BasePart?
+	local speed, time = SKILL.dashSpeed or 0, SKILL.dashTime or 0
+	if not (humanoid and root) or speed <= 0 or time <= 0 or character:GetAttribute("Rooted") then
+		return
+	end
+	local flat = Vector3.new(1, 0, 1)
+	local dir = humanoid.MoveDirection * flat
+	if dir.Magnitude < 0.1 then
+		dir = root.CFrame.LookVector * flat
+	end
+	if dir.Magnitude < 1e-3 then
+		return
+	end
+	dir = dir.Unit
+	root.CFrame = CFrame.lookAt(root.Position, root.Position + dir)
+	local attachment = Instance.new("Attachment")
+	attachment.Name = "VanishDash"
+	local velocity = Instance.new("LinearVelocity")
+	velocity.Attachment0 = attachment
+	velocity.RelativeTo = Enum.ActuatorRelativeTo.World
+	velocity.ForceLimitMode = Enum.ForceLimitMode.PerAxis
+	velocity.MaxAxesForce = Vector3.new(1e5, 0, 1e5) -- 세로는 중력에 맡김
+	velocity.VectorVelocity = dir * speed
+	velocity.Parent = attachment
+	attachment.Parent = root
+	local started = os.clock()
+	local watch: RBXScriptConnection
+	watch = RunService.Heartbeat:Connect(function()
+		local t = os.clock() - started
+		if not attachment.Parent or t >= time then
+			attachment:Destroy()
+			watch:Disconnect()
+			return
+		end
+		if t >= DASH_BLOCK_GRACE and root.AssemblyLinearVelocity:Dot(dir) < speed * DASH_BLOCKED_RATIO then
+			attachment:Destroy() -- 벽에 막힘
+			watch:Disconnect()
+		end
+	end)
+end
+
 local function onCast(payload: any, character: Model)
 	local owner = ownerOf(character)
 	local mine = owner == player
@@ -208,6 +254,9 @@ local function onCast(payload: any, character: Model)
 		local at = if root then root.Position else payload.origin.Position
 		smoke(ctx, Kit.ground(at, { character, ctx.folder }) + Vector3.new(0, 1.2, 0), 9, 4.5)
 		Kit.sound(SOUNDS.vanish)
+		if payload.timeScale == nil then
+			dash(character)
+		end
 	end
 	task.delay(delay, function()
 		if character.Parent then
