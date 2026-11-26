@@ -412,6 +412,16 @@ local SOURCE = [==[
 - | My Overhead Bar | 내 머리 위 체력바
 - | Screen Shake | 화면 흔들림
 - | Reset Default | 기본값으로
+- | Button Layout | 버튼 배치
+- | Edit | 편집
+- | Drag a button to move it. Tap one to change its size. | 버튼을 끌어서 옮기세요. 버튼을 누르면 크기를 바꿀 수 있습니다.
+- | All Buttons | 모든 버튼
+- | Tap a button | 버튼을 누르세요
+- | Reset to default. Press Save to keep it. | 기본 배치로 되돌렸습니다. 저장을 눌러야 유지됩니다.
+- | Button layout saved. | 버튼 배치를 저장했습니다.
+- | Save | 저장
+- | Menu | 메뉴
+- | Skill %d | 스킬 %d
 - | %s can't be used. Use A-Z (not WASD, Q, E, C, B, P, J, I, O) or 5-0. | %s 키는 쓸 수 없습니다. A-Z(WASD, Q, E, C, B, P, J, I, O 제외)나 5-0을 쓰세요.
 ## UI.Party
 - | In Combat | 전투 중
