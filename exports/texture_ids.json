@@ -316,5 +316,24 @@
       "88334472667446"
     ]
   },
-  "Helipad_Exit_model": "137640186423471"
+  "Helipad_Exit_model": "137640186423471",
+  "StallSteel": {
+    "_note": "마을 시장 노점 컨테이너 몸체 타일 (Open Cloud Decal 업로드 → 이미지 ID). U = 길이 24 스터드 반복, V = 높이 12 스터드(아래 때·위 녹). 원본 PNG exports/textures/stall/, 셰이더 scripts/market_stall_tex.py",
+    "Color": {
+      "RustRed": "rbxassetid://106722420185934",
+      "FadedBlue": "rbxassetid://111107166331362",
+      "Olive": "rbxassetid://93343237491718",
+      "DirtyWhite": "rbxassetid://123782133918236"
+    },
+    "Normal": "rbxassetid://124914064494056",
+    "Roughness": "rbxassetid://106801643442529",
+    "Metalness": "rbxassetid://88299837621365",
+    "Models": {
+      "Stall40F": "130264728329420",
+      "Stall40C": "136964774623384",
+      "Stall20F": "88299643532452",
+      "Stall20S": "72248832180500",
+      "Stall20B": "139143300450977"
+    }
+  }
 }
