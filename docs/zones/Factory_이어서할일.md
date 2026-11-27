@@ -1093,3 +1093,4 @@
 - 증상(사용자): 트럭 연출 스킵이 안 됨.
 - 원인: `Controllers.RaidArrivalController` 가 `SkipPrompt.show()` 직후 HUD 숨기기(`hideGui`)로 PlayerGui 의 ScreenGui 를 전부 끄는데, 이름 예외가 LoadingScreen·RaidArrival 뿐이라 방금 띄운 `SkipPrompt` 도 꺼짐 → 버튼·안내가 안 보이고 눌리지 않음.
 - 수정(마을): hideGui 예외에 `"SkipPrompt"` 추가. 게시: **Controllers**. (마을은 레이드 맵이 아니라 도착 연출이 안 돌아서 게시 후 공장/상가에서 확인 필요)
+- (같은 날) 사용자: "SKIP 버튼 오른쪽이 잘림" → 원인: 버튼이 CanvasGroup 오른쪽 끝에 붙어 있어 바깥 테두리(UIStroke Border 1.5)가 CanvasGroup 에 잘림. `Shared.UI.SkipPrompt` 버튼 위치 x −4, 안내·막대 −98 → −102. 마을 플레이 측정: 버튼 오른쪽 끝이 그룹 끝보다 2.8px 안쪽(HUD 배율 0.7). 게시: **Shared** + **Controllers**(위 수정).
