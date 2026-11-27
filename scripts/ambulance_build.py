@@ -123,7 +123,7 @@ def build(asset, open_doors=False, crashed=False):
                 K.box("LightRed", x0, x1, -(W2 - 0.2), -(W2 - 0.9), BZ1, BZ1 + 0.4)
     # 뒤 미등·번호판 자리
     for s in (-1, 1):
-        a, b = sorted((s * 4.0, s * 4.6))
+        a, b = sorted((s * 4.35, s * 4.75))
         K.box("TailLight", BX0 - 0.15, BX0, a, b, 4.2, 5.6)
     # 실내: 바닥 깔판, 왼쪽 수납장, 들것
     K.box("Interior", BX0 + T, BX1 - T, -W2 + T, W2 - T, BZ0 + T, BZ0 + T + 0.08)
@@ -138,7 +138,7 @@ def build(asset, open_doors=False, crashed=False):
         x = cxw + rr * math.cos(ang); z = czw + rr * math.sin(ang)
         if z >= 2.2:
             arch.append((x, z))
-    prof = [(4.5, 2.2), (6.56, 2.2)] + arch + [(10.44, 2.2), (13.0, 2.2), (13.2, 4.9), (12.7, 5.7), (9.9, 6.1),
+    prof = [(4.5, 2.2), (6.56, 2.2)] + arch + [(10.44, 2.2), (13.0, 2.2), (13.0, 4.9), (12.7, 5.7), (9.9, 6.1),
                                                (8.7, 9.2), (4.5, 9.2)]
     K.prism("Paint", prof, -4.4, 4.4)
     # 앞유리·옆창 (면에서 0.03 띄움)
@@ -150,7 +150,7 @@ def build(asset, open_doors=False, crashed=False):
         K.prism("Glass", [(5.2, 6.4), (9.3, 6.4), (8.45, 8.7), (5.2, 8.7)], y0, y1)
         y0, y1 = sorted((s * 4.4, s * 4.45))
         K.box("Trim", 4.5, 4.62, y0, y1, 2.4, 9.0)                        # 문 틈
-        K.box("Trim", 7.35, 7.45, y0, y1, 2.4, 6.3)
+        K.box("Trim", 7.35, 7.45, y0, y1, 3.5, 6.3)
         K.box("Trim", 5.3, 6.1, y0 + s * 0.05, y1 + s * 0.05, 5.6, 5.8)  # 손잡이
         a2, b2 = sorted((s * 4.45, s * 5.3))
         K.box("Trim", 9.0, 9.25, a2, b2, 7.0, 7.2)                        # 거울 팔
@@ -158,10 +158,10 @@ def build(asset, open_doors=False, crashed=False):
         K.box("Trim", 8.8, 9.45, a3, b3, 6.3, 7.8)                        # 거울
     # 범퍼·그릴·전조등
     K.box("Trim", 13.0, 13.8, -4.5, 4.5, 2.0, 3.2)
-    K.box("Trim", 13.15, 13.35, -2.6, 2.6, 3.4, 4.8)
+    K.box("Trim", 13.0, 13.3, -2.6, 2.6, 3.4, 4.8)
     for s in (-1, 1):
         a, b = sorted((s * 3.0, s * 4.1))
-        K.box("Light", 13.12, 13.4, a, b, 3.6, 4.6)
+        K.box("Light", 13.0, 13.25, a, b, 3.6, 4.6)
     # 지붕 경광등 바
     K.box("Trim", 5.4, 8.0, -3.6, 3.6, 9.2, 9.5)
     K.box("LightRed", 6.0, 7.4, 0.2, 3.4, 9.5, 10.0)
@@ -203,9 +203,8 @@ def build(asset, open_doors=False, crashed=False):
         def deform(c, key):
             if c.x > 9.0:
                 k = (c.x - 9.0)
-                side = 1.0 + 0.7 * (c.y / 4.5)
-                n1 = noise.noise(Vector((c.x * 0.7, c.y * 0.7, c.z * 0.7)))
-                return Vector((c.x - k * 0.33 * side + 0.15 * n1 * k, c.y + 0.05 * n1 * k, c.z - k * 0.07 * side + 0.12 * n1))
+                # 아핀 변형만 (평면이 평면으로 남아 붙은 부품끼리 안 파고듦): 앞이 눌리고 살짝 아래로
+                return Vector((c.x - k * 0.36, c.y, c.z - k * 0.08))
             return c
     obs = K.finish(col, deform)
     tris = sum(sum(len(p.vertices) - 2 for p in o.data.polygons) for o in obs)

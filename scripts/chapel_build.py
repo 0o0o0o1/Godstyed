@@ -130,20 +130,22 @@ def build_chapel():
     S.prism([(3.0, 9.0), (0.0, 10.5), (3.0, 10.5)], 'XY', ZS - TH, ZS)
     S.prism([(-XO, H), (XO, H), (0.0, 24.0)], 'XY', ZS - TH, ZS)
     # 문틀·장미창 장식(테두리 고리, 구멍 없음)·처마 띠
-    T.box(-3.8, -3.0, 0, 10.5, ZS, ZS + 0.4); T.box(3.0, 3.8, 0, 10.5, ZS, ZS + 0.4); T.box(-3.8, 3.8, 10.5, 11.3, ZS, ZS + 0.4)
+    T.box(-3.8, -3.0, 0.4, 10.5, ZS, ZS + 0.4); T.box(3.0, 3.8, 0.4, 10.5, ZS, ZS + 0.4); T.box(-3.8, 3.8, 10.5, 11.3, ZS, ZS + 0.4)
     for i in range(8):
         a0 = 2 * math.pi * i / 8; a1 = 2 * math.pi * (i + 1) / 8
         p = [(2.6 * math.cos(a0), 18.5 + 2.6 * math.sin(a0)), (2.6 * math.cos(a1), 18.5 + 2.6 * math.sin(a1)),
              (3.3 * math.cos(a1), 18.5 + 3.3 * math.sin(a1)), (3.3 * math.cos(a0), 18.5 + 3.3 * math.sin(a0))]
         T.prism(p, 'XY', ZS, ZS + 0.35)
-    T.prism([(-0.5, 16.3), (0.5, 16.3), (0.5, 20.7), (-0.5, 20.7)], 'XY', ZS, ZS + 0.3)
-    T.prism([(-2.2, 18.0), (2.2, 18.0), (2.2, 19.0), (-2.2, 19.0)], 'XY', ZS, ZS + 0.3)
+    e = 2.6 - 0.5 * math.tan(math.pi / 8)     # 팔각 안쪽 변까지 (막대 모서리가 고리에 닿기만)
+    T.prism([(-0.5, 18.5 - e), (0.5, 18.5 - e), (0.5, 18.5 + e), (-0.5, 18.5 + e)], 'XY', ZS, ZS + 0.3)
+    T.prism([(-e, 18.0), (-0.5, 18.0), (-0.5, 19.0), (-e, 19.0)], 'XY', ZS, ZS + 0.3)
+    T.prism([(0.5, 18.0), (e, 18.0), (e, 19.0), (0.5, 19.0)], 'XY', ZS, ZS + 0.3)
     # ---- 북쪽 벽 + 부서진 박공 ----
     S.box(-XO, XO, 0, H, ZN, ZN + TH)
     S.prism([(-XO, H), (XO, H), (XO, H + 1.0), (7.0, 17.5), (4.0, 16.0), (0.5, 19.8), (-3.0, 17.0), (-7.5, 18.6), (-XO, H + 1.5)], 'XY', ZN, ZN + TH)
     # 처마 띠(옆벽 위)
     for (a, b) in ((XO, XO + 0.4), (-XO - 0.4, -XO)):
-        T.box(a, b, H - 0.6, H, ZN, 9.0 if a < 0 else ZS, col=False)
+        T.box(a, b, H - 1.0, H - 0.4, ZN, 9.0 if a < 0 else ZS, col=False)
     # 버팀벽 (창 사이, 바깥)
     for zc in (-20.0, -12.0, -4.0, 3.0):
         for s in (-1, 1):
@@ -165,9 +167,9 @@ def build_chapel():
         """sign=+1 동쪽 경사. t0..t1 = 마루→처마 사이 비율 구간. xs_end = 처마 끝 x(절대값)."""
         L = xs_end / math.cos(th)
         P0 = Vector((0.0, 24.0)) + d * (L * t0); P1 = Vector((0.0, 24.0)) + d * (L * t1)
-        pts = [P0, P1, P1 + n * thick, P0 + n * thick]
+        pts = [P0, P1, Vector((P1.x, P1.y + thick / math.cos(th))), P0 + n * thick]
         R.prism([(sign * p.x, p.y) for p in pts], 'XY', z0, z1)
-        cx = sign * (P0.x + P1.x + n.x * thick) / 2; cy = (P0.y + P1.y + n.y * thick) / 2
+        cx = sign * (P0.x + P1.x) / 2; cy = (P0.y + P1.y) / 2 + thick / 2
         C = Matrix.Translation((cx, cy, (z0 + z1) / 2)) @ Matrix.Rotation(-sign * th, 4, 'Z')
         COLS.append((C, ((P1 - P0).length, thick, z1 - z0)))
     # 동쪽: 띠 3개, 북쪽 끝이 들쭉날쭉
@@ -175,16 +177,19 @@ def build_chapel():
     # 서쪽: 종탑 구간(z 9..18.8)은 처마 없이 x=12 까지
     slab(-1, -2.0, 9.0, 13.0, 0.0, 0.5); slab(-1, -6.0, 9.0, 13.0, 0.5, 1.0)
     slab(-1, 9.0, ZS + 0.8, 12.0, 0.0, 1.0)
-    T.box(-0.6, 0.6, 24.0, 24.9, -2.0, ZS + 0.8)                       # 용마루
+    yt = lambda x: 24.0 - 10.0 / 12.0 * x + 0.8 / math.cos(th)     # 지붕판 윗면 (x>=0.512)
+    T.prism([(0.0, 24.0), (0.8 * math.sin(th), 24.0 + 0.8 * math.cos(th)), (0.9, yt(0.9)), (0.9, yt(0.9) + 0.3), (0.0, 25.05),
+             (-0.9, yt(0.9) + 0.3), (-0.9, yt(0.9)), (-0.8 * math.sin(th), 24.0 + 0.8 * math.cos(th))], 'XY', -2.0, ZS + 0.8)   # 용마루
+    COLS.append((Matrix.Translation((0.0, 24.6, (ZS + 0.8 - 2.0) / 2)), (1.8, 0.8, ZS + 2.8)))
     # 무너진 쪽: 남은 서까래·마룻대(나무), 떨어진 지붕판
-    W.box(-0.4, 0.4, 23.0, 23.8, -14.0, -2.0)
-    for zr, ln in ((-8.5, 1.0), (-14.5, 0.55)):
+    W.box(-0.35, 0.35, 22.5, 23.2, -14.0, -6.5)
+    for zr, ln in ((-8.5, 1.0), (-12.5, 0.55)):
         for s in (-1, 1):
-            Lr = 12.6 / math.cos(th) * ln
-            A = Vector((0.0, 23.4)); Bp = A + d * Lr
+            Lr = (11.0 - 0.35) / math.cos(th) * ln
+            A = Vector((0.35, 22.9)); Bp = A + d * Lr
             pts = [(s * A.x, A.y), (s * Bp.x, Bp.y), (s * (Bp + n * 0.5).x, (Bp + n * 0.5).y), (s * (A + n * 0.5).x, (A + n * 0.5).y)]
             W.prism(pts, 'XY', zr - 0.3, zr + 0.3)
-    fall = rot('X', -38, (6.0, 0.4, -12.0)) @ rot('Z', 6, (6.0, 0.4, -12.0))
+    fall = rot('X', -38, (6.0, 0.4, -12.0)) @ rot('Z', 6, (1.5, 0.4, -12.0))
     R.box(1.5, 10.0, 0.4, 1.2, -12.0, -3.0, M=fall)
     # ---- 긴 의자 (남쪽 줄은 서 있고, 북쪽은 넘어지거나 없음) ----
     def pew(x0, z, M=None):
@@ -194,12 +199,11 @@ def build_chapel():
             W.box(xx, xx + 0.4, 0.4, 1.8, z - 0.6, z + 0.6, M=M, col=False)
     for z in (13.0, 9.4, 5.8, 2.2):
         pew(-8.0, z); pew(2.0, z)
-    pew(-8.0, -1.4, rot('X', 78, (0, 0.4, -2.1)))
-    pew(2.0, -5.0, rot('Y', 14, (5, 0, -5)) @ rot('X', -80, (0, 0.4, -4.3)))
+    pew(-8.0, -1.4, rot('Y', 9, (-5, 0, -1.4)))
     pew(-8.0, -8.6, rot('Y', -22, (-5, 0, -8.6)))
     # ---- 문짝 (하나는 안으로 열림, 하나는 계단 위에 쓰러짐) ----
-    W.box(-3.0, -0.05, 0.4, 9.0, ZS - TH - 0.3, ZS - TH, M=rot('Y', 70, (-3.0, 0, ZS - TH)))
-    W.box(0.05, 3.0, 0.0, 0.3, ZS + 0.3, ZS + 9.2, M=rot('Y', -12, (1.5, 0, ZS + 2)))
+    W.box(-3.0, -0.05, 0.4, 9.0, ZS - TH - 0.3, ZS - TH, M=rot('Y', 55, (-3.0, 0, ZS - TH)))
+    W.box(-0.5, 2.45, 0.0, 0.3, ZS + 3.0, ZS + 11.9, M=rot('Y', -12, (1.0, 0, ZS + 7.5)))
     # ---- 종탑 (서쪽 앞, x -21..-12, z 9..18) ----
     TX0, TX1, TZ0, TZ1, TT, TH2 = -21.0, -12.0, 9.0, 18.0, 1.2, 36.0
     BEL0, BEL1 = 30.0, 35.0
