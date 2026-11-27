@@ -36,9 +36,19 @@ class Obj:
         return f
 
     def solid(self, bot, top):
-        """bot/top: 같은 개수의 Roblox 점 목록(반시계/시계 상관없이 나중에 노멀 재계산)."""
+        """bot/top: 같은 개수의 Roblox 점 목록(밑면 다각형 + 밀어낸 윗면). 면 방향을 직접 바깥으로 맞춤.
+        (면마다 꼭짓점을 따로 만들어서 recalc_face_normals 가 방향을 못 잡음 → 장미창 등이 뒤집혀 깜빡였음)"""
         n = len(bot)
-        self.poly(bot); self.poly(list(reversed(top)))
+        bb = [B(p) for p in bot]; tb = [B(p) for p in top]       # Blender 좌표(거울 변환 뒤)에서 방향 계산
+        e = tb[0] - bb[0]
+        nw = Vector((0, 0, 0))                                    # Newell 법선
+        for i in range(n):
+            a, c = bb[i], bb[(i + 1) % n]
+            nw += Vector(((a.y - c.y) * (a.z + c.z), (a.z - c.z) * (a.x + c.x), (a.x - c.x) * (a.y + c.y)))
+        if nw.dot(e) < 0:
+            bot = list(reversed(bot)); top = list(reversed(top))
+        # 이제 bot 순서는 e 기준 반시계(Blender) → 윗면 그대로(+e), 밑면 뒤집기(-e), 옆면 [bi,bj,tj,ti] 바깥
+        self.poly(list(reversed(bot))); self.poly(top)
         for i in range(n):
             j = (i + 1) % n
             self.poly([bot[i], bot[j], top[j], top[i]])
@@ -72,7 +82,7 @@ class Obj:
         self.solid(bot, top)
 
     def finish(self, col):
-        bmesh.ops.recalc_face_normals(self.bm, faces=self.bm.faces)
+        # 면 방향은 solid() 에서 이미 바깥으로 맞춤 (recalc 하면 떨어진 면을 마구 뒤집음)
         me = bpy.data.meshes.new(self.name); self.bm.to_mesh(me); self.bm.free()
         ob = bpy.data.objects.new(self.name, me); col.objects.link(ob)
         m = bpy.data.materials.get("M_" + self.name) or bpy.data.materials.new("M_" + self.name)
@@ -239,11 +249,17 @@ def build_chapel():
             Vector((TX1 + 0.2, TH2 + 0.6, TZ1 + 0.2)), Vector((TX0 - 0.2, TH2 + 0.6, TZ1 + 0.2))]
     apex = Vector((cx, TH2 + 9.0, cz))
     vb = [R.bm.verts.new(B(p)) for p in base]; va = R.bm.verts.new(B(apex))
+    cen = (sum((v.co for v in vb), Vector()) / 4 + va.co) / 2
     for i in range(4):
         f = R.bm.faces.new([vb[i], vb[(i + 1) % 4], va])
+        f.normal_update()
+        if f.normal.dot(f.calc_center_median() - cen) < 0:
+            f.normal_flip()
         for lp in f.loops:
             c = lp.vert.co; lp[R.uv].uv = ((c.x + c.y) / 16.0, c.z / 16.0)
-    f = R.bm.faces.new(list(reversed(vb)))
+    f = R.bm.faces.new(list(vb)); f.normal_update()
+    if f.normal.dot(f.calc_center_median() - cen) < 0:
+        f.normal_flip()
     # 층 바닥(나무) + 뚜껑 구멍, 사다리(나무 보이는 것) — 실제 오르기는 Studio 에서 투명 TrussPart
     IX0, IX1, IZ0, IZ1 = TX0 + TT, TX1 - TT, TZ0 + TT, TZ1 - TT
     for (fy, hx0, hx1, hz0, hz1) in ((15.0, IX0, IX0 + 2.2, 12.3, 14.7), (BEL0 - 0.4, IX1 - 3.3, IX1 - 1.1, IZ0, IZ0 + 2.2)):

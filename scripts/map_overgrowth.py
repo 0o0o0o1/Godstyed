@@ -219,8 +219,7 @@ class Grower:
                 bpy.data.objects.remove(old, do_unlink=True)
             if len(bm.faces) == 0:
                 bm.free(); continue
-            if suffix != "_IvyLeaves":
-                bmesh.ops.recalc_face_normals(bm, faces=bm.faces)
+            # 줄기 관·이끼 원판은 만들 때 바깥/위를 보게 감음 (열린 면이라 recalc 하면 뒤집힐 수 있음)
             me = bpy.data.meshes.new(name); bm.to_mesh(me); bm.free()
             ob = bpy.data.objects.new(name, me); self.col.objects.link(ob)
             m = bpy.data.materials.get("M" + suffix) or bpy.data.materials.new("M" + suffix)
