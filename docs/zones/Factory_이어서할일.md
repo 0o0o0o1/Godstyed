@@ -1088,3 +1088,8 @@
 - **탈출 범위 = 패드 (2026-11-27)**: 사용자 "헬기 메시랑 똑같은 범위로" → 패드 정사각형 선택. 템플릿 속성 **ZoneSize 34**(패드 윗면). `Services.Raid` zoneDisc: ZoneSize 가 있으면 패드 방향 34×34 사각 판(아니면 예전 반지름 EXIT.RADIUS 원), exitAt: 패드 기준점 로컬 |x|,|z| ≤ 17. 상점 지구 사본에도 같이 넣고 플레이: 판 34×34, 모서리(16,16) 탈출 시작 / (19,0) 안 됨 확인. 게시: **Shared**(템플릿 속성) · **Services**(Raid).
 - **Studio 에서도 최신 코드 (2026-11-27, 사용자 "Main 을 고쳐 근본 해결")**: `ServerMain` useLive = Studio 가 아니거나 **마을(EDIT_PLACE_ID 133122559439695)이 아니거나** ForceLiveCode. → 공장·상점 지구·갓운드는 Studio 플레이에서도 게시된 최신 패키지를 받음(place 사본이 옛 버전이어도 됨). 마을은 지금처럼 편집 사본. 마을에서 고친 것은 **게시해야** 다른 맵 Studio 테스트에 나옴. 적용: 마을·공장·상점 지구 Main 수정(공장·상점 지구 플레이: CodeLive true, 출구 A·B·C 헬리패드 + 34×34 판 확인). 갓운드(신의 상처 127445530649488) Main 도 수정(플레이 CodeLive true 확인) → 4곳 모두 적용, 각 place 저장·게시 필요 (그 place 를 Studio 로 열면 같은 3곳 수정 → 저장/게시). 각 place 저장·게시 필요.
 - ⚠ 패키지를 잘못 게시하면 모든 맵 새 서버에 바로 퍼짐 → 게시 전 마을 Studio 플레이로 확인. 이미 열려 있는 서버는 그대로(새 서버부터).
+
+### 도착 트럭 연출 SKIP 안 됨 고침 (2026-11-27)
+- 증상(사용자): 트럭 연출 스킵이 안 됨.
+- 원인: `Controllers.RaidArrivalController` 가 `SkipPrompt.show()` 직후 HUD 숨기기(`hideGui`)로 PlayerGui 의 ScreenGui 를 전부 끄는데, 이름 예외가 LoadingScreen·RaidArrival 뿐이라 방금 띄운 `SkipPrompt` 도 꺼짐 → 버튼·안내가 안 보이고 눌리지 않음.
+- 수정(마을): hideGui 예외에 `"SkipPrompt"` 추가. 게시: **Controllers**. (마을은 레이드 맵이 아니라 도착 연출이 안 돌아서 게시 후 공장/상가에서 확인 필요)
